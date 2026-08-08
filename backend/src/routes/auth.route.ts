@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { exchangePortalToken, SsoExchangeError } from '../services/portal-sso.service'
+import type { SessionUser } from '../plugins/auth'
 
 const loginSchema = z.object({
   ssoToken: z.string().min(1),
@@ -14,7 +15,7 @@ export default async function authRoutes(app: FastifyInstance) {
   }))
 
   app.post('/demo-login', async (request, reply) => {
-    const user = {
+    const user: SessionUser = {
       sub: 'demo-user-id',
       email: 'kurniawan@inl.co.id',
       employeeId: 'emp-demo',
@@ -25,9 +26,9 @@ export default async function authRoutes(app: FastifyInstance) {
         namaLengkap: 'Kurniawan Pralambang',
         jabatan: 'Pimpinan IT & Sistem',
       },
-      grade: 'M1',
-      unit: 'IT Department',
-      penempatanArea: 'Head Office',
+      grade: { id: 'g-1', kode: 'M1', label: 'Manager 1', level: 1 },
+      unit: { id: 'u-1', kode: 'IT', nama: 'IT Department' },
+      penempatanArea: { id: 'p-1', kode: 'HO', nama: 'Head Office' },
     }
     request.session.set('user', user)
     return reply.send({ success: true, data: { user } })
