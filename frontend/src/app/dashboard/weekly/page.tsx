@@ -1,403 +1,99 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { SessionUser } from '@/types/auth'
 import { getCurrentUser, api } from '@/lib/api'
-
-interface SubPKOption {
-  id: string
-  kode: string
-  namaItem: string
-  programKerja?: {
-    kode: string
-    namaProgram: string
-  }
-}
-
-interface ActivityItem {
-  id: string
-  no: number
-  idProgram: string
-  kategoriProgram: string
-  itemName: string
-  kegiatan: string
-  descriptionAction?: string
-  startDate: string
-  dueDate: string
-  closedDate?: string
-  tindakLanjut?: string
-  kendala?: string
-  status: string
-  remarks?: string
-  picEmail: string
-  picNama: string
-  isActive: boolean
-  program?: {
-    kode: string
-    namaItem: string
-    programKerja?: {
-      kode: string
-      namaProgram: string
-    }
-  }
-}
+import { Plus, Pencil, EyeOff, Eye, X, Clock, CheckCircle2 } from 'lucide-react'
+import type { SessionUser } from '@/types/auth'
 
 export default function WeeklyActivitiesPage() {
-  const [activities, setActivities] = useState<ActivityItem[]>([])
-  const [subOptions, setSubOptions] = useState<SubPKOption[]>([])
+  const [activities, setActivities] = useState<any[]>([])
+  const [subOpts, setSubOpts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<SessionUser | null>(null)
-
-  // Modal State
   const [showModal, setShowModal] = useState(false)
-  const [editItem, setEditItem] = useState<ActivityItem | null>(null)
-  const [formData, setFormData] = useState({
-    idProgram: '',
-    kegiatan: '',
-    descriptionAction: '',
-    startDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date().toISOString().split('T')[0],
-    closedDate: '',
-    status: 'On Progress',
-    picNama: '',
-    picEmail: '',
-    tindakLanjut: '',
-    kendala: '',
-    remarks: '',
-  })
+  const [editItem, setEditItem] = useState<any>(null)
+  const [form, setForm] = useState({ idProgram: '', kegiatan: '', descriptionAction: '', startDate: '', dueDate: '', closedDate: '', status: 'On Progress', picNama: '', picEmail: '', tindakLanjut: '', kendala: '', remarks: '' })
   const [submitting, setSubmitting] = useState(false)
 
-  const fetchData = async () => {
-    try {
-      const [resAct, resSub] = await Promise.all([
-        api.get('/api/esih/activities'),
-        api.get('/api/esih/programs'),
-      ])
-      setActivities(resAct.data.data || [])
-      setSubOptions(resSub.data.data || [])
-      setLoading(false)
-    } catch (err) {
-      console.error(err)
-    }
+  const fetchAll = async () => {
+    const [r1, r2] = await Promise.all([api.get('/api/esih/activities'), api.get('/api/esih/programs')])
+    setActivities(r1.data.data || []); setSubOpts(r2.data.data || []); setLoading(false)
+  }
+  useEffect(() => { getCurrentUser().then(setUser); fetchAll() }, [])
+
+  const today = new Date().toISOString().split('T')[0]
+  const openAdd = () => { setEditItem(null); setForm({ idProgram: subOpts[0]?.id || '', kegiatan: '', descriptionAction: '', startDate: today, dueDate: today, closedDate: '', status: 'On Progress', picNama: user?.name || '', picEmail: user?.email || '', tindakLanjut: '', kendala: '', remarks: '' }); setShowModal(true) }
+  const openEdit = (a: any) => { setEditItem(a); setForm({ idProgram: a.idProgram, kegiatan: a.kegiatan, descriptionAction: a.descriptionAction || '', startDate: a.startDate, dueDate: a.dueDate, closedDate: a.closedDate || '', status: a.status, picNama: a.picNama, picEmail: a.picEmail, tindakLanjut: a.tindakLanjut || '', kendala: a.kendala || '', remarks: a.remarks || '' }); setShowModal(true) }
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setSubmitting(true)
+    try { editItem ? await api.put(`/api/esih/activities/${editItem.id}`, form) : await api.post('/api/esih/activities', form); setShowModal(false); fetchAll() }
+    catch { alert('Gagal menyimpan') } finally { setSubmitting(false) }
   }
 
-  useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u)
-      if (u?.name) {
-        setFormData((prev) => ({ ...prev, picNama: u.name, picEmail: u.email || '' }))
-      }
-    })
-    fetchData()
-  }, [])
+  const toggle = async (id: string) => { if (confirm('Ubah status aktif?')) { await api.patch(`/api/esih/activities/${id}/toggle`); fetchAll() } }
 
-  const handleOpenAdd = () => {
-    setEditItem(null)
-    setFormData({
-      idProgram: subOptions[0]?.id || '',
-      kegiatan: '',
-      descriptionAction: '',
-      startDate: new Date().toISOString().split('T')[0],
-      dueDate: new Date().toISOString().split('T')[0],
-      closedDate: '',
-      status: 'On Progress',
-      picNama: user?.name || '',
-      picEmail: user?.email || '',
-      tindakLanjut: '',
-      kendala: '',
-      remarks: '',
-    })
-    setShowModal(true)
-  }
-
-  const handleOpenEdit = (item: ActivityItem) => {
-    setEditItem(item)
-    setFormData({
-      idProgram: item.idProgram,
-      kegiatan: item.kegiatan,
-      descriptionAction: item.descriptionAction || '',
-      startDate: item.startDate,
-      dueDate: item.dueDate,
-      closedDate: item.closedDate || '',
-      status: item.status,
-      picNama: item.picNama,
-      picEmail: item.picEmail,
-      tindakLanjut: item.tindakLanjut || '',
-      kendala: item.kendala || '',
-      remarks: item.remarks || '',
-    })
-    setShowModal(true)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-
-    try {
-      if (editItem) {
-        await api.put(`/api/esih/activities/${editItem.id}`, formData)
-      } else {
-        await api.post('/api/esih/activities', formData)
-      }
-      setShowModal(false)
-      fetchData()
-    } catch (err) {
-      alert('Gagal menyimpan Aktivitas Mingguan')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleToggleActive = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin mengubah status aktif aktivitas ini?')) {
-      try {
-        await api.patch(`/api/esih/activities/${id}/toggle`)
-        fetchData()
-      } catch (err) {
-        alert('Gagal mengubah status aktif')
-      }
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-success" role="status"></div>
-        <p className="mt-2 text-muted small">Memuat Weekly Activities...</p>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="fw-bold mb-1 text-dark">Weekly Activities</h4>
-          <p className="text-muted mb-0">Laporan aktivitas mingguan tim terkelola.</p>
-        </div>
-        <button className="btn btn-success fw-bold px-4" onClick={handleOpenAdd}>
-          <i className="bi bi-plus-lg me-2"></i>Tambah Aktivitas Mingguan
-        </button>
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div><h2 className="text-xl font-bold text-slate-900">Weekly Activities</h2><p className="text-sm text-slate-500 mt-0.5">Laporan aktivitas mingguan tim.</p></div>
+        <button onClick={openAdd} className="self-start flex items-center gap-2 px-4 py-2.5 bg-brand-700 text-white rounded-lg text-sm font-semibold hover:bg-brand-800 transition-colors shadow-sm"><Plus size={16} /> Tambah Aktivitas</button>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-3">
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0" style={{ minWidth: '1100px' }}>
-              <thead className="bg-light">
-                <tr>
-                  <th className="py-3 px-4">No</th>
-                  <th className="py-3">Program Induk (Parent)</th>
-                  <th className="py-3">Sub-Program (Child)</th>
-                  <th className="py-3">Kegiatan Mingguan</th>
-                  <th className="py-3">Tenggat Waktu</th>
-                  <th className="py-3">Status</th>
-                  <th className="py-3">PIC (Staff)</th>
-                  <th className="py-3 text-center">Status Aktif</th>
-                  <th className="py-3 text-end px-4">Aksi</th>
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" style={{ minWidth: '900px' }}>
+            <thead><tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">No</th>
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">Program</th>
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">Kegiatan</th>
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">Tanggal</th>
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">Status</th>
+              <th className="text-left px-4 py-3 font-semibold text-slate-500 text-xs uppercase">PIC</th>
+              <th className="text-right px-4 py-3 font-semibold text-slate-500 text-xs uppercase">Aksi</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-50">
+              {activities.map((a, i) => (
+                <tr key={a.id} className={`hover:bg-slate-50 transition-colors ${!a.isActive ? 'opacity-40' : ''}`}>
+                  <td className="px-4 py-3 text-slate-400 font-mono text-xs">{i + 1}</td>
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-slate-800 text-xs">{a.program?.kode} {a.itemName}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{a.program?.programKerja?.kode} - {a.program?.programKerja?.namaProgram?.substring(0, 30)}</p>
+                  </td>
+                  <td className="px-4 py-3"><p className="font-medium text-slate-700 text-xs">{a.kegiatan}</p>{a.descriptionAction && <p className="text-[11px] text-slate-400 truncate max-w-[200px] mt-0.5">{a.descriptionAction}</p>}</td>
+                  <td className="px-4 py-3"><p className="text-xs text-slate-600">{a.startDate}</p><p className="text-[11px] text-red-400 mt-0.5">Due: {a.dueDate}</p></td>
+                  <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${a.status === 'Closed' ? 'bg-green-50 text-green-700' : a.status === 'On Progress' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>{a.status === 'Closed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}{a.status}</span></td>
+                  <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-brand-700 text-white flex items-center justify-center text-[10px] font-bold">{a.picNama?.charAt(0)}</div><span className="text-xs font-medium text-slate-600">{a.picNama}</span></div></td>
+                  <td className="px-4 py-3 text-right"><div className="inline-flex gap-1"><button onClick={() => openEdit(a)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700"><Pencil size={15} /></button><button onClick={() => toggle(a.id)} className="p-1.5 rounded-md hover:bg-amber-50 text-slate-400 hover:text-amber-600">{a.isActive ? <EyeOff size={15} /> : <Eye size={15} />}</button></div></td>
                 </tr>
-              </thead>
-              <tbody>
-                {activities.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-4 text-muted">Belum ada data aktivitas mingguan.</td>
-                  </tr>
-                ) : (
-                  activities.map((act, index) => (
-                    <tr key={act.id} className={!act.isActive ? 'table-secondary opacity-75' : ''}>
-                      <td className="px-4 text-muted fw-bold">{index + 1}</td>
-                      <td>
-                        <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                          {act.program?.programKerja?.kode || 'A'} {act.program?.programKerja?.namaProgram || act.kategoriProgram}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="fw-bold text-dark">{act.program?.kode || ''} {act.itemName}</div>
-                      </td>
-                      <td>
-                        <div className="fw-medium text-dark">{act.kegiatan}</div>
-                        {act.descriptionAction && (
-                          <div className="small text-muted text-truncate" style={{ maxWidth: '240px' }}>
-                            {act.descriptionAction}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <div className="small text-dark"><i className="bi bi-calendar-check me-1 text-success"></i>{act.startDate}</div>
-                        <div className="small text-danger mt-1"><i className="bi bi-calendar-x me-1"></i>{act.dueDate}</div>
-                      </td>
-                      <td>
-                        <span className={`badge rounded-pill ${act.status === 'Closed' ? 'bg-success' : act.status === 'On Progress' ? 'bg-warning text-dark' : 'bg-danger'}`}>
-                          {act.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '32px', height: '32px', fontSize: '0.8rem' }}>
-                            {act.picNama?.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="small fw-bold text-dark">{act.picNama}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-center">
-                        <span className={`badge rounded-pill ${act.isActive ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary'}`}>
-                          {act.isActive ? 'Aktif' : 'Non-Aktif'}
-                        </span>
-                      </td>
-                      <td className="text-end px-4">
-                        <button className="btn btn-sm btn-light me-1" onClick={() => handleOpenEdit(act)} title="Edit Aktivitas">
-                          <i className="bi bi-pencil"></i>
-                        </button>
-                        <button 
-                          className={`btn btn-sm ${act.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`} 
-                          onClick={() => handleToggleActive(act.id)}
-                          title={act.isActive ? 'Nonaktifkan Aktivitas' : 'Aktifkan Aktivitas'}
-                        >
-                          <i className={`bi bi-${act.isActive ? 'eye-slash' : 'check-circle'}`}></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Modal Add/Edit Activity */}
       {showModal && (
-        <div className="modal d-block bg-dark bg-opacity-50" tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content rounded-4 border-0 shadow">
-              <div className="modal-header border-bottom">
-                <h5 className="modal-title fw-bold text-dark">
-                  {editItem ? `Edit Aktivitas Mingguan: #${editItem.no}` : 'Tambah Aktivitas Mingguan Baru'}
-                </h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+        <div className="modal-backdrop fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10"><h3 className="font-bold text-slate-900">{editItem ? 'Edit Aktivitas' : 'Tambah Aktivitas Baru'}</h3><button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400"><X size={18} /></button></div>
+            <form onSubmit={submit} className="p-6 space-y-4">
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Item Program</label><select value={form.idProgram} onChange={e => setForm({ ...form, idProgram: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200">{subOpts.map(s => <option key={s.id} value={s.id}>[{s.programKerja?.kode}] {s.kode} - {s.namaItem}</option>)}</select></div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kegiatan</label><input type="text" value={form.kegiatan} onChange={e => setForm({ ...form, kegiatan: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Action / Deskripsi</label><textarea rows={2} value={form.descriptionAction} onChange={e => setForm({ ...form, descriptionAction: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200 resize-none" /></div>
+              <div className="grid grid-cols-3 gap-3">
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Start</label><input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Due Date</label><input type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Status</label><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200"><option>Open</option><option>On Progress</option><option>Closed</option></select></div>
               </div>
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body p-4">
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Pilih Sub-Program Kerja (Child)</label>
-                    <select 
-                      className="form-select" 
-                      value={formData.idProgram}
-                      onChange={(e) => setFormData({ ...formData, idProgram: e.target.value })}
-                      required
-                    >
-                      {subOptions.map((s) => (
-                        <option value={s.id} key={s.id}>
-                          [{s.programKerja?.kode || 'A'}] {s.kode} - {s.namaItem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Kegiatan Mingguan</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Contoh: Final testing & Go Live SmartWB dengan RFID" 
-                      value={formData.kegiatan}
-                      onChange={(e) => setFormData({ ...formData, kegiatan: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Action to be taken (Deskripsi Tindakan)</label>
-                    <textarea 
-                      className="form-control" 
-                      rows={2}
-                      placeholder="Langkah spesifik yang diambil dalam kegiatan..."
-                      value={formData.descriptionAction}
-                      onChange={(e) => setFormData({ ...formData, descriptionAction: e.target.value })}
-                    ></textarea>
-                  </div>
-
-                  <div className="row g-3 mb-3">
-                    <div className="col-12 col-md-4">
-                      <label className="form-label fw-bold text-dark">Tanggal Mulai (Start)</label>
-                      <input 
-                        type="date" 
-                        className="form-control" 
-                        value={formData.startDate}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-4">
-                      <label className="form-label fw-bold text-dark">Tenggat Waktu (Due Date)</label>
-                      <input 
-                        type="date" 
-                        className="form-control" 
-                        value={formData.dueDate}
-                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-4">
-                      <label className="form-label fw-bold text-dark">Status Pekerjaan</label>
-                      <select 
-                        className="form-select" 
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      >
-                        <option value="Open">Open</option>
-                        <option value="On Progress">On Progress</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="row g-3 mb-3">
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-bold text-dark">Nama Penanggung Jawab (PIC)</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Contoh: Tommy / Salman" 
-                        value={formData.picNama}
-                        onChange={(e) => setFormData({ ...formData, picNama: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-bold text-dark">Tindak Lanjut</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Tindak lanjut yang harus dilakukan..." 
-                        value={formData.tindakLanjut}
-                        onChange={(e) => setFormData({ ...formData, tindakLanjut: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Remarks / Catatan Tambahan</label>
-                    <textarea 
-                      className="form-control" 
-                      rows={2}
-                      placeholder="Catatan progres, kendala atau informasi tambahan..."
-                      value={formData.remarks}
-                      onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className="modal-footer border-top bg-light">
-                  <button type="button" className="btn btn-light fw-bold" onClick={() => setShowModal(false)}>Batal</button>
-                  <button type="submit" className="btn btn-success fw-bold px-4" disabled={submitting}>
-                    {submitting ? 'Menyimpan...' : 'Simpan Aktivitas'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">PIC</label><input type="text" value={form.picNama} onChange={e => setForm({ ...form, picNama: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Tindak Lanjut</label><input type="text" value={form.tindakLanjut} onChange={e => setForm({ ...form, tindakLanjut: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+              </div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Remarks</label><textarea rows={2} value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-200 resize-none" /></div>
+              <div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">Batal</button><button type="submit" disabled={submitting} className="px-5 py-2 rounded-lg text-sm font-semibold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50">{submitting ? 'Menyimpan...' : 'Simpan'}</button></div>
+            </form>
           </div>
         </div>
       )}

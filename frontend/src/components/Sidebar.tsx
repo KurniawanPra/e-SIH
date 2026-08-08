@@ -3,82 +3,114 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { LayoutDashboard, CalendarDays, CalendarRange, FolderKanban, ListChecks, ChevronDown, ChevronRight, PanelLeftClose } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 
 interface SidebarProps {
   user: SessionUser | null
+  collapsed: boolean
+  onToggle: () => void
 }
 
-export default function Sidebar({ user }: SidebarProps) {
+const nav = [
+  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'Weekly Activities', path: '/dashboard/weekly', icon: CalendarDays },
+  { name: 'Monthly Report', path: '/dashboard/monthly', icon: CalendarRange },
+]
+
+export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
 
-  const isAdminOrPimpinan = user?.employee?.jabatan?.toLowerCase().includes('pimpinan') || user?.employee?.jabatan?.toLowerCase().includes('admin') || true
-
-  const navItems = [
-    { name: 'Executive Dashboard', path: '/dashboard', icon: 'bi-speedometer2' },
-    { name: 'Weekly Activities', path: '/dashboard/weekly', icon: 'bi-calendar-week' },
-    { name: 'Monthly Activities', path: '/dashboard/monthly', icon: 'bi-calendar-month' },
-  ]
+  if (collapsed) return null
 
   return (
-    <div className="sidebar d-flex flex-column" id="sidebar">
-      <div className="p-3 border-bottom d-flex align-items-center gap-2" style={{ height: '64px' }}>
-        <h4 className="text-success fw-bold mb-0">e-SIH</h4>
-        <div className="lh-sm">
-          <div className="fw-bold fs-6 text-dark">INL Operation</div>
-          <div className="text-muted" style={{ fontSize: '0.65rem' }}>Highlight Report</div>
+    <>
+      {/* Overlay on mobile */}
+      <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onToggle} />
+
+      <aside className="fixed top-0 left-0 z-50 h-dvh w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200">
+        {/* Logo */}
+        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-100">
+          <Link href="/dashboard" className="flex items-center gap-2.5 no-underline">
+            <div className="w-8 h-8 rounded-lg bg-brand-700 flex items-center justify-content-center text-white font-extrabold text-xs grid place-items-center">SIH</div>
+            <div className="leading-tight">
+              <span className="font-bold text-slate-900 text-sm block">e-SIH</span>
+              <span className="text-[10px] text-slate-400 tracking-wide">INL Operation</span>
+            </div>
+          </Link>
+          <button onClick={onToggle} className="lg:flex hidden p-1.5 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
+            <PanelLeftClose size={18} />
+          </button>
         </div>
-      </div>
-      
-      <div className="p-3">
-        <p className="text-muted small fw-bold text-uppercase mb-2">Navigasi Utama</p>
-        <ul className="nav nav-pills flex-column">
-          {navItems.map((item) => (
-            <li className="nav-item" key={item.path}>
-              <Link 
-                href={item.path} 
-                className={`nav-link ${pathname === item.path ? 'active' : ''}`}
-              >
-                <i className={`bi ${item.icon} me-2`}></i> {item.name}
-              </Link>
-            </li>
-          ))}
-          
-          {isAdminOrPimpinan && (
-            <li className="nav-item mt-2">
-              <a 
-                className="nav-link d-flex justify-content-between align-items-center" 
-                style={{ cursor: 'pointer' }}
-                onClick={() => setMasterOpen(!masterOpen)}
-              >
-                <span><i className="bi bi-database me-2"></i> Master Data</span>
-                <i className={`bi bi-chevron-${masterOpen ? 'up' : 'down'}`} style={{ fontSize: '0.75rem' }}></i>
-              </a>
-              {masterOpen && (
-                <ul className="nav flex-column ms-3 mt-1" style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '0.5rem' }}>
-                  <li className="nav-item">
-                    <Link 
-                      href="/dashboard/master/parent-pk" 
-                      className={`nav-link text-muted small ${pathname.includes('/master/parent-pk') ? 'fw-bold text-success' : ''}`}
-                    >
-                      <i className="bi bi-folder me-1"></i> Master PK (Induk)
-                    </Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link 
-                      href="/dashboard/master/sub-pk" 
-                      className={`nav-link text-muted small ${pathname.includes('/master/sub-pk') ? 'fw-bold text-success' : ''}`}
-                    >
-                      <i className="bi bi-card-checklist me-1"></i> Master Sub PK
-                    </Link>
-                  </li>
-                </ul>
-              )}
-            </li>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Menu</p>
+          <ul className="space-y-0.5">
+            {nav.map(item => {
+              const active = pathname === item.path
+              return (
+                <li key={item.path}>
+                  <Link
+                    href={item.path}
+                    onClick={() => { if (window.innerWidth < 1024) onToggle() }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all no-underline ${
+                      active
+                        ? 'bg-brand-700 text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />
+                    {item.name}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* Master Data Section */}
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mt-6 mb-2">Master Data</p>
+          <button
+            onClick={() => setMasterOpen(!masterOpen)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <span className="flex items-center gap-3"><FolderKanban size={18} strokeWidth={1.8} /> Kelola Data</span>
+            {masterOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+          {masterOpen && (
+            <ul className="ml-5 mt-1 space-y-0.5 border-l-2 border-slate-100 pl-3">
+              <li>
+                <Link
+                  href="/dashboard/master/program-kerja"
+                  onClick={() => { if (window.innerWidth < 1024) onToggle() }}
+                  className={`block px-3 py-2 rounded-md text-[13px] no-underline transition-colors ${
+                    pathname.includes('/master/program-kerja') ? 'font-semibold text-brand-700 bg-brand-50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  Program Kerja
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/master/items"
+                  onClick={() => { if (window.innerWidth < 1024) onToggle() }}
+                  className={`block px-3 py-2 rounded-md text-[13px] no-underline transition-colors ${
+                    pathname.includes('/master/items') ? 'font-semibold text-brand-700 bg-brand-50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="flex items-center gap-2"><ListChecks size={15} /> Item Program</span>
+                </Link>
+              </li>
+            </ul>
           )}
-        </ul>
-      </div>
-    </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-slate-100">
+          <div className="text-[10px] text-slate-400 text-center">© {new Date().getFullYear()} PT Industri Nabati Lestari</div>
+        </div>
+      </aside>
+    </>
   )
 }
