@@ -1,0 +1,57 @@
+{
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "pageResults": [
+    {
+      "label": "Weekly Activities",
+      "expected": "Weekly Activities",
+      "ok": true
+    },
+    {
+      "label": "Monthly Report",
+      "expected": "Monthly Report",
+      "ok": true
+    },
+    {
+      "label": "All Activities",
+      "expected": "All Activities",
+      "ok": true
+    },
+    {
+      "label": "Program Kerja",
+      "expected": "Kelola kelompok utama Program Kerja",
+      "ok": true
+    },
+    {
+      "label": "Item Program",
+      "expected": "Item Program",
+      "ok": true
+    },
+    {
+      "label": "Kelola Users",
+      "expected": "Kelola User",
+      "ok": true
+    }
+  ],
+  "interactions": [
+    {
+      "type": "add-activity",
+      "name": "QA TEST 640785",
+      "appeared": true
+    },
+    {
+      "type": "status-modal",
+      "ok": true
+    },
+    {
+      "type": "mobile-sidebar",
+      "closed": "-100%",
+      "afterToggle": "0px",
+      "overlayOpacity": "1"
+    }
+  ],
+  "failedRequests": [
+    "401 http://localhost:4101/api/auth/me"
+  ]
+}
