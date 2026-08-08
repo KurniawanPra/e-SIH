@@ -33,13 +33,40 @@ export default function ProgramKerjaPage() {
   if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h2 className="text-xl font-bold text-slate-900">Program Kerja</h2><p className="text-sm text-slate-500 mt-0.5">Kelola kelompok utama Program Kerja dan pantau total progress.</p></div>
-        <button onClick={openAdd} className="self-start flex items-center gap-2 px-4 py-2.5 bg-brand-700 text-white rounded-lg text-sm font-semibold hover:bg-brand-800 transition-colors shadow-sm"><Plus size={16} /> Tambah Program</button>
+        <div><h2 className="text-lg sm:text-xl font-bold text-slate-900">Program Kerja</h2><p className="text-xs sm:text-sm text-slate-500 mt-0.5">Kelola kelompok utama Program Kerja dan pantau total progress.</p></div>
+        <button onClick={openAdd} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-brand-800 transition-colors shadow-sm"><Plus size={16} /> Tambah Program</button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      {/* Mobile Card List */}
+      <div className="grid gap-3 sm:hidden">
+        {parents.map(p => (
+          <div key={p.id} className={`bg-white rounded-2xl border border-slate-100 p-4 shadow-xs space-y-3 ${!p.isActive ? 'opacity-40' : ''}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-brand-700 text-white flex items-center justify-center text-xs font-bold">{p.kode}</span>
+                <span className="font-semibold text-slate-900 text-sm">{p.namaProgram}</span>
+              </div>
+              <span className={`inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold ${p.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{p.isActive ? 'Aktif' : 'Nonaktif'}</span>
+            </div>
+            {p.deskripsi && <p className="text-xs text-slate-500">{p.deskripsi}</p>}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex-1 mr-4">
+                <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Progress</span><span className="font-bold text-slate-700">{p.totalProgress}%</span></div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${p.totalProgress >= 80 ? 'bg-green-500' : p.totalProgress >= 50 ? 'bg-amber-400' : 'bg-red-400'}`} style={{ width: `${p.totalProgress}%` }} /></div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600"><Pencil size={14} /></button>
+                <button onClick={() => toggle(p.id)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600">{p.isActive ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="bg-slate-50 border-b border-slate-100">
@@ -77,16 +104,16 @@ export default function ProgramKerjaPage() {
       </div>
 
       {showModal && (
-        <div className="modal-backdrop fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div className="modal-backdrop fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-3 sm:p-4">
           <div className="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100"><h3 className="font-bold text-slate-900">{editItem ? 'Edit Program Kerja' : 'Tambah Program Kerja'}</h3><button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400"><X size={18} /></button></div>
-            <form onSubmit={submit} className="p-6 space-y-4">
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kode</label><input type="text" placeholder="A, B, C" value={form.kode} onChange={e => setForm({ ...form, kode: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none" /></div>
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Program Kerja</label><input type="text" placeholder="ENABLING DIGITAL AND RELIABLE OPERATION" value={form.namaProgram} onChange={e => setForm({ ...form, namaProgram: e.target.value })} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none" /></div>
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label><textarea rows={2} placeholder="Penjelasan singkat..." value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none resize-none" /></div>
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100"><h3 className="font-bold text-slate-900 text-sm sm:text-base">{editItem ? 'Edit Program Kerja' : 'Tambah Program Kerja'}</h3><button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400"><X size={18} /></button></div>
+            <form onSubmit={submit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kode</label><input type="text" placeholder="A, B, C" value={form.kode} onChange={e => setForm({ ...form, kode: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Program Kerja</label><input type="text" placeholder="ENABLING DIGITAL AND RELIABLE OPERATION" value={form.namaProgram} onChange={e => setForm({ ...form, namaProgram: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label><textarea rows={2} placeholder="Penjelasan singkat..." value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none resize-none" /></div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Batal</button>
-                <button type="submit" disabled={submitting} className="px-5 py-2 rounded-lg text-sm font-semibold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 transition-colors">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Batal</button>
+                <button type="submit" disabled={submitting} className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 transition-colors">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
               </div>
             </form>
           </div>
