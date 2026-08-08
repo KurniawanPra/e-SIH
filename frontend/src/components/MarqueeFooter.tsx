@@ -31,19 +31,19 @@ export default function MarqueeFooter({ sidebarOpen }: { sidebarOpen: boolean })
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t-2 border-[#006837] shadow-[0_-4px_20px_rgba(0,0,0,0.4)] text-white h-10 flex items-center transition-all duration-200 ${
+      className={`fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t-2 border-[#006837] shadow-[0_-4px_20px_rgba(0,0,0,0.4)] text-white h-10 hover:h-14 flex items-center transition-all duration-300 ease-out group ${
         sidebarOpen ? 'lg:pl-68' : 'lg:pl-4'
       }`}
     >
-      {/* Wrapper with horizontal clipping and unclipped vertical headroom (-mt-6 pt-6) */}
-      <div className="w-full relative -mt-6 pt-6 pb-1 overflow-x-clip overflow-y-visible">
+      {/* Wrapper with horizontal clipping and unclipped vertical headroom (-mt-4 pt-4) */}
+      <div className="w-full relative -mt-4 pt-4 pb-1 overflow-x-clip overflow-y-visible">
         <div className="animate-marquee flex items-center gap-6 text-xs font-bold py-1">
           {loopPrograms.map((pk, idx) => {
             const colorClass = BADGE_COLORS[idx % BADGE_COLORS.length]
             return (
               <div
                 key={`${pk.id}-${idx}`}
-                className={`px-3.5 py-1 rounded-tl-2xl rounded-br-2xl rounded-tr-none rounded-bl-none text-xs font-black flex items-center gap-2 shrink-0 bg-slate-950/95 ${colorClass} transition-all duration-300 ease-out hover:-translate-y-3.5 hover:scale-110 hover:mx-2.5 hover:z-50 cursor-pointer shadow-xl`}
+                className={`px-3.5 py-1 rounded-tl-2xl rounded-br-2xl rounded-tr-none rounded-bl-none text-xs font-black flex items-center gap-2 shrink-0 bg-slate-950/95 ${colorClass} transition-all duration-300 ease-out hover:-translate-y-1.5 hover:scale-110 hover:mx-2.5 hover:z-50 cursor-pointer shadow-xl`}
               >
                 <span className="font-mono text-[11px] opacity-90">[{pk.kode}]</span>
                 <span>{pk.namaProgram}</span>
