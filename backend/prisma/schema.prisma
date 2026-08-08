@@ -7,21 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model MasterProgram {
-  id         String   @id
-  kategori   String
-  namaItem   String
-  status     String
-  progress   Int
-  keterangan String?
+// Parent: Master Program Kerja Induk
+model ProgramKerja {
+  id          String   @id
+  kode        String   // e.g., "1.0", "2.0"
+  namaProgram String   // e.g., "Program Kerja IT & Digitalisasi"
+  deskripsi   String?
+  createdAt   DateTime @default(now())
 
-  activities Activity[]
+  items MasterProgram[]
+}
+
+// Child: Sub-Program / Item Spesifik
+model MasterProgram {
+  id             String   @id
+  programKerjaId String
+  kode           String   // e.g., "1.1", "1.2"
+  namaItem       String   // e.g., "Migrasi e-SIH ke Next.js & Fastify"
+  status         String   @default("On Progress") // "On Progress", "Closed", "Open"
+  progress       Int      @default(0)
+  keterangan     String?
+  createdAt      DateTime @default(now())
+
+  programKerja ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
+  activities   Activity[]
 }
 
 model Activity {
   id                String   @id
   no                Int      @unique
-  idProgram         String
+  idProgram         String   // Relasi ke Sub-Program (Child)
   kategoriProgram   String
   itemName          String
   kegiatan          String
@@ -31,7 +46,7 @@ model Activity {
   closedDate        String?
   tindakLanjut      String?
   kendala           String?
-  status            String
+  status            String   @default("Open")
   remarks           String?
   picEmail          String
   picNama           String

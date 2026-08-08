@@ -2,10 +2,26 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prisma from '../plugins/prisma'
 
 const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-  // Get all master programs
+  // Get all Parent Program Kerja along with their Child items
+  fastify.get('/program-kerja', async (request, reply) => {
+    const parentPrograms = await prisma.programKerja.findMany({
+      orderBy: { kode: 'asc' },
+      include: {
+        items: {
+          orderBy: { kode: 'asc' }
+        }
+      }
+    })
+    return { data: parentPrograms }
+  })
+
+  // Get all Sub-Program / Child items
   fastify.get('/programs', async (request, reply) => {
     const programs = await prisma.masterProgram.findMany({
-      orderBy: { id: 'asc' }
+      orderBy: { kode: 'asc' },
+      include: {
+        programKerja: true
+      }
     })
     return { data: programs }
   })
@@ -25,7 +41,11 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         { no: 'asc' }
       ],
       include: {
-        program: true
+        program: {
+          include: {
+            programKerja: true
+          }
+        }
       }
     })
     
@@ -34,7 +54,8 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // Get Dashboard KPI data
   fastify.get('/dashboard', async (request, reply) => {
-    const [totalPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities] = await Promise.all([
+    const [totalParents, totalChildPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities] = await Promise.all([
+      prisma.programKerja.count(),
       prisma.masterProgram.count(),
       prisma.masterProgram.count({ where: { status: 'On Progress' } }),
       prisma.masterProgram.count({ where: { status: 'Closed' } }),
@@ -46,7 +67,8 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     return {
       kpi: {
-        totalPrograms,
+        totalParents,
+        totalPrograms: totalChildPrograms,
         onProgressPrograms,
         closedPrograms,
         totalActivities,
