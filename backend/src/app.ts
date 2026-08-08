@@ -12,16 +12,28 @@ export function buildApp() {
     trustProxy: false,
   })
 
+  const allowedOrigins = [
+    config.frontendOrigin,
+    'http://localhost:4100',
+    'http://127.0.0.1:4100'
+  ]
+
   app.register(cors, {
-    origin: config.frontendOrigin,
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true)
+        return
+      }
+      cb(null, false)
+    },
     credentials: true,
   })
   app.register(authPlugin)
 
   app.addHook('onRequest', async (request, reply) => {
     const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-    if (unsafeMethods.has(request.method)
-      && request.headers.origin !== config.frontendOrigin) {
+    const origin = request.headers.origin
+    if (unsafeMethods.has(request.method) && origin && !allowedOrigins.includes(origin)) {
       return reply.code(403).send({
         success: false,
         error: 'Origin tidak diizinkan',

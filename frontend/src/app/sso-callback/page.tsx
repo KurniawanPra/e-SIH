@@ -34,33 +34,40 @@ function CallbackContent() {
   }, [router, ssoToken])
 
   return (
-    <main className="centered-page">
-      <section className="status-panel" aria-live="polite">
-        {error ? (
-          <>
-            <p className="status-label error-label">Autentikasi gagal</p>
-            <h1>Sesi tidak dapat dibuat</h1>
-            <p className="muted-text">{error}</p>
-            <button type="button" className="primary-button" onClick={openPortal}>
-              Kembali ke Portal
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="spinner" aria-hidden="true" />
-            <p className="status-label">Portal SSO</p>
-            <h1>Menyiapkan sesi</h1>
-            <p className="muted-text">Memverifikasi identitas dan membuka aplikasi.</p>
-          </>
-        )}
-      </section>
-    </main>
+    <div className="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+      <div className="card border-0 shadow-lg rounded-4 p-4 text-center" style={{ maxWidth: 480, width: '100%' }}>
+        <div className="card-body">
+          {error ? (
+            <>
+              <div className="text-danger mb-3">
+                <i className="bi bi-x-circle-fill" style={{ fontSize: '3rem' }}></i>
+              </div>
+              <h4 className="fw-bold text-dark mb-2">Autentikasi Gagal</h4>
+              <p className="text-muted small mb-4">{error}</p>
+              <button type="button" className="btn btn-outline-danger fw-bold w-100 py-2" onClick={openPortal}>
+                <i className="bi bi-arrow-left me-2"></i>Kembali ke Portal
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="spinner-border text-success mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+              <h4 className="fw-bold text-dark mb-2">Menyiapkan Sesi</h4>
+              <p className="text-muted small mb-0">Memverifikasi identitas Anda dengan Portal SSO...</p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
 export default function SsoCallbackPage() {
   return (
-    <Suspense fallback={<main className="centered-page"><span className="spinner" /></main>}>
+    <Suspense fallback={
+      <div className="container min-vh-100 d-flex align-items-center justify-content-center">
+        <div className="spinner-border text-success" role="status"></div>
+      </div>
+    }>
       <CallbackContent />
     </Suspense>
   )

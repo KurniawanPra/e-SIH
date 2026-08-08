@@ -4,24 +4,25 @@ import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { openPortal } from '@/lib/api'
 
-const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'Aplikasi Internal'
+const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'Aplikasi e-SIH'
 const appDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()
-  || 'Layanan kerja internal yang terhubung dengan Portal INL.'
+  || 'System Highlight Report & Activity Tracking - PT Industri Nabati Lestari'
 const appLogoUrl = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '/app-logo.svg'
 const portalName = process.env.NEXT_PUBLIC_PORTAL_NAME?.trim() || 'InTes / Portal SSO'
 const portalAccountName = process.env.NEXT_PUBLIC_PORTAL_ACCOUNT_NAME?.trim() || 'Portal INL'
+
 const accessSteps = [
   {
     title: `Masuk di ${portalAccountName}`,
-    description: 'Gunakan akun kerja perusahaan yang sudah terdaftar.',
+    description: 'Gunakan akun kerja resmi perusahaan yang sudah terdaftar.',
   },
   {
-    title: 'Akses diverifikasi',
-    description: `${portalName} memeriksa identitas dan izin ${appName}.`,
+    title: 'Verifikasi Otomatis',
+    description: `${portalName} memverifikasi identitas dan hak akses Anda.`,
   },
   {
-    title: `Kembali ke ${appName}`,
-    description: 'Sesi dibuat dan pekerjaan dapat dilanjutkan.',
+    title: `Masuk ke ${appName}`,
+    description: 'Sesi aman dibuat dan Anda langsung diarahkan ke Dashboard.',
   },
 ]
 
@@ -48,98 +49,87 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
   }
 
   return (
-    <main className="login-gate">
-      <section className="login-intro" aria-labelledby="login-title">
-        <header className="login-topbar">
-          <span className="product-mark">
-            {appName}
-          </span>
-          <span className="sso-required">SSO / Required</span>
-        </header>
+    <div className="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+      <div className="row w-100 justify-content-center">
+        <div className="col-12 col-md-10 col-lg-7">
+          <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div className="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+              <span className="fw-bold fs-4 text-success d-flex align-items-center gap-2">
+                <i className="bi bi-layers-fill"></i> {appName}
+              </span>
+              <span className="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                <i className="bi bi-shield-check me-1"></i> SSO Terintegrasi
+              </span>
+            </div>
 
-        <div className="login-copy">
-          <div className="application-logo" aria-label={`Logo ${appName}`}>
-            {logoFailed ? (
-              <span aria-hidden="true">{initials}</span>
-            ) : (
-              <Image
-                src={appLogoUrl}
-                alt={`Logo ${appName}`}
-                width={136}
-                height={136}
-                priority
-                unoptimized
-                onError={() => setLogoFailed(true)}
-              />
-            )}
-          </div>
+            <div className="card-body p-4 p-md-5">
+              <div className="text-center mb-4">
+                <div className="mb-3 d-inline-block p-3 rounded-circle bg-light border">
+                  {logoFailed ? (
+                    <div className="fw-bold fs-3 text-success d-flex align-items-center justify-content-center" style={{ width: 64, height: 64 }}>
+                      {initials}
+                    </div>
+                  ) : (
+                    <Image
+                      src={appLogoUrl}
+                      alt={`Logo ${appName}`}
+                      width={64}
+                      height={64}
+                      priority
+                      unoptimized
+                      onError={() => setLogoFailed(true)}
+                    />
+                  )}
+                </div>
 
-          <p className="login-eyebrow">Akses aplikasi terkelola</p>
-          <h1 id="login-title">{appName}</h1>
-          <p className="app-description">{appDescription}</p>
-          <p className="login-explanation">
-            Akses ke {appName} menggunakan akun {portalAccountName}. Identitas dan hak
-            akses kerja diverifikasi sebelum aplikasi dibuka.
-          </p>
+                <h3 className="fw-bold text-dark mb-2">{appName}</h3>
+                <p className="text-muted small mb-3">{appDescription}</p>
+              </div>
 
-          <button type="button" className="portal-login-button" onClick={handleLogin}>
-            <span className="key-symbol" aria-hidden="true">
-              <svg viewBox="0 0 24 24" role="img">
-                <circle cx="8" cy="12" r="3.5" />
-                <path d="M11.5 12H21M17 12v3M20 12v2" />
-              </svg>
-            </span>
-            <span>Login with Portal</span>
-            <svg className="arrow-symbol" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M5 15 15 5M8 5h7v7" />
-            </svg>
-          </button>
+              {(configError || notice) && (
+                <div className="alert alert-danger d-flex align-items-center mb-4 rounded-3" role="alert">
+                  <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                  <div>{configError || notice}</div>
+                </div>
+              )}
 
-          {(configError || notice) && (
-            <p className="login-notice" role="status">{configError || notice}</p>
-          )}
-        </div>
+              <div className="d-grid mb-4">
+                <button 
+                  type="button" 
+                  className="btn btn-success btn-lg fw-bold py-3 shadow-sm rounded-3 d-flex align-items-center justify-content-center gap-2"
+                  onClick={handleLogin}
+                >
+                  <i className="bi bi-box-arrow-in-right fs-5"></i>
+                  <span>Masuk via {portalAccountName}</span>
+                </button>
+              </div>
 
-        <footer className="login-privacy">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <rect x="4" y="8" width="12" height="9" rx="2" />
-            <path d="M7 8V6a3 3 0 0 1 6 0v2" />
-          </svg>
-          Kredensial hanya dimasukkan di {portalAccountName}.
-        </footer>
-      </section>
+              <div className="bg-light p-4 rounded-3 border">
+                <h6 className="fw-bold text-dark mb-3">
+                  <i className="bi bi-info-circle me-2 text-success"></i>Alur Masuk Sistem SSO
+                </h6>
+                <div className="row g-3">
+                  {accessSteps.map((step, index) => (
+                    <div className="col-12 col-md-4" key={step.title}>
+                      <div className="d-flex align-items-start gap-2">
+                        <span className="badge bg-success rounded-circle px-2 py-1 small">{index + 1}</span>
+                        <div>
+                          <strong className="d-block small text-dark">{step.title}</strong>
+                          <span className="text-muted" style={{ fontSize: '0.75rem' }}>{step.description}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-      <aside className="login-guide" aria-label="Alur login SSO">
-        <div className="guide-heading">
-          <p className="guide-kicker">Gerbang aplikasi</p>
-          <h2>Masuk sekali. Lanjutkan pekerjaan di {appName}.</h2>
-          <p className="guide-summary">
-            {portalName} menghubungkan identitas kerja ke {appName} tanpa membagikan kata sandi.
-          </p>
-        </div>
-
-        <ol className="access-timeline">
-          {accessSteps.map((step, index) => (
-            <li key={step.title}>
-              <i className="timeline-dot" aria-hidden="true" />
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </li>
-          ))}
-        </ol>
-
-        <div className="handoff-note">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 3 20 7v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z" />
-            <path d="m9 12 2 2 4-5" />
-          </svg>
-          <div>
-            <strong>One-time SSO handoff</strong>
-            <p>Token {portalAccountName} digunakan sekali dan tidak disimpan oleh browser.</p>
+            <div className="card-footer bg-light border-0 py-3 text-center text-muted small">
+              <i className="bi bi-lock me-1"></i> Keamanan terjamin oleh {portalName}
+            </div>
           </div>
         </div>
-      </aside>
-    </main>
+      </div>
+    </div>
   )
 }
