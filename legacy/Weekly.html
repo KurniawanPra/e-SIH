@@ -1,0 +1,56 @@
+        <div id="view-weekly" class="view-pane">
+          <div class="card mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+              <h5 class="fw-bold mb-0">Weekly Activities Log</h5>
+              <button class="btn btn-primary" onclick="openActivityModal()"><i class="bi bi-plus-lg"></i> Tambah</button>
+            </div>
+            
+            <div class="card-body bg-light border-bottom">
+              <div class="row g-2">
+                <div class="col-md-3"><input type="text" id="f-search" class="form-control" placeholder="Cari..." onkeyup="filterActs()"></div>
+                <div class="col-md-2">
+                  <select id="f-status" class="form-select" onchange="filterActs()">
+                    <option value="ALL">Semua Status</option>
+                    <option value="Open">Open</option>
+                    <option value="On Progress">On Progress</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <select id="f-month" class="form-select" onchange="filterActs()">
+                    <option value="ALL">Semua Bulan</option>
+                    <option value="01">Januari</option>
+                    <option value="02">Februari</option>
+                    <!-- ... dst ... -->
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <select id="f-pic" class="form-select d-none" onchange="filterActs()">
+                    <option value="ALL">Semua PIC</option>
+                  </select>
+                </div>
+                <div class="col-md-2 text-end">
+                  <button class="btn btn-outline-secondary w-100" onclick="loadActivities()">Refresh</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center">No</th>
+                    <th>Kegiatan</th>
+                    <th>Start</th>
+                    <th>Due Date</th>
+                    <th>Tindak Lanjut</th>
+                    <th>Kendala</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="activities-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>

@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-SIH - Highlight Report & Activity Tracking (Preview)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ═════════════════════════════════════════════
+       e-SIH — Clean Minimalist Corporate & Dark Mode
+       ═════════════════════════════════════════════ */
+    :root {
+      --primary: #006837;
+      --primary-dark: #004d25;
+      --primary-light: #e8f5e9;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --sidebar-w: 240px;
+      --sidebar-collapsed-w: 68px;
+      --topbar-h: 60px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Dark Mode Theme Variables ──────────── */
+    body.dark-mode {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --primary-light: rgba(16, 185, 129, 0.15);
+      --bg: #0b132b;
+      --card-bg: #1c2541;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Login Screen ───────────────────────── */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      padding: 1.5rem;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 420px;
+      padding: 2.5rem 2rem 2rem;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-brand-mark {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--primary);
+      background: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .login-brand h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .login-brand p {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .demo-accounts-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .demo-accounts-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .demo-account-btn {
+      display: inline-block;
+      font-size: 0.725rem;
+      font-weight: 600;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 4px;
+      margin-bottom: 4px;
+      transition: all 0.15s;
+    }
+
+    .demo-account-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .login-form .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .login-form .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .login-error {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    body.dark-mode .login-error {
+      background: #450a0a;
+      border-color: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    .login-error.show { display: block; }
+
+    .login-form .btn-primary {
+      width: 100%;
+      justify-content: center;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* ── App Layout ─────────────────────────── */
+    .app-layout {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .app-layout.active {
+      display: flex;
+    }
+
+    /* ── Sidebar (Collapsible) ──────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 50;
+      transition: var(--transition);
+      overflow: hidden;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar {
+      width: var(--sidebar-collapsed-w);
+    }
+
+    .sidebar-brand {
+      padding: 0 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: var(--topbar-h);
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-mark {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--primary);
+      background: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      flex-shrink: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-brand-text {
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar-brand-text {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-brand-text h1 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .sidebar-brand-text span {
+      font-size: 0.675rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 0.85rem 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-section-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      padding: 0.75rem 1.25rem 0.4rem;
+      white-space: nowrap;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar-section-label {
+      opacity: 0;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.7rem 1.25rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+      white-space: nowrap;
+    }
+
+    .sidebar-item:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .sidebar-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+      border-left-color: var(--primary);
+    }
+
+    .sidebar-item-icon {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+
+    .sidebar-item.active .sidebar-item-icon {
+      background: none !important;
+      color: var(--primary);
+    }
+
+    .sidebar-item-text {
+      transition: opacity 0.2s;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar-item-text {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-footer {
+      padding: 0.85rem 1.25rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar-footer {
+      display: none;
+    }
+
+    /* ── Main Layout (Topbar + Content) ─────── */
+    .main-wrapper {
+      flex: 1;
+      margin-left: var(--sidebar-w);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .app-layout.sidebar-collapsed .main-wrapper {
+      margin-left: var(--sidebar-collapsed-w);
+    }
+
+    /* ── Topbar ─────────────────────────────── */
+    .topbar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: var(--topbar-h);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-toggle-sidebar, .btn-theme-toggle {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-toggle-sidebar:hover, .btn-theme-toggle:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .topbar-user-info {
+      text-align: right;
+    }
+
+    .topbar-user-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .topbar-user-email {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .topbar-role {
+      font-size: 0.675rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    .topbar-role.pimpinan {
+      background: #fef9c3;
+      color: #854d0e;
+      border: 1px solid #fef08a;
+    }
+
+    body.dark-mode .topbar-role.pimpinan {
+      background: #713f12;
+      color: #fef08a;
+      border-color: #a16207;
+    }
+
+    .topbar-role.bawahan {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    body.dark-mode .topbar-role.bawahan {
+      background: #14532d;
+      color: #bbf7d0;
+      border-color: #15803d;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .btn-logout {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-logout:hover {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: #dc2626;
+    }
+
+    body.dark-mode .btn-logout:hover {
+      background: #450a0a;
+      border-color: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    /* ── Main Content Area ──────────────────── */
+    .main-content {
+      padding: 1.5rem;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .view-pane {
+      display: none;
+    }
+
+    .view-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── KPI Grid ───────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .kpi-total   { border: 2px solid #3b82f6; }
+    .kpi-open    { border: 2px solid #f59e0b; }
+    .kpi-closed  { border: 2px solid #10b981; }
+    .kpi-closure { border: 2px solid #8b5cf6; }
+
+    .kpi-title {
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* ── Card Section ───────────────────────── */
+    .card-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.35rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.15rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* ── Doc Header ─────────────────────────── */
+    .doc-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .doc-info-meta {
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      text-align: right;
+      background: var(--bg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      line-height: 1.6;
+    }
+
+    /* ── Progress Bars ──────────────────────── */
+    .prog-item {
+      margin-bottom: 1.15rem;
+    }
+
+    .prog-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .prog-bar-bg {
+      background: var(--border);
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .prog-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+
+    .overall-badge {
+      font-size: 0.775rem;
+      font-weight: 700;
+      background: var(--primary);
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 14px;
+    }
+
+    /* ── Toolbar / Filters ──────────────────── */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .form-control, .form-select {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.825rem;
+      font-family: inherit;
+      outline: none;
+      background: var(--card-bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(16,185,129,0.2);
+    }
+
+    textarea.form-control { resize: vertical; }
+
+    /* ── Buttons ────────────────────────────── */
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-danger:hover { background: #fecaca; }
+    body.dark-mode .btn-danger { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+
+    .btn-update { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .btn-update:hover { background: #dbeafe; }
+    body.dark-mode .btn-update { background: #1e3a8a; color: #93c5fd; border-color: #1e40af; }
+
+    .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+
+    .action-btn-group { display: flex; gap: 4px; justify-content: center; flex-wrap: nowrap; }
+
+    /* ── Data Table ─────────────────────────── */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: var(--bg);
+      color: var(--text);
+      padding: 0.7rem 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .data-table tbody tr:hover { background: var(--bg); }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Status Badges ──────────────────────── */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-open      { background: #fef3c7; color: #92400e; }
+    .status-progress  { background: #dbeafe; color: #1e40af; }
+    .status-closed    { background: #d1fae5; color: #065f46; }
+    .status-done      { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #f3f4f6; color: #6b7280; }
+
+    body.dark-mode .status-open      { background: #78350f; color: #fef3c7; }
+    body.dark-mode .status-progress  { background: #1e3a8a; color: #dbeafe; }
+    body.dark-mode .status-closed    { background: #064e3b; color: #d1fae5; }
+    body.dark-mode .status-done      { background: #064e3b; color: #d1fae5; }
+    body.dark-mode .status-cancelled { background: #374151; color: #d1d5db; }
+
+    /* ── Modal ──────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(3px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.35rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.1s;
+    }
+
+    .modal-close-btn:hover { background: var(--bg); color: var(--text); }
+
+    .modal-body { padding: 1.25rem; }
+    .modal-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .form-full { grid-column: span 2; }
+    .form-group { display: flex; flex-direction: column; gap: 3px; }
+    .form-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+
+    /* ── Quick Update Info Card ─────────────── */
+    .qu-info-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .qu-info-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 1px;
+    }
+
+    .qu-info-value { font-size: 0.825rem; font-weight: 600; color: var(--text); }
+
+    .qu-info-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .qu-hint { font-size: 0.675rem; color: var(--text-muted); margin-top: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ 1. LOGIN SCREEN ═══ -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-brand-mark">e-SIH</div>
+        <h2>e-SIH Portal</h2>
+        <p>Sistem Informasi Highlight Report & Laporan Aktivitas</p>
+      </div>
+
+      <div class="demo-accounts-box">
+        <div class="demo-accounts-title">Pilih Akun Demo (Klik Langsung):</div>
+        <button class="demo-account-btn" onclick="fillLogin('pimpinan@perusahaan.com')">Pimpinan (Kasubag)</button>
+        <button class="demo-account-btn" onclick="fillLogin('salman@perusahaan.com')">Staff (Salman)</button>
+        <button class="demo-account-btn" onclick="fillLogin('fitri@perusahaan.com')">Staff (Fitri)</button>
+      </div>
+
+      <div id="login-error" class="login-error">Email tidak ditemukan dalam sistem.</div>
+
+      <form class="login-form" id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Email Pengguna</label>
+          <input type="email" id="login-email" class="form-control" placeholder="nama@perusahaan.com" required value="pimpinan@perusahaan.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="Password (opsional)" value="123456">
+        </div>
+        <button type="submit" id="btn-login" class="btn btn-primary">Masuk Portal</button>
+      </form>
+
+      <div class="login-footer">
+        PT. Industri Nabati Lestari Operation &bull; 2026
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 2. APP LAYOUT (COLLAPSIBLE SIDEBAR + TOPBAR + MAIN) ═══ -->
+  <div id="app-layout" class="app-layout">
+
+    <!-- Sidebar (Collapsible) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark">e-SIH</div>
+        <div class="sidebar-brand-text">
+          <h1>INL Operation</h1>
+          <span>Highlight Report</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Navigasi Utama</div>
+        <button id="tab-dashboard" class="sidebar-item active" onclick="switchTab('dashboard')">
+          <span class="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          </span>
+          <span class="sidebar-item-text">Executive Dashboard</span>
+        </button>
+        <button id="tab-activities" class="sidebar-item" onclick="switchTab('activities')">
+          <span class="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </span>
+          <span class="sidebar-item-text">Weekly & Monthly Activities</span>
+        </button>
+        <button id="tab-users" class="sidebar-item" onclick="switchTab('users')" style="display: none;">
+          <span class="sidebar-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </span>
+          <span class="sidebar-item-text">Kelola Pengguna</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        &copy; 2026 SDM & Sistem
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+            <span id="toggle-icon">&laquo;</span>
+            <span id="toggle-text">Collapse Menu</span>
+          </button>
+
+          <button class="btn-theme-toggle" onclick="toggleDarkMode()">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-text">Dark</span>
+          </button>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="topbar-user-info">
+              <div class="topbar-user-name" id="header-user-name">Memuat...</div>
+              <div class="topbar-user-email" id="header-user-email">...</div>
+            </div>
+            <div id="header-role-badge" class="topbar-role bawahan">Staff</div>
+          </div>
+          <div class="topbar-divider"></div>
+          <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+
+        <!-- ═══ VIEW: EXECUTIVE DASHBOARD ═══ -->
+        <div id="view-dashboard" class="view-pane active">
+
+          <!-- Page Header -->
+          <div class="card-section">
+            <div class="doc-info-row">
+              <div>
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 2px;">
+                  SDM & SISTEM PROGRAM HIGHLIGHT REPORT
+                </h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  PT. INDUSTRI NABATI LESTARI OPERATION &bull; PERIODE: 2026
+                </p>
+              </div>
+              <div class="doc-info-meta">
+                <div><strong>No. Dokumen:</strong> INLHO/REP-F/-021</div>
+                <div><strong>No. Revisi:</strong> 00 &bull; <strong>Halaman:</strong> 1 dari 1</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI Cards Grid (Full border, no fill) -->
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-total">
+              <div class="kpi-title">No. of Action Item</div>
+              <div class="kpi-value" id="kpi-total">4</div>
+              <div class="kpi-sub">Total seluruh item kegiatan</div>
+            </div>
+
+            <div class="kpi-card kpi-open">
+              <div class="kpi-title">Open / On Progress</div>
+              <div class="kpi-value" id="kpi-open" style="color: #b45309;">2</div>
+              <div class="kpi-sub">Sedang dalam pengerjaan</div>
+            </div>
+
+            <div class="kpi-card kpi-closed">
+              <div class="kpi-title">Closed / Done</div>
+              <div class="kpi-value" id="kpi-closed" style="color: #059669;">2</div>
+              <div class="kpi-sub">Tugas selesai ditindaklanjuti</div>
+            </div>
+
+            <div class="kpi-card kpi-closure">
+              <div class="kpi-title">Closure Rate</div>
+              <div class="kpi-value" id="kpi-closure" style="color: #7c3aed;">50%</div>
+              <div class="kpi-sub">Persentase penyelesaian</div>
+            </div>
+          </div>
+
+          <!-- Performance Program Kerja SI2H (Gambar Referensi 4) -->
+          <div class="card-section">
+            <div class="section-title">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span>Performance Program Kerja SI2H (2026)</span>
+                <button id="btn-edit-master-program" class="btn btn-secondary btn-sm" onclick="openMasterProgramModal()" style="display: none;">
+                  Kelola Program Kerja (Pimpinan)
+                </button>
+              </div>
+              <span id="overall-badge" class="overall-badge">Overall: 51%</span>
+            </div>
+
+            <div id="master-program-bars-container">
+              <!-- Dynamic progress bars generated by JavaScript -->
+            </div>
+
+            <!-- Tabel Rincian Master Program Kerja (Gambar 4 Structure) -->
+            <div style="margin-top: 1.25rem;">
+              <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.6rem;">
+                Rincian Master Program Kerja & Sub-Subject (Sesuai Referensi Gambar 4)
+              </h4>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px;">No.</th>
+                      <th>Program Kerja &amp; Sub-Subject Item</th>
+                      <th style="width: 110px;">Status</th>
+                      <th style="width: 130px; text-align: center;">Progress (%)</th>
+                      <th>Keterangan / Progress Note</th>
+                    </tr>
+                  </thead>
+                  <tbody id="master-program-table-body">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Highlight Report Table (Sheet "Highlight Report SDM") -->
+          <div class="card-section">
+            <div class="section-title">
+              <span>Highlight Activities & Action Items (Rekap Laporan)</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 36px;">NO</th>
+                    <th style="width: 130px;">ITEM</th>
+                    <th>DESCRIPTION</th>
+                    <th>ACTION TO BE TAKEN</th>
+                    <th style="width: 100px;">NAME PIC</th>
+                    <th style="width: 95px;">TARGET DATE</th>
+                    <th style="width: 95px;">CLOSED DATE</th>
+                    <th style="width: 90px;">STATUS</th>
+                    <th>REMARKS</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══ VIEW: WEEKLY & MONTHLY ACTIVITIES LOG ═══ -->
+        <div id="view-activities" class="view-pane">
+          <div class="card-section">
+            <div class="section-title">
+              <span>Weekly & Monthly Activities Log Tahun 2026</span>
+              <button class="btn btn-primary btn-sm" onclick="openFormModal()">Tambah Laporan Aktivitas</button>
+            </div>
+
+            <!-- Toolbar Filter -->
+            <div class="toolbar">
+              <div class="filter-group">
+                <input type="text" id="filter-search" class="form-control" style="width: 200px;" placeholder="Cari kegiatan, kendala..." onkeyup="applyActivityFilters()">
+                
+                <select id="filter-month" class="form-select" onchange="applyActivityFilters()">
+                  <option value="ALL">Semua Bulan (Periode 2026)</option>
+                  <option value="01">Januari</option>
+                  <option value="02">Februari</option>
+                  <option value="03">Maret</option>
+                  <option value="04">April</option>
+                  <option value="05">Mei</option>
+                  <option value="06">Juni</option>
+                  <option value="07">Juli</option>
+                  <option value="08">Agustus</option>
+                  <option value="09">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+
+                <select id="filter-status" class="form-select" onchange="applyActivityFilters()">
+                  <option value="ALL">Semua Status</option>
+                  <option value="Open">Open</option>
+                  <option value="On Progress">On Progress</option>
+                  <option value="Done">Done</option>
+                  <option value="Closed">Closed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+
+                <select id="filter-category" class="form-select" onchange="applyActivityFilters()">
+                  <option value="ALL">Semua Kategori</option>
+                </select>
+
+                <select id="filter-pic" class="form-select" onchange="applyActivityFilters()" style="display: none;">
+                  <option value="ALL">Semua PIC</option>
+                </select>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" onclick="loadActivitiesData()">Refresh Data</button>
+            </div>
+
+            <!-- Tabel Weekly Activities SIH (Single Action Column: Button Update Only) -->
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 36px;">No.</th>
+                    <th>Kegiatan</th>
+                    <th style="width: 85px;">Start</th>
+                    <th style="width: 85px;">Due Date</th>
+                    <th>Tindak Lanjut</th>
+                    <th>Kendala</th>
+                    <th style="width: 90px;">Status</th>
+                    <th>Keterangan</th>
+                    <th style="width: 90px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="activities-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ VIEW: KELOLA PENGGUNA (PIMPINAN ONLY) ═══ -->
+        <div id="view-users" class="view-pane">
+          <div class="card-section">
+            <div class="section-title">
+              <span>Kelola Pengguna Sistem (Pimpinan Sub Bagian)</span>
+              <button class="btn btn-primary btn-sm" onclick="openUserModal()">Tambah Pengguna Baru</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 36px;">No.</th>
+                    <th>Email Pengguna</th>
+                    <th>Nama Lengkap</th>
+                    <th style="width: 120px;">Role Akses</th>
+                    <th style="width: 140px;">Sub Bagian</th>
+                    <th style="width: 110px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- ═══ MODAL 1: FORM TAMBAH LAPORAN AKTIVITAS (PLANNING / NEW ITEM) ═══ -->
+  <div id="activity-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-title">Form Tambah Laporan Aktivitas</h3>
+        <button class="modal-close-btn" onclick="closeFormModal()">&times;</button>
+      </div>
+
+      <form id="activity-form" onsubmit="handleFormSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group form-full">
+              <label for="form-kategori">Kategori Program Kerja *</label>
+              <select id="form-kategori" class="form-select" required></select>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="form-item">Item Sub-Subject Program *</label>
+              <input type="text" id="form-item" class="form-control" placeholder="Contoh: IT Development, Audit Kosher, SIMPEL Limbah B3..." required>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="form-kegiatan">Judul Kegiatan / Program *</label>
+              <input type="text" id="form-kegiatan" class="form-control" placeholder="Judul kegiatan yang direncanakan" required>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="form-desc">Description / Action to be Taken</label>
+              <textarea id="form-desc" class="form-control" rows="3" placeholder="Rincian deskripsi rencana atau langkah kegiatan..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-start">Start Date *</label>
+              <input type="date" id="form-start" class="form-control" required>
+            </div>
+
+            <div class="form-group" id="pic-assign-group" style="display: none;">
+              <label for="form-pic-email">Tugaskan Ke (PIC)</label>
+              <select id="form-pic-email" class="form-select"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeFormModal()">Batal</button>
+          <button type="submit" id="btn-save" class="btn btn-primary">Simpan Laporan Aktivitas</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL 2: QUICK UPDATE PROGRESS (DUE DATE, TINDAK LANJUT, KENDALA, STATUS, KETERANGAN) ═══ -->
+  <div id="quick-update-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3>Update Progress Aktivitas</h3>
+        <button class="modal-close-btn" onclick="closeQuickUpdateModal()">&times;</button>
+      </div>
+
+      <form id="quick-update-form" onsubmit="handleQuickUpdateSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="qu-id">
+
+          <div class="qu-info-card">
+            <div class="qu-info-label">Kegiatan</div>
+            <div class="qu-info-value" id="qu-kegiatan-label">-</div>
+            <div class="qu-info-row">
+              <div>
+                <div class="qu-info-label">Item Sub-Subject</div>
+                <div class="qu-info-value" id="qu-item-label">-</div>
+              </div>
+              <div>
+                <div class="qu-info-label">PIC</div>
+                <div class="qu-info-value" id="qu-pic-label">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="qu-status">Status *</label>
+              <select id="qu-status" class="form-select" required>
+                <option value="Open">Open</option>
+                <option value="On Progress">On Progress</option>
+                <option value="Done">Done</option>
+                <option value="Closed">Closed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="qu-due">Due Date (Target Selesai) *</label>
+              <input type="date" id="qu-due" class="form-control" required>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="qu-tindaklanjut">Tindak Lanjut Progress *</label>
+              <textarea id="qu-tindaklanjut" class="form-control" rows="3" placeholder="Perkembangan & tindakan yang dilakukan..." required></textarea>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="qu-kendala">Kendala</label>
+              <textarea id="qu-kendala" class="form-control" rows="2" placeholder="Kendala yang dihadapi (jika ada)..."></textarea>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="qu-remarks">Keterangan / Progress Note</label>
+              <input type="text" id="qu-remarks" class="form-control" placeholder="Catatan tambahan atau progres singkat">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeQuickUpdateModal()">Batal</button>
+          <button type="submit" id="btn-quick-save" class="btn btn-primary">Simpan Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL 3: KELOLA MASTER PROGRAM KERJA (PIMPINAN) ═══ -->
+  <div id="master-program-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3>Kelola Master Program Kerja Tahunan (Pimpinan)</h3>
+        <button class="modal-close-btn" onclick="closeMasterProgramModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <p style="font-size: 0.775rem; color: var(--text-muted);">
+            Atur item deskripsi program kerja master tahunan, status, dan target progress. Progress % dihitung otomatis berdasarkan laporan aktivitas mingguan.
+          </p>
+          <button class="btn btn-primary btn-sm" onclick="openAddMasterProgramForm()">+ Tambah Master Program</button>
+        </div>
+
+        <div id="master-program-list-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeMasterProgramModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3B: FORM TAMBAH/EDIT MASTER PROGRAM ITEM -->
+  <div id="master-program-form-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="mp-form-title">Form Program Kerja Master</h3>
+        <button class="modal-close-btn" onclick="closeAddMasterProgramForm()">&times;</button>
+      </div>
+
+      <form id="mp-single-form" onsubmit="handleSaveSingleMasterProgram(event)">
+        <div class="modal-body">
+          <input type="hidden" id="mp-edit-id">
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="mp-kategori">Nama Kategori Program Kerja *</label>
+            <input type="text" id="mp-kategori" class="form-control" placeholder="Contoh: D. DIGITAL INFRASTRUCTURE & SECURITY" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="mp-subsubject">Item Sub-Subject Program *</label>
+            <textarea id="mp-subsubject" class="form-control" rows="3" placeholder="Rincian sub-subject atau fokus kegiatan..." required></textarea>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="mp-status">Status Program</label>
+              <select id="mp-status" class="form-select" required>
+                <option value="On Progress">On Progress</option>
+                <option value="Done">Done</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="mp-progress">Progress Baseline (%)</label>
+              <input type="number" id="mp-progress" class="form-control" min="0" max="100" value="0" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 0.85rem;">
+            <label for="mp-keterangan">Keterangan / Progress Note</label>
+            <input type="text" id="mp-keterangan" class="form-control" placeholder="Catatan fokus atau progres singkat">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddMasterProgramForm()">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Master Program</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL 4: FORM DATA PENGGUNA ═══ -->
+  <div id="user-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="user-modal-title">Form Data Pengguna</h3>
+        <button class="modal-close-btn" onclick="closeUserModal()">&times;</button>
+      </div>
+
+      <form id="user-form" onsubmit="handleUserSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="u-email">Email Pengguna *</label>
+            <input type="email" id="u-email" class="form-control" placeholder="user@perusahaan.com" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="u-nama">Nama Lengkap *</label>
+            <input type="text" id="u-nama" class="form-control" placeholder="Nama Lengkap" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label for="u-role">Role Akses *</label>
+            <select id="u-role" class="form-select" required>
+              <option value="Bawahan">Staff / Bawahan</option>
+              <option value="Pimpinan">Pimpinan Sub Bag</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="u-subbagian">Sub Bagian *</label>
+            <input type="text" id="u-subbagian" class="form-control" placeholder="SDM & Sistem, IT Development" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Batal</button>
+          <button type="submit" id="btn-save-user" class="btn btn-primary">Simpan User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ JAVASCRIPT LOGIC ═══ -->
+  <script>
+    let state = {
+      user: null,
+      isLoggedIn: false,
+      sidebarCollapsed: false,
+      darkMode: false,
+      activities: [
+        {
+          id: 'ACT-001', no: 1, idProgram: 'PROG-01',
+          kategoriProgram: 'A. ENABLING DIGITAL AND RELIABLE OPERATION',
+          itemName: 'IT Development', kegiatan: 'Final testing & Go Live SmartWB dengan teknologi RFID & AI CCTV',
+          descriptionAction: 'Final Testing SmartWB (RFID):\n1. Ceklis Form sebelum Testing\n2. Live Test dengan Kabag SDM & Sistem',
+          startDate: '2026-01-06', dueDate: '2026-03-31', closedDate: '',
+          tindakLanjut: 'Pengadaan 70 Kartu RFID, aplikasi paralel', kendala: 'Pembelian 70 kartu RFID dibuatkan Justifikasi dan FR',
+          status: 'On Progress', remarks: 'Develop Proses Bisnis', picEmail: 'salman@perusahaan.com', picNama: 'Salman'
+        },
+        {
+          id: 'ACT-002', no: 2, idProgram: 'PROG-01',
+          kategoriProgram: 'A. ENABLING DIGITAL AND RELIABLE OPERATION',
+          itemName: 'IT Development', kegiatan: 'Integrasi SAP dengan SmartWB',
+          descriptionAction: 'Pengumpulan Data:\n1. Pengadaan Laptop Developer yg dapat mengakomodasi AI\n2. TCode yg digunakan pada SAP\n3. Data yg dibutuhkan',
+          startDate: '2026-01-06', dueDate: '2026-06-30', closedDate: '',
+          tindakLanjut: 'Koordinasi API SAP dengan PT SISI', kendala: 'Menunggu respon API dari SISI',
+          status: 'On Progress', remarks: 'Proses integrasi', picEmail: 'salman@perusahaan.com', picNama: 'Salman'
+        },
+        {
+          id: 'ACT-003', no: 3, idProgram: 'PROG-02',
+          kategoriProgram: 'B. DRIVING SUSTAINABLE & RESPONSIBLE OPERATIONS',
+          itemName: 'Sertifikasi Eksternal', kegiatan: 'Sertifikasi ISCC SBE & Audit Kosher',
+          descriptionAction: 'Meeting internal HSSE mengenai peluang Sertifikasi ISCC SBE',
+          startDate: '2026-01-08', dueDate: '2026-01-25', closedDate: '2026-01-25',
+          tindakLanjut: 'Dibantu Fitri penyiapan dokumen', kendala: '',
+          status: 'Done', remarks: 'Selesai audit Kosher', picEmail: 'fitri@perusahaan.com', picNama: 'Fitri'
+        },
+        {
+          id: 'ACT-004', no: 4, idProgram: 'PROG-03',
+          kategoriProgram: 'C. HEALTH, SAFETY AND ENVIRONMENT (HSE)',
+          itemName: 'HSE Report', kegiatan: 'Pelaporan Neraca Limbah B3 Semester 2 2025 di SIMPEL',
+          descriptionAction: 'Cek data limbah masuk & penyerahan pengangkutan tanggal 5 di SIMPEL',
+          startDate: '2026-01-06', dueDate: '2026-01-25', closedDate: '2026-01-20',
+          tindakLanjut: 'Pengangkutan limbah B3 selesai ke KLHK', kendala: '',
+          status: 'Closed', remarks: 'Dokumen ke KLHK selesai', picEmail: 'herbina@perusahaan.com', picNama: 'Herbina'
+        }
+      ],
+      masterPrograms: [
+        { idProgram: 'PROG-01', kategori: 'A. ENABLING DIGITAL AND RELIABLE OPERATION', namaItem: 'IT Development, IT Network & Infrastructure, IT Administration, Tagihan dan Pembayaran IT & Training', status: 'On Progress', progress: 53, keterangan: 'Fokus otomatisasi & RFID/AI' },
+        { idProgram: 'PROG-02', kategori: 'B. DRIVING SUSTAINABLE & RESPONSIBLE OPERATIONS', namaItem: 'Audit Internal, Audit Eksternal, Management Review, Inspeksi Dan Monitoring, Sertifikat Eksternal (ISO 9001, ISO 37001, GMP, HACCP, RSPO, ISCC, Halal, Kosher, CPPOB, SNI)', status: 'On Progress', progress: 51, keterangan: 'Compliance & sertifikasi' },
+        { idProgram: 'PROG-03', kategori: 'C. HEALTH, SAFETY AND ENVIRONMENT (HSE)', namaItem: 'Emergency Preparedness, Internal/Eksternal HSE Training, Risk Management, Regulation, HSE Inspection & Report', status: 'On Progress', progress: 51, keterangan: 'Keselamatan & Lingkungan' }
+      ],
+      usersList: [
+        { email: 'pimpinan@perusahaan.com', nama: 'Kasubag SDM & Sistem', role: 'Pimpinan', subBagian: 'SDM & Sistem' },
+        { email: 'salman@perusahaan.com', nama: 'Salman', role: 'Bawahan', subBagian: 'IT Development' },
+        { email: 'fitri@perusahaan.com', nama: 'Fitri', role: 'Bawahan', subBagian: 'SDM & Sistem' },
+        { email: 'herbina@perusahaan.com', nama: 'Herbina', role: 'Bawahan', subBagian: 'SDM & Sistem' },
+        { email: 'agung@perusahaan.com', nama: 'Agung', role: 'Bawahan', subBagian: 'SDM & Sistem' }
+      ]
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('esih_dark_mode') === 'true') {
+        setDarkMode(true);
+      }
+      showLoginScreen();
+    });
+
+    // ── Dark Mode Toggle ───────────────────────
+    function toggleDarkMode() {
+      setDarkMode(!state.darkMode);
+    }
+
+    function setDarkMode(isDark) {
+      state.darkMode = isDark;
+      const themeText = document.getElementById('theme-text');
+      const themeIcon = document.getElementById('theme-icon');
+
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        if (themeText) themeText.innerText = 'Light';
+        if (themeIcon) themeIcon.innerText = '☀️';
+        localStorage.setItem('esih_dark_mode', 'true');
+      } else {
+        document.body.classList.remove('dark-mode');
+        if (themeText) themeText.innerText = 'Dark';
+        if (themeIcon) themeIcon.innerText = '🌙';
+        localStorage.setItem('esih_dark_mode', 'false');
+      }
+    }
+
+    // ── Sidebar Toggle (Expand & Collapse) ──────
+    function toggleSidebar() {
+      const app = document.getElementById('app-layout');
+      const toggleText = document.getElementById('toggle-text');
+      const toggleIcon = document.getElementById('toggle-icon');
+
+      state.sidebarCollapsed = !state.sidebarCollapsed;
+
+      if (state.sidebarCollapsed) {
+        app.classList.add('sidebar-collapsed');
+        if (toggleText) toggleText.innerText = 'Expand Menu';
+        if (toggleIcon) toggleIcon.innerHTML = '&raquo;';
+      } else {
+        app.classList.remove('sidebar-collapsed');
+        if (toggleText) toggleText.innerText = 'Collapse Menu';
+        if (toggleIcon) toggleIcon.innerHTML = '&laquo;';
+      }
+    }
+
+    // ── Demo Quick Fill ────────────────────────
+    function fillLogin(email) {
+      document.getElementById('login-email').value = email;
+    }
+
+    // ── Screen Management ──────────────────────
+    function showLoginScreen() {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-layout').classList.remove('active');
+      state.isLoggedIn = false;
+      state.user = null;
+    }
+
+    function showAppLayout() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-layout').classList.add('active');
+      state.isLoggedIn = true;
+    }
+
+    // ── Login & Logout ─────────────────────────
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+
+      if (!email) return;
+
+      const user = state.usersList.find(x => x.email.toLowerCase() === email.toLowerCase()) || {
+        email: email,
+        nama: email.split('@')[0],
+        role: email.toLowerCase().includes('pimpinan') ? 'Pimpinan' : 'Bawahan',
+        subBagian: 'SDM & Sistem'
+      };
+
+      onLoginSuccess(user);
+    }
+
+    function onLoginSuccess(user) {
+      state.user = user;
+      showAppLayout();
+      updateHeaderUI(user);
+
+      const isPimpinan = user.role === 'Pimpinan';
+      
+      var filterPic = document.getElementById('filter-pic');
+      if (filterPic) filterPic.style.display = isPimpinan ? 'inline-block' : 'none';
+
+      var picGroup = document.getElementById('pic-assign-group');
+      if (picGroup) picGroup.style.display = isPimpinan ? 'block' : 'none';
+
+      populateUsersDropdown();
+      renderDashboard();
+      renderActivitiesTable(state.activities);
+      renderUsersTable();
+    }
+
+    function handleLogout() {
+      state.user = null;
+      state.isLoggedIn = false;
+      document.getElementById('login-form').reset();
+      showLoginScreen();
+    }
+
+    function updateHeaderUI(user) {
+      document.getElementById('header-user-name').innerText = user.nama || user.email;
+      document.getElementById('header-user-email').innerText = user.email;
+
+      const roleBadge = document.getElementById('header-role-badge');
+      const isPimpinan = user.role === 'Pimpinan';
+      roleBadge.innerText = isPimpinan ? 'Pimpinan Sub Bag' : 'Staff';
+      roleBadge.className = 'topbar-role ' + (isPimpinan ? 'pimpinan' : 'bawahan');
+
+      document.getElementById('btn-edit-master-program').style.display = isPimpinan ? 'inline-block' : 'none';
+      document.getElementById('tab-users').style.display = isPimpinan ? 'flex' : 'none';
+    }
+
+    // ── Render Dashboard & Master Program ──────
+    function renderDashboard() {
+      const acts = state.activities;
+      let total = acts.length;
+      let closed = acts.filter(x => x.status === 'Closed' || x.status === 'Done').length;
+      let open = total - closed;
+      let rate = total > 0 ? Math.round((closed / total) * 100) : 0;
+
+      document.getElementById('kpi-total').innerText = total;
+      document.getElementById('kpi-open').innerText = open;
+      document.getElementById('kpi-closed').innerText = closed;
+      document.getElementById('kpi-closure').innerText = rate + '%';
+
+      renderMasterProgramTable();
+      renderDashboardTable();
+    }
+
+    function renderMasterProgramTable() {
+      const tbody = document.getElementById('master-program-table-body');
+      const barsContainer = document.getElementById('master-program-bars-container');
+      let tbodyHtml = '';
+      let barsHtml = '';
+      let sumProgress = 0;
+
+      state.masterPrograms.forEach((item, idx) => {
+        // Automatic Progress Calculation from Weekly Activities
+        let matchingActs = state.activities.filter(a => 
+          (a.kategoriProgram && a.kategoriProgram.toLowerCase() === item.kategori.toLowerCase()) || 
+          (a.idProgram && a.idProgram === item.idProgram)
+        );
+
+        let displayProgress = item.progress;
+        let calcSub = 'Progress manual';
+
+        if (matchingActs.length > 0) {
+          let doneCount = matchingActs.filter(a => a.status === 'Closed' || a.status === 'Done').length;
+          displayProgress = Math.round((doneCount / matchingActs.length) * 100);
+          item.progress = displayProgress; // sync auto progress back to state
+          calcSub = doneCount + ' dari ' + matchingActs.length + ' aktivitas selesai (otomatis)';
+        }
+
+        sumProgress += displayProgress;
+        let statusClass = getStatusClass(item.status);
+
+        // Table row
+        tbodyHtml += `<tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td>
+            <div style="font-weight: 700; color: var(--primary);">${esc(item.kategori)}</div>
+            <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 2px;">${esc(item.namaItem)}</div>
+          </td>
+          <td><span class="status-badge ${statusClass}">${esc(item.status)}</span></td>
+          <td style="text-align: center;">
+            <span style="font-weight: 800; color: var(--primary); font-size: 0.9rem;">${displayProgress}%</span>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">${calcSub}</div>
+          </td>
+          <td style="font-size: 0.775rem;">${esc(item.keterangan || '-')}</td>
+        </tr>`;
+
+        // Progress Bar Card
+        barsHtml += `<div class="prog-item">
+          <div class="prog-header">
+            <span>${esc(item.kategori)}</span>
+            <span style="font-weight: 800; color: var(--primary);">${displayProgress}%</span>
+          </div>
+          <div class="prog-bar-bg">
+            <div class="prog-bar-fill" style="width: ${displayProgress}%;"></div>
+          </div>
+        </div>`;
+      });
+
+      if (tbody) tbody.innerHTML = tbodyHtml;
+      if (barsContainer) barsContainer.innerHTML = barsHtml;
+
+      let overall = state.masterPrograms.length > 0 ? Math.round(sumProgress / state.masterPrograms.length) : 0;
+      const badge = document.getElementById('overall-badge');
+      if (badge) badge.innerText = 'Overall: ' + overall + '%';
+
+      populateCategoryDropdowns();
+    }
+
+    function populateCategoryDropdowns() {
+      const catFilter = document.getElementById('filter-category');
+      const catForm = document.getElementById('form-kategori');
+
+      if (!catFilter || !catForm) return;
+
+      let fHtml = '<option value="ALL">Semua Kategori</option>';
+      let mHtml = '';
+
+      state.masterPrograms.forEach(item => {
+        fHtml += `<option value="${esc(item.kategori)}">${esc(item.kategori)}</option>`;
+        mHtml += `<option value="${esc(item.kategori)}">${esc(item.kategori)}</option>`;
+      });
+
+      catFilter.innerHTML = fHtml;
+      catForm.innerHTML = mHtml;
+    }
+
+    function renderDashboardTable() {
+      const tbody = document.getElementById('dashboard-table-body');
+      let html = '';
+
+      state.activities.forEach((act, idx) => {
+        let statusClass = getStatusClass(act.status);
+        html += `<tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td><div style="font-weight: 600;">${esc(act.itemName)}</div><div style="font-size: 0.7rem; color: var(--text-muted);">${esc(act.kategoriProgram)}</div></td>
+          <td>${esc(act.kegiatan)}</td>
+          <td><div style="font-size: 0.775rem; white-space: pre-line;">${esc(act.descriptionAction)}</div></td>
+          <td style="font-weight: 600;">${esc(act.picNama)}</td>
+          <td>${act.dueDate || '-'}</td>
+          <td>${act.closedDate || '-'}</td>
+          <td><span class="status-badge ${statusClass}">${esc(act.status)}</span></td>
+          <td style="font-size: 0.775rem;">${esc(act.remarks || '-')}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ── Render Activities Table (Single Action Column: Update Button Only) ──
+    function loadActivitiesData() {
+      applyActivityFilters();
+    }
+
+    function applyActivityFilters() {
+      const q = document.getElementById('filter-search').value.toLowerCase();
+      const m = document.getElementById('filter-month').value;
+      const st = document.getElementById('filter-status').value;
+      const cat = document.getElementById('filter-category').value;
+      const pic = document.getElementById('filter-pic').value;
+
+      let filtered = state.activities.filter(act => {
+        if (state.user && state.user.role === 'Bawahan' && act.picEmail.toLowerCase() !== state.user.email.toLowerCase()) return false;
+        if (st !== 'ALL' && act.status !== st) return false;
+        if (cat !== 'ALL' && act.kategoriProgram !== cat) return false;
+        if (pic !== 'ALL' && act.picEmail.toLowerCase() !== pic.toLowerCase()) return false;
+        if (m !== 'ALL' && act.startDate && !act.startDate.includes('-' + m + '-')) return false;
+        if (q && !act.kegiatan.toLowerCase().includes(q) && !act.kendala.toLowerCase().includes(q) && !act.picNama.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      renderActivitiesTable(filtered);
+    }
+
+    function renderActivitiesTable(data) {
+      const tbody = document.getElementById('activities-table-body');
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada data aktivitas yang sesuai filter.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach((act, idx) => {
+        let statusClass = getStatusClass(act.status);
+        let isOwner = state.user && (state.user.role === 'Pimpinan' || act.picEmail.toLowerCase() === state.user.email.toLowerCase());
+
+        html += `<tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td><div style="font-weight: 600;">${esc(act.kegiatan)}</div></td>
+          <td>${act.startDate || '-'}</td>
+          <td>${act.dueDate || '-'}</td>
+          <td style="font-size: 0.775rem;">${esc(act.tindakLanjut || '-')}</td>
+          <td style="font-size: 0.775rem; color: #b91c1c;">${esc(act.kendala || '-')}</td>
+          <td><span class="status-badge ${statusClass}">${esc(act.status)}</span></td>
+          <td style="font-size: 0.775rem;">${esc(act.remarks || '-')}</td>
+          <td style="text-align: center;">
+            ${isOwner ? `
+              <button class="btn btn-update btn-sm" onclick="openQuickUpdate('${act.id}')">Update</button>
+            ` : '<span style="font-size: 0.7rem; color: var(--text-muted);">Read-only</span>'}
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function populateUsersDropdown() {
+      const filterPic = document.getElementById('filter-pic');
+      const formPic = document.getElementById('form-pic-email');
+
+      let fHtml = '<option value="ALL">Semua PIC</option>';
+      let pHtml = '';
+
+      state.usersList.forEach(u => {
+        fHtml += `<option value="${u.email}">${u.nama} (${u.role})</option>`;
+        pHtml += `<option value="${u.email}">${u.nama} - ${u.email}</option>`;
+      });
+
+      if (filterPic) filterPic.innerHTML = fHtml;
+      if (formPic) formPic.innerHTML = pHtml;
+    }
+
+    // ── Form Modal Tambah Laporan Aktivitas ─────
+    function openFormModal() {
+      const modal = document.getElementById('activity-modal');
+      const form = document.getElementById('activity-form');
+      form.reset();
+
+      document.getElementById('modal-title').innerText = 'Form Tambah Laporan Aktivitas';
+      document.getElementById('form-start').value = new Date().toISOString().split('T')[0];
+
+      modal.classList.add('active');
+    }
+
+    function closeFormModal() {
+      document.getElementById('activity-modal').classList.remove('active');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      let obj = {
+        id: 'ACT-' + String(Date.now()).slice(-4),
+        kategoriProgram: document.getElementById('form-kategori').value,
+        itemName: document.getElementById('form-item').value || 'Umum',
+        kegiatan: document.getElementById('form-kegiatan').value,
+        descriptionAction: document.getElementById('form-desc').value,
+        startDate: document.getElementById('form-start').value,
+        dueDate: '',
+        tindakLanjut: '',
+        kendala: '',
+        status: 'Open',
+        remarks: '',
+        picEmail: state.user.role === 'Pimpinan' ? document.getElementById('form-pic-email').value : state.user.email,
+        picNama: state.user.role === 'Pimpinan' ? (state.usersList.find(x => x.email === document.getElementById('form-pic-email').value) || {}).nama : state.user.nama
+      };
+
+      state.activities.unshift(obj);
+
+      closeFormModal();
+      renderDashboard();
+      applyActivityFilters();
+      alert('Laporan aktivitas baru berhasil ditambahkan!');
+    }
+
+    // ── Quick Update Modal (Due Date, Status, Tindak Lanjut, Kendala, Remarks) ──
+    function openQuickUpdate(actId) {
+      let item = state.activities.find(x => x.id === actId);
+      if (!item) return;
+
+      document.getElementById('qu-id').value = item.id;
+      document.getElementById('qu-kegiatan-label').innerText = item.kegiatan;
+      document.getElementById('qu-item-label').innerText = item.itemName;
+      document.getElementById('qu-pic-label').innerText = item.picNama;
+
+      document.getElementById('qu-due').value = item.dueDate || new Date().toISOString().split('T')[0];
+      document.getElementById('qu-status').value = item.status || 'On Progress';
+      document.getElementById('qu-tindaklanjut').value = item.tindakLanjut || '';
+      document.getElementById('qu-kendala').value = item.kendala || '';
+      document.getElementById('qu-remarks').value = item.remarks || '';
+
+      document.getElementById('quick-update-modal').classList.add('active');
+    }
+
+    function closeQuickUpdateModal() {
+      document.getElementById('quick-update-modal').classList.remove('active');
+    }
+
+    function handleQuickUpdateSubmit(e) {
+      e.preventDefault();
+      let id = document.getElementById('qu-id').value;
+      let item = state.activities.find(x => x.id === id);
+
+      if (item) {
+        item.dueDate = document.getElementById('qu-due').value;
+        item.status = document.getElementById('qu-status').value;
+        item.tindakLanjut = document.getElementById('qu-tindaklanjut').value;
+        item.kendala = document.getElementById('qu-kendala').value;
+        item.remarks = document.getElementById('qu-remarks').value;
+
+        if (item.status === 'Closed' || item.status === 'Done') {
+          item.closedDate = new Date().toISOString().split('T')[0];
+        }
+      }
+
+      closeQuickUpdateModal();
+      renderDashboard();
+      applyActivityFilters();
+      alert('Progress & status aktivitas berhasil diperbarui!');
+    }
+
+    // ── Master Program Modal (Pimpinan - Dynamic CRUD) ──────
+    function openMasterProgramModal() {
+      renderMasterProgramListInModal();
+      document.getElementById('master-program-modal').classList.add('active');
+    }
+
+    function closeMasterProgramModal() {
+      document.getElementById('master-program-modal').classList.remove('active');
+    }
+
+    function renderMasterProgramListInModal() {
+      const container = document.getElementById('master-program-list-container');
+      if (!container) return;
+
+      let html = '';
+      state.masterPrograms.forEach((mp, idx) => {
+        let statusClass = getStatusClass(mp.status);
+        html += `
+          <div class="card-section" style="padding: 1rem; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 0.5rem;">
+              <div>
+                <h4 style="font-size: 0.875rem; font-weight: 700; color: var(--primary);">${esc(mp.kategori)}</h4>
+                <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 2px;">${esc(mp.namaItem)}</div>
+              </div>
+              <span class="status-badge ${statusClass}">${esc(mp.status)}</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.775rem;">
+              <div>Progress: <strong style="color: var(--primary); font-size: 0.85rem;">${mp.progress}%</strong> &bull; Note: ${esc(mp.keterangan || '-')}</div>
+              <div class="action-btn-group">
+                <button class="btn btn-secondary btn-sm" onclick="openAddMasterProgramForm('${mp.idProgram}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteMasterProgram('${mp.idProgram}')">Hapus</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (state.masterPrograms.length === 0) {
+        html = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada Master Program Kerja. Klik "+ Tambah Master Program" untuk membuat baru.</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    function openAddMasterProgramForm(editId) {
+      const form = document.getElementById('mp-single-form');
+      form.reset();
+
+      if (editId) {
+        let item = state.masterPrograms.find(x => x.idProgram === editId);
+        if (item) {
+          document.getElementById('mp-form-title').innerText = 'Edit Program Kerja Master';
+          document.getElementById('mp-edit-id').value = item.idProgram;
+          document.getElementById('mp-kategori').value = item.kategori;
+          document.getElementById('mp-subsubject').value = item.namaItem;
+          document.getElementById('mp-status').value = item.status || 'On Progress';
+          document.getElementById('mp-progress').value = item.progress || 0;
+          document.getElementById('mp-keterangan').value = item.keterangan || '';
+        }
+      } else {
+        document.getElementById('mp-form-title').innerText = 'Tambah Master Program Baru';
+        document.getElementById('mp-edit-id').value = '';
+      }
+
+      document.getElementById('master-program-form-modal').classList.add('active');
+    }
+
+    function closeAddMasterProgramForm() {
+      document.getElementById('master-program-form-modal').classList.remove('active');
+    }
+
+    function handleSaveSingleMasterProgram(e) {
+      e.preventDefault();
+      let editId = document.getElementById('mp-edit-id').value;
+
+      let obj = {
+        idProgram: editId || ('PROG-' + String(Date.now()).slice(-4)),
+        kategori: document.getElementById('mp-kategori').value.trim(),
+        namaItem: document.getElementById('mp-subsubject').value.trim(),
+        status: document.getElementById('mp-status').value,
+        progress: Number(document.getElementById('mp-progress').value),
+        keterangan: document.getElementById('mp-keterangan').value.trim()
+      };
+
+      if (editId) {
+        let idx = state.masterPrograms.findIndex(x => x.idProgram === editId);
+        if (idx !== -1) state.masterPrograms[idx] = obj;
+      } else {
+        state.masterPrograms.push(obj);
+      }
+
+      closeAddMasterProgramForm();
+      renderMasterProgramListInModal();
+      renderDashboard();
+      alert('Master Program Kerja berhasil disimpan!');
+    }
+
+    function confirmDeleteMasterProgram(id) {
+      if (confirm('Hapus program kerja master ini beserta seluruh kategorinya?')) {
+        state.masterPrograms = state.masterPrograms.filter(x => x.idProgram !== id);
+        renderMasterProgramListInModal();
+        renderDashboard();
+        alert('Master Program berhasil dihapus.');
+      }
+    }
+
+    // ── User Management ────────────────────────
+    function renderUsersTable() {
+      const tbody = document.getElementById('users-table-body');
+      let html = '';
+
+      state.usersList.forEach((u, idx) => {
+        let roleClass = u.role === 'Pimpinan' ? 'pimpinan' : 'bawahan';
+        html += `<tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td style="font-weight: 600;">${esc(u.email)}</td>
+          <td>${esc(u.nama)}</td>
+          <td><span class="topbar-role ${roleClass}">${esc(u.role)}</span></td>
+          <td>${esc(u.subBagian)}</td>
+          <td style="text-align: center;">
+            <div class="action-btn-group">
+              <button class="btn btn-secondary btn-sm" onclick="openUserModal('${u.email}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmDeleteUser('${u.email}')">Hapus</button>
+            </div>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function openUserModal(editEmail) {
+      const modal = document.getElementById('user-modal');
+      const form = document.getElementById('user-form');
+      form.reset();
+
+      if (editEmail) {
+        document.getElementById('user-modal-title').innerText = 'Edit Data Pengguna';
+        let u = state.usersList.find(x => x.email.toLowerCase() === editEmail.toLowerCase());
+        if (u) {
+          document.getElementById('u-email').value = u.email;
+          document.getElementById('u-email').readOnly = true;
+          document.getElementById('u-nama').value = u.nama;
+          document.getElementById('u-role').value = u.role;
+          document.getElementById('u-subbagian').value = u.subBagian;
+        }
+      } else {
+        document.getElementById('user-modal-title').innerText = 'Tambah Pengguna Baru';
+        document.getElementById('u-email').readOnly = false;
+        document.getElementById('u-subbagian').value = 'SDM & Sistem';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.remove('active');
+    }
+
+    function handleUserSubmit(e) {
+      e.preventDefault();
+      let email = document.getElementById('u-email').value.trim();
+      let obj = {
+        email: email,
+        nama: document.getElementById('u-nama').value,
+        role: document.getElementById('u-role').value,
+        subBagian: document.getElementById('u-subbagian').value
+      };
+
+      let idx = state.usersList.findIndex(x => x.email.toLowerCase() === email.toLowerCase());
+      if (idx !== -1) state.usersList[idx] = obj;
+      else state.usersList.push(obj);
+
+      closeUserModal();
+      renderUsersTable();
+      populateUsersDropdown();
+      alert('Data pengguna berhasil disimpan!');
+    }
+
+    function confirmDeleteUser(email) {
+      if (confirm('Hapus akun pengguna ' + email + '?')) {
+        state.usersList = state.usersList.filter(x => x.email.toLowerCase() !== email.toLowerCase());
+        renderUsersTable();
+        populateUsersDropdown();
+        alert('Pengguna berhasil dihapus.');
+      }
+    }
+
+    // ── Sidebar Navigation Tabs ────────────────
+    function switchTab(tabName) {
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
+
+      let tabEl = document.getElementById('tab-' + tabName);
+      let viewEl = document.getElementById('view-' + tabName);
+      if (tabEl) tabEl.classList.add('active');
+      if (viewEl) viewEl.classList.add('active');
+    }
+
+    // ── Utilities ──────────────────────────────
+    function getStatusClass(status) {
+      let s = (status || '').toLowerCase();
+      if (s === 'closed') return 'status-closed';
+      if (s === 'done') return 'status-done';
+      if (s === 'on progress') return 'status-progress';
+      if (s === 'cancelled') return 'status-cancelled';
+      return 'status-open';
+    }
+
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

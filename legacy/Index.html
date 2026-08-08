@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-SIH - Highlight Report & Activity Tracking</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    :root {
+      --bs-primary: #006837;
+      --bs-primary-rgb: 0, 104, 55;
+    }
+    .btn-primary {
+      --bs-btn-bg: #006837;
+      --bs-btn-border-color: #006837;
+      --bs-btn-hover-bg: #004d25;
+      --bs-btn-hover-border-color: #004d25;
+    }
+    .text-primary { color: #006837 !important; }
+    .bg-primary-subtle { background-color: #e8f5e9 !important; }
+    
+    /* Layout */
+    .sidebar {
+      width: 260px;
+      height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+    .main-wrapper {
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.3s ease;
+    }
+    .sidebar-collapsed .sidebar { transform: translateX(-100%); }
+    .sidebar-collapsed .main-wrapper { margin-left: 0; }
+    
+    /* Nav */
+    .nav-pills .nav-link {
+      color: #64748b;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .nav-pills .nav-link:hover { background-color: #f1f5f9; }
+    .nav-pills .nav-link.active {
+      background-color: #e8f5e9;
+      color: #006837;
+      font-weight: 700;
+      border-left: 4px solid #006837;
+      border-radius: 0;
+    }
+    
+    .view-pane { display: none; }
+    .view-pane.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+    
+    /* Cards & Tables */
+    .card { border-radius: 12px; border-color: #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .table th { background-color: #f8fafc; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+    .table td { font-size: 0.85rem; vertical-align: middle; }
+    
+    .status-badge {
+      font-size: 0.75rem; font-weight: 600; padding: 0.25em 0.6em; border-radius: 12px;
+    }
+    
+    /* Login */
+    #login-screen { display: flex; }
+    #app-layout { display: none; }
+    #app-layout.active { display: flex; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= LOGIN SCREEN ================= -->
+  <div id="login-screen" class="min-vh-100 d-flex align-items-center justify-content-center bg-light w-100">
+    <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+      <div class="text-center mb-4">
+        <h2 class="text-primary fw-bold mb-0">e-SIH</h2>
+        <p class="text-muted small">Sistem Informasi Highlight Report & Laporan Aktivitas</p>
+      </div>
+      
+      <div class="alert alert-secondary py-2" role="alert">
+        <p class="mb-2 small fw-bold text-uppercase">Pilih Akun Demo:</p>
+        <div class="d-flex flex-wrap gap-1">
+          <button class="btn btn-outline-primary btn-sm py-0" onclick="fillLogin('pimpinan@perusahaan.com')">Pimpinan</button>
+          <button class="btn btn-outline-primary btn-sm py-0" onclick="fillLogin('salman@perusahaan.com')">Salman (IT)</button>
+          <button class="btn btn-outline-primary btn-sm py-0" onclick="fillLogin('fitri@perusahaan.com')">Fitri (HR)</button>
+        </div>
+      </div>
+
+      <div id="login-error" class="alert alert-danger d-none py-2 small" role="alert">
+        Email tidak ditemukan!
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">Email Pengguna</label>
+          <input type="email" id="login-email" class="form-control" placeholder="nama@perusahaan.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-bold">Masuk Portal</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= APP LAYOUT ================= -->
+  <div id="app-layout" class="w-100">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar bg-white border-end d-flex flex-column" id="sidebar">
+      <div class="p-3 border-bottom d-flex align-items-center gap-2" style="height: 64px;">
+        <h4 class="text-primary fw-bold mb-0">e-SIH</h4>
+        <div class="lh-sm">
+          <div class="fw-bold fs-6">INL Operation</div>
+          <div class="text-muted" style="font-size: 0.65rem;">Highlight Report</div>
+        </div>
+      </div>
+      
+      <div class="p-3">
+        <p class="text-muted small fw-bold text-uppercase mb-2">Navigasi Utama</p>
+        <ul class="nav nav-pills flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="switchTab('dashboard')"><i class="bi bi-speedometer2 me-2"></i> Executive Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="switchTab('weekly')"><i class="bi bi-calendar-week me-2"></i> Weekly Activities</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="switchTab('monthly')"><i class="bi bi-calendar-month me-2"></i> Monthly Activities</a>
+          </li>
+          <li class="nav-item" id="nav-master" style="display: none;">
+            <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseMaster" role="button" aria-expanded="false" aria-controls="collapseMaster">
+              <span><i class="bi bi-database me-2"></i> Master Data</span>
+              <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+            </a>
+            <div class="collapse" id="collapseMaster">
+              <ul class="nav flex-column ms-3 mt-1" style="border-left: 2px solid #e2e8f0; padding-left: 0.5rem;">
+                <li class="nav-item">
+                  <a class="nav-link text-muted small" href="#" onclick="switchTab('master')"><i class="bi bi-card-checklist me-1"></i> Program Kerja</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="nav-item" id="nav-users" style="display: none;">
+            <a class="nav-link" href="#" onclick="switchTab('users')"><i class="bi bi-people me-2"></i> Kelola Pengguna</a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="mt-auto p-3 border-top text-muted" style="font-size: 0.75rem;">
+        &copy; 2026 SDM & Sistem
+      </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper flex-grow-1 bg-light">
+      
+      <!-- TOPBAR -->
+      <nav class="navbar navbar-expand bg-white border-bottom px-3 sticky-top" style="height: 64px;">
+        <div class="container-fluid px-0">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-light border" onclick="toggleSidebar()"><i class="bi bi-list"></i> Menu</button>
+          </div>
+          
+          <div class="d-flex align-items-center gap-3">
+            <div class="text-end d-none d-sm-block">
+              <div class="fw-bold" id="header-user-name" style="font-size: 0.9rem;">Memuat...</div>
+              <div class="text-muted" id="header-user-email" style="font-size: 0.75rem;">...</div>
+            </div>
+            <span id="header-role-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Staff</span>
+            <div class="vr"></div>
+            <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()"><i class="bi bi-box-arrow-right"></i> Keluar</button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- CONTENT -->
+      <div class="container-fluid p-3 p-md-4">
+        
+        <!-- === DYNAMIC INCLUDES === -->
+        <?!= include('Dashboard'); ?>
+        <?!= include('Weekly'); ?>
+        <?!= include('Monthly'); ?>
+        <?!= include('Users'); ?>
+        <?!= include('MasterProgram'); ?>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  
+  <!-- Add/Edit Activity -->
+  <div class="modal fade" id="modalActivity" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Laporan Aktivitas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formActivity" onsubmit="saveActivity(event)">
+            <input type="hidden" id="act-id">
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label fw-bold small">Kategori Program *</label>
+                <input type="text" id="act-cat" class="form-control" placeholder="A. ENABLING DIGITAL..." required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small">Sub Item *</label>
+                <input type="text" id="act-item" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small">Judul Kegiatan *</label>
+                <input type="text" id="act-kegiatan" class="form-control" required>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-bold small">Action to be taken</label>
+                <textarea id="act-desc" class="form-control" rows="2"></textarea>
+              </div>
+              
+              <!-- Quick Update Fields -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold small">Status *</label>
+                <select id="act-status" class="form-select" required>
+                  <option value="Open">Open</option>
+                  <option value="On Progress">On Progress</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small">Due Date</label>
+                <input type="date" id="act-due" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small">Tindak Lanjut</label>
+                <textarea id="act-tindak" class="form-control" rows="2"></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-danger">Kendala</label>
+                <textarea id="act-kendala" class="form-control" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="mt-4 text-end">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+              <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal fade" id="modalUser" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Data Pengguna</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formUser" onsubmit="saveUser(event)">
+            <div class="mb-3">
+              <label class="form-label fw-bold small">Email *</label>
+              <input type="email" id="u-email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold small">Nama *</label>
+              <input type="text" id="u-nama" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold small">Role *</label>
+              <select id="u-role" class="form-select">
+                <option value="Bawahan">Staff / Bawahan</option>
+                <option value="Pimpinan">Pimpinan</option>
+              </select>
+            </div>
+            <div class="mb-3 text-end">
+              <button type="submit" class="btn btn-primary">Simpan User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    let state = {
+      user: null, activities: [], programs: [], employees: [], usersList: []
+    };
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
+    function getBadgeClass(status) {
+      const s = (status||'').toUpperCase();
+      if (s === 'CLOSED' || s === 'DONE') return 'bg-success';
+      if (s === 'ON PROGRESS') return 'bg-primary';
+      if (s === 'OPEN') return 'bg-warning text-dark';
+      return 'bg-secondary';
+    }
+
+    // 1. NAVIGATION & LAYOUT
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('app-layout').classList.toggle('sidebar-collapsed');
+    }
+
+    // 2. AUTHENTICATION (MOCK FOR PREVIEW)
+    function fillLogin(email) { document.getElementById('login-email').value = email; }
+    
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      // In Production, call google.script.run.loginUser
+      state.user = { email: email, nama: email.split('@')[0], role: email.includes('pimpinan') ? 'Pimpinan' : 'Bawahan' };
+      
+      document.getElementById('login-screen').classList.remove('d-flex');
+      document.getElementById('login-screen').classList.add('d-none');
+      document.getElementById('app-layout').classList.add('active');
+      
+      document.getElementById('header-user-name').innerText = state.user.nama;
+      document.getElementById('header-user-email').innerText = state.user.email;
+      document.getElementById('header-role-badge').innerText = state.user.role;
+      
+      if (state.user.role === 'Pimpinan') {
+        document.getElementById('nav-users').style.display = 'block';
+        document.getElementById('f-pic').classList.remove('d-none');
+      }
+
+      loadAllData();
+    }
+
+    function handleLogout() {
+      window.location.reload();
+    }
+
+    // 3. DATA LOADING (LIVE FROM GOOGLE APPS SCRIPT)
+    function loadAllData() {
+      // Menampilkan indikator loading (opsional) jika UI mendukung,
+      // namun untuk sementara kita biarkan transparan.
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          state.kpi = res.kpi;
+          state.programs = res.programs;
+          state.employees = res.employees;
+          state.overallPerformance = res.overallPerformance;
+          state.recentHighlights = res.recentHighlights;
+          state.activities = res.activities || res.recentHighlights; 
+          state.usersList = res.usersList || [];
+          state.masterPrograms = res.masterPrograms || [];
+          
+          renderDashboard();
+          renderActivities();
+          renderUsers();
+          renderMaster();
+        })
+        .withFailureHandler(function(err) {
+          alert("Gagal memuat data dari database: " + err.message);
+        })
+        .getDashboardData();
+    }
+
+    function loadActivities() { loadAllData(); }
+
+    // 4. RENDERING DASHBOARD
+    function renderDashboard() {
+      const kpi = state.kpi;
+      document.getElementById('kpi-total').innerText = kpi.totalItems;
+      document.getElementById('kpi-open').innerText = kpi.openCount + kpi.onProgressCount;
+      document.getElementById('kpi-closed').innerText = kpi.closedCount;
+      document.getElementById('kpi-closure').innerText = kpi.closurePercentage + '%';
+      document.getElementById('overall-badge').innerText = 'Overall: ' + state.overallPerformance + '%';
+
+      // Render Accordion
+      const acc = document.getElementById('program-accordion-container');
+      let accHtml = '<div class="accordion" id="progAccordion">';
+      state.programs.forEach((prog, i) => {
+        let subs = prog.subItems.map(sub => `
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small fw-bold mb-1">
+              <span>${esc(sub.name)} <span class="text-muted fw-normal">(${sub.activities} act)</span></span>
+              <span class="text-primary">${sub.progress}%</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-primary" style="width: ${sub.progress}%"></div>
+            </div>
+          </div>
+        `).join('');
+
+        accHtml += `
+          <div class="accordion-item mb-2 border rounded">
+            <h2 class="accordion-header">
+              <button class="accordion-button ${i!==0?'collapsed':''} bg-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
+                <div class="d-flex justify-content-between w-100 me-3">
+                  <span>${esc(prog.name)}</span>
+                  <span class="text-primary">${prog.progress}%</span>
+                </div>
+              </button>
+            </h2>
+            <div id="collapse${i}" class="accordion-collapse collapse ${i===0?'show':''}" data-bs-parent="#progAccordion">
+              <div class="accordion-body border-top">${subs}</div>
+            </div>
+          </div>
+        `;
+      });
+      accHtml += '</div>';
+      acc.innerHTML = accHtml;
+
+      // Render Employees
+      const emp = document.getElementById('employee-table-body');
+      emp.innerHTML = state.employees.map(e => `
+        <tr>
+          <td><div class="fw-bold">${esc(e.name)}</div><div class="small text-muted">${esc(e.email)}</div></td>
+          <td class="text-center">${e.total}</td>
+          <td class="text-center text-success fw-bold">${e.closed}</td>
+          <td>
+            <div class="small fw-bold mb-1">${e.progress}%</div>
+            <div class="progress" style="height: 5px;"><div class="progress-bar bg-success" style="width: ${e.progress}%"></div></div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Render Highlights
+      document.getElementById('dashboard-table-body').innerHTML = state.recentHighlights.map((act, i) => `
+        <tr>
+          <td class="text-center fw-bold">${i+1}</td>
+          <td><div class="fw-bold">${esc(act.itemName)}</div><div class="small text-muted">${esc(act.kategoriProgram)}</div></td>
+          <td>${esc(act.kegiatan)}</td>
+          <td class="fw-bold">${esc(act.picNama)}</td>
+          <td>${act.dueDate || '-'}</td>
+          <td><span class="badge ${getBadgeClass(act.status)}">${esc(act.status)}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // 5. ACTIVITIES, USERS & MASTER PROGRAM
+    function renderActivities() {
+      // simple filter for demo
+      const html = state.activities.map((act, i) => `
+        <tr>
+          <td class="text-center fw-bold">${i+1}</td>
+          <td class="fw-bold">${esc(act.kegiatan)}</td>
+          <td>${act.startDate || '-'}</td>
+          <td>${act.dueDate || '-'}</td>
+          <td class="small">${esc(act.tindakLanjut)}</td>
+          <td class="small text-danger">${esc(act.kendala)}</td>
+          <td><span class="badge ${getBadgeClass(act.status)}">${esc(act.status)}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openActivityModal('${act.id}')">Update</button>
+          </td>
+        </tr>
+      `).join('');
+      
+      const weeklyBody = document.querySelector('#view-weekly #activities-table-body');
+      const monthlyBody = document.querySelector('#view-monthly #activities-table-body');
+      
+      if(weeklyBody) weeklyBody.innerHTML = html;
+      if(monthlyBody) monthlyBody.innerHTML = html;
+    }
+
+    function renderUsers() {
+      const usersBody = document.getElementById('users-table-body');
+      if(usersBody) {
+        usersBody.innerHTML = state.usersList.map((u, i) => `
+          <tr>
+            <td class="text-center fw-bold">${i+1}</td>
+            <td class="fw-bold">${esc(u.email)}</td>
+            <td>${esc(u.nama)}</td>
+            <td><span class="badge bg-secondary">${esc(u.role)}</span></td>
+            <td>${esc(u.subBagian)}</td>
+            <td class="text-center"><button class="btn btn-sm btn-outline-secondary">Edit</button></td>
+          </tr>
+        `).join('');
+      }
+    }
+    
+    function renderMaster() {
+      const masterBody = document.getElementById('master-table-body');
+      if(masterBody && state.masterPrograms) {
+        masterBody.innerHTML = state.masterPrograms.map((m, i) => `
+          <tr>
+            <td class="text-center fw-bold">${i+1}</td>
+            <td><div class="fw-bold small text-muted">${esc(m.kategori)}</div></td>
+            <td class="fw-bold">${esc(m.namaItem)}</td>
+            <td class="text-center"><span class="badge ${getBadgeClass(m.status)}">${esc(m.status)}</span></td>
+            <td>
+              <div class="small fw-bold mb-1">${m.progress}%</div>
+              <div class="progress" style="height: 5px;"><div class="progress-bar bg-success" style="width: ${m.progress}%"></div></div>
+            </td>
+            <td class="small">${esc(m.keterangan)}</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-secondary">Edit</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // 6. MODALS
+    let actModalInstance = null;
+    function openActivityModal(id) {
+      if (!actModalInstance) actModalInstance = new bootstrap.Modal(document.getElementById('modalActivity'));
+      document.getElementById('formActivity').reset();
+      actModalInstance.show();
+    }
+    
+    function saveActivity(e) {
+      e.preventDefault();
+      alert("Disimpan! (Demo mode)");
+      actModalInstance.hide();
+    }
+
+    let userModalInstance = null;
+    function openUserModal() {
+      if (!userModalInstance) userModalInstance = new bootstrap.Modal(document.getElementById('modalUser'));
+      document.getElementById('formUser').reset();
+      userModalInstance.show();
+    }
+    
+    function saveUser(e) {
+      e.preventDefault();
+      alert("User Disimpan! (Demo mode)");
+      userModalInstance.hide();
+    }
+
+  </script>
+</body>
+</html>

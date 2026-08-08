@@ -1,0 +1,453 @@
+{
+  "info": {
+    "_postman_id": "75608fb2-ae2f-45d8-9d5b-591df027c9ac",
+    "name": "Intes SSO - Portal dan Aplikasi Client",
+    "description": "Flow lengkap Portal SSO: generate one-time token, tukar token menjadi session aplikasi target, baca user aktif, ambil direktori Portal melalui backend target, uji endpoint internal langsung, dan logout. Jalankan folder 01 lalu 02 secara berurutan. Token internal hanya digunakan oleh backend/server dan tidak boleh dipasang pada frontend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "portal_url", "value": "https://portal.example.com", "type": "string" },
+    { "key": "target_backend_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "target_frontend_origin", "value": "http://localhost:4100", "type": "string" },
+    { "key": "app_id", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "portal_email", "value": "", "type": "string" },
+    { "key": "portal_password", "value": "", "type": "string" },
+    { "key": "portal_totp_code", "value": "", "type": "string" },
+    { "key": "portal_totp_token", "value": "", "type": "string" },
+    { "key": "portal_access_token", "value": "", "type": "string" },
+    { "key": "sso_internal_token", "value": "", "type": "string" },
+    { "key": "sso_token", "value": "", "type": "string" },
+    { "key": "csrf_token", "value": "", "type": "string" },
+    { "key": "employee_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "00 - Health Check",
+      "item": [
+        {
+          "name": "Portal Health",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{portal_url}}/api/health",
+            "description": "Memastikan Portal API dapat dihubungi."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Portal merespons sukses', () => pm.expect(pm.response.code).to.be.below(500));"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Target Health",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{target_backend_url}}/api/health",
+            "description": "Laravel menggunakan /api/health. Jika template Fastify menggunakan /health, ubah URL request ini."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Backend target sehat', () => pm.expect(pm.response.code).to.eql(200));"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "01 - Login SSO",
+      "description": "Jalankan berurutan. Isi portal_access_token dari hasil login Portal dan app_id dari Manajemen Aplikasi.",
+      "item": [
+        {
+          "name": "0A. Login Portal dengan Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{portal_email}}\",\n  \"password\": \"{{portal_password}}\"\n}"
+            },
+            "url": "{{portal_url}}/api/auth/login",
+            "description": "Opsional jika portal_access_token sudah diisi. Jika akun memakai TOTP, lanjutkan ke request 0B."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('Credential Portal diterima', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "});",
+                "if (body.data.accessToken) {",
+                "  pm.environment.set('portal_access_token', body.data.accessToken);",
+                "  pm.collectionVariables.set('portal_access_token', body.data.accessToken);",
+                "}",
+                "if (body.data.totpToken) pm.collectionVariables.set('portal_totp_token', body.data.totpToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "0B. Verifikasi TOTP Portal (Opsional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totpToken\": \"{{portal_totp_token}}\",\n  \"code\": \"{{portal_totp_code}}\"\n}"
+            },
+            "url": "{{portal_url}}/api/auth/login/totp-verify",
+            "description": "Jalankan hanya jika request login mengembalikan requiresTotp=true."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('TOTP Portal terverifikasi', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.data.accessToken).to.be.a('string').and.not.empty;",
+                "});",
+                "pm.environment.set('portal_access_token', body.data.accessToken);",
+                "pm.collectionVariables.set('portal_access_token', body.data.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "1. Generate One-Time SSO Token",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{portal_access_token}}", "type": "string" }]
+            },
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{portal_url}}/api/sso/token?app_id={{app_id}}",
+            "description": "Portal membuat token SSO sekali pakai untuk user Portal yang sedang login."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('Token SSO berhasil dibuat', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "  pm.expect(body.data.token).to.be.a('string').and.not.empty;",
+                "});",
+                "pm.collectionVariables.set('sso_token', body.data.token);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. Prepare Target CSRF",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/auth/csrf",
+            "description": "Membuat session awal dan mengambil CSRF token. Fastify mengembalikan null; Laravel mengembalikan token."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('CSRF/session siap', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "});",
+                "pm.collectionVariables.set('csrf_token', body.data.csrfToken || '');"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "3. Exchange Token ke Session Target",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" },
+              { "key": "X-CSRF-TOKEN", "value": "{{csrf_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ssoToken\": \"{{sso_token}}\",\n  \"appId\": \"{{app_id}}\"\n}"
+            },
+            "url": "{{target_backend_url}}/api/auth/login",
+            "description": "Backend target memverifikasi token ke Portal dan menyimpan snapshot user/employee dalam session HttpOnly. Token SSO tidak dapat digunakan ulang."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('Session target berhasil dibuat', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "  pm.expect(body.data.user.employeeId).to.be.a('string');",
+                "});",
+                "pm.collectionVariables.set('employee_id', body.data.user.employeeId);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "4. Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/auth/me",
+            "description": "Membaca snapshot user dan employee dari session target. Postman cookie jar harus aktif."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('User session tersedia', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "  pm.expect(body.data.email).to.be.a('string');",
+                "});"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "02 - Data Portal melalui Backend Client",
+      "description": "Frontend memanggil backend target. Backend target memeriksa session lalu menambahkan x-internal ketika meminta data ke Portal.",
+      "item": [
+        {
+          "name": "Daftar Employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/employees"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('Direktori employee diterima', () => {",
+                "  pm.expect(pm.response.code).to.eql(200);",
+                "  pm.expect(body.success).to.eql(true);",
+                "  pm.expect(body.data).to.be.an('array');",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Employee berdasarkan ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/employees?id={{employee_id}}",
+            "description": "Filter menggunakan employee_id yang disimpan otomatis setelah exchange token."
+          }
+        },
+        {
+          "name": "Employee di atas Grade User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/employees?aboveGradeLevel=5",
+            "description": "Contoh untuk dropdown approver atau atasan berdasarkan level grade."
+          }
+        },
+        {
+          "name": "Master Grade",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/grades"
+          }
+        },
+        {
+          "name": "Unit Organisasi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/organization-units",
+            "description": "Mengembalikan id, kode, nama, tipe, parentId, dan status unit untuk membentuk tree organisasi."
+          }
+        },
+        {
+          "name": "Area Penempatan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/portal/placements"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Internal Portal API Langsung",
+      "description": "Khusus pengujian backend/server. Jangan jalankan atau menaruh sso_internal_token di browser/frontend.",
+      "item": [
+        {
+          "name": "Internal Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "x-internal", "value": "{{sso_internal_token}}", "type": "text" }
+            ],
+            "url": "{{portal_url}}/api/sso/employees"
+          }
+        },
+        {
+          "name": "Internal Grades",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "x-internal", "value": "{{sso_internal_token}}", "type": "text" }
+            ],
+            "url": "{{portal_url}}/api/sso/grades"
+          }
+        },
+        {
+          "name": "Internal Organization Units",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "x-internal", "value": "{{sso_internal_token}}", "type": "text" }
+            ],
+            "url": "{{portal_url}}/api/sso/organization-units"
+          }
+        },
+        {
+          "name": "Internal Placements",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "x-internal", "value": "{{sso_internal_token}}", "type": "text" }
+            ],
+            "url": "{{portal_url}}/api/sso/placements"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Logout dan Negative Cases",
+      "item": [
+        {
+          "name": "Logout Target Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" },
+              { "key": "X-CSRF-TOKEN", "value": "{{csrf_token}}" }
+            ],
+            "url": "{{target_backend_url}}/api/auth/logout"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Session berhasil dihapus', () => pm.expect(pm.response.code).to.eql(200));"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Me setelah Logout - Harus 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "{{target_frontend_origin}}" }
+            ],
+            "url": "{{target_backend_url}}/api/auth/me"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Session sudah tidak tersedia', () => pm.expect(pm.response.code).to.eql(401));"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Internal API tanpa Token - Harus 403",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{portal_url}}/api/sso/grades"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Portal menolak request tanpa internal token', () => pm.expect(pm.response.code).to.eql(403));"
+              ]
+            }
+          }]
+        }
+      ]
+    }
+  ]
+}

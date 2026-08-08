@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model MasterProgram {
+  id         String   @id
+  kategori   String
+  namaItem   String
+  status     String
+  progress   Int
+  keterangan String?
+
+  activities Activity[]
+}
+
+model Activity {
+  id                String   @id
+  no                Int      @unique
+  idProgram         String
+  kategoriProgram   String
+  itemName          String
+  kegiatan          String
+  descriptionAction String?
+  startDate         String
+  dueDate           String
+  closedDate        String?
+  tindakLanjut      String?
+  kendala           String?
+  status            String
+  remarks           String?
+  picEmail          String
+  picNama           String
+  createdAt         DateTime @default(now())
+
+  program MasterProgram @relation(fields: [idProgram], references: [id])
+}
