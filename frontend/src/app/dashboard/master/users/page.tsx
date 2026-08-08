@@ -15,6 +15,7 @@ import {
   Briefcase,
   ShieldCheck
 } from 'lucide-react'
+import ModalPortal from '@/components/ModalPortal'
 
 export default function MasterUsersPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -123,6 +124,7 @@ export default function MasterUsersPage() {
   if (loading) return <div className="flex justify-center py-20"><span className="spinner" /></div>
 
   const totalActive = users.filter(u => u.isActive).length
+  const totalInactive = users.filter(u => !u.isActive).length
 
   return (
     <div className="space-y-6">
@@ -144,23 +146,15 @@ export default function MasterUsersPage() {
         </button>
       </div>
 
-      {/* KPI Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "80ms" }}>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total User IT</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">{users.length}</p>
+      {/* Ringkasan Mini (Tanpa Icon) */}
+      <div className="flex items-center gap-2.5">
+        <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-2 text-xs font-bold shadow-2xs">
+          <span className="text-slate-500">Total User:</span>
+          <span className="text-slate-900 font-black">{users.length}</span>
         </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "160ms" }}>
-          <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">User Aktif</p>
-          <p className="text-2xl font-black text-emerald-700 mt-1">{totalActive}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "240ms" }}>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit Kerja</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">{uniqueUnits.length}</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "320ms" }}>
-          <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Akses PIC</p>
-          <p className="text-2xl font-black text-amber-700 mt-1">{users.length > 0 ? Math.round((totalActive / users.length) * 100) : 0}%</p>
+        <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-2 text-xs font-bold shadow-2xs">
+          <span className="text-slate-500">User Nonaktif:</span>
+          <span className="text-red-600 font-black">{totalInactive}</span>
         </div>
       </div>
 
@@ -308,95 +302,97 @@ export default function MasterUsersPage() {
 
       {/* Modal Form Create/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 z-10">
-              <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                <ShieldCheck size={18} className="text-brand-700" />
-                {editId ? 'Edit Data User IT' : 'Tambah User IT Baru'}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:bg-slate-100 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-              <div className="space-y-4">
-                {errorMsg && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
-                    {errorMsg}
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: Herbina"
-                    value={form.nama}
-                    onChange={e => setForm({ ...form, nama: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Email Resmi INL *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="Contoh: herbina@inl.co.id"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Staff IT Development"
-                    value={form.jabatan}
-                    onChange={e => setForm({ ...form, jabatan: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Unit Kerja / Divisi</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: IT &amp; Sistem Operational"
-                    value={form.unit}
-                    onChange={e => setForm({ ...form, unit: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 z-10">
+                <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-brand-700" />
+                  {editId ? 'Edit Data User IT' : 'Tambah User IT Baru'}
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:bg-slate-100 cursor-pointer"
                 >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? 'Menyimpan...' : 'Simpan User'}
+                  ✕
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+                <div className="space-y-4">
+                  {errorMsg && (
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+                      {errorMsg}
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Herbina"
+                      value={form.nama}
+                      onChange={e => setForm({ ...form, nama: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Email Resmi INL *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="Contoh: herbina@inl.co.id"
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Staff IT Development"
+                      value={form.jabatan}
+                      onChange={e => setForm({ ...form, jabatan: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Unit Kerja / Divisi</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: IT &amp; Sistem Operational"
+                      value={form.unit}
+                      onChange={e => setForm({ ...form, unit: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Menyimpan...' : 'Simpan User'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   )

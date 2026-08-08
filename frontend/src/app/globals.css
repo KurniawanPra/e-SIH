@@ -73,13 +73,13 @@ body {
 
 /* ===== Page & Element Entrance Animations ===== */
 
-/* Page transition on route change */
+/* Page transition on route change (opacity-only to prevent CSS fixed stacking context trap for modals) */
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .animate-page-enter {
-  animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Staggered fade-in-up (cards, list items) */
@@ -240,7 +240,15 @@ body {
 .neu-active-green {
   background: linear-gradient(145deg, #00743e, #00562e);
   color: #ffffff;
+  border: 2.5px solid #4ade80 !important;
   box-shadow: 4px 4px 10px rgba(0, 104, 55, 0.35), inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.4);
+}
+
+.neu-sidebar-active {
+  background: #f0fdf4 !important;
+  color: #006837 !important;
+  border: 2.5px solid #006837 !important;
+  box-shadow: 0 4px 12px rgba(0, 104, 55, 0.22), inset 0 1px 2px #ffffff !important;
 }
 
 .neu-[badge] {

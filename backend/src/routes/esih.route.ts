@@ -7,12 +7,18 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // ==========================================
 
   // GET all Parent Program Kerja with average progress & items
+  // GET all Parent Program Kerja with average progress & items
   fastify.get('/program-kerja', async (request, reply) => {
     const parentPrograms = await prisma.programKerja.findMany({
       orderBy: { kode: 'asc' },
       include: {
         items: {
-          orderBy: { kode: 'asc' }
+          orderBy: { kode: 'asc' },
+          include: {
+            activities: {
+              where: { isActive: true }
+            }
+          }
         }
       }
     })
@@ -20,12 +26,30 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Calculate total progress percentage from sub-items for each parent
     const result = parentPrograms.map(parent => {
       const activeItems = parent.items.filter(i => i.isActive)
-      const totalProgress = activeItems.length > 0
-        ? Math.round(activeItems.reduce((acc, curr) => acc + curr.progress, 0) / activeItems.length)
+      const itemsWithProgress = activeItems.map(item => {
+        let itemProgress = item.progress
+        const activeActivities = item.activities || []
+        if (activeActivities.length > 0) {
+          const closedCount = activeActivities.filter(a => a.status === 'Closed').length
+          itemProgress = Math.round((closedCount / activeActivities.length) * 100)
+        } else {
+          if (item.status === 'Closed') itemProgress = 100
+          else if (item.status === 'On Progress') itemProgress = 50
+          else itemProgress = 0
+        }
+        return {
+          ...item,
+          progress: itemProgress
+        }
+      })
+
+      const totalProgress = itemsWithProgress.length > 0
+        ? Math.round(itemsWithProgress.reduce((acc, curr) => acc + curr.progress, 0) / itemsWithProgress.length)
         : 0
 
       return {
         ...parent,
+        items: itemsWithProgress,
         totalProgress,
       }
     })
@@ -103,6 +127,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       return reply.code(400).send({ success: false, error: 'Program Induk, Kode, dan Nama Sub-Program wajib diisi' })
     }
 
+    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0 
+      ? Number(progress)
+      : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
+
     const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`
     const created = await prisma.masterProgram.create({
       data: {
@@ -111,7 +139,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         kode,
         namaItem,
         status: status || 'On Progress',
-        progress: Number(progress) || 0,
+        progress: calcProgress,
         keterangan,
       }
     })
@@ -123,6 +151,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const { id } = request.params
     const { programKerjaId, kode, namaItem, status, progress, keterangan } = request.body || {}
 
+    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0 
+      ? Number(progress)
+      : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
+
     const updated = await prisma.masterProgram.update({
       where: { id },
       data: {
@@ -130,7 +162,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         kode,
         namaItem,
         status,
-        progress: Number(progress) || 0,
+        progress: calcProgress,
         keterangan,
       }
     })

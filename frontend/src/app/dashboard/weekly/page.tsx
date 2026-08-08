@@ -14,11 +14,13 @@ import {
   RefreshCw,
   CalendarDays,
   ChevronDown,
-  FileSpreadsheet,
   Download,
-  FilterX
+  FilterX,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
+import ModalPortal from '@/components/ModalPortal'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -200,6 +202,28 @@ export default function WeeklyActivitiesPage() {
     return Array.from(picSet).sort()
   }, [filteredActivities])
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [inputPage, setInputPage] = useState('1')
+  const pageSize = 10
+
+  useEffect(() => {
+    setCurrentPage(1)
+    setInputPage('1')
+  }, [selectedMonth, selectedWeek, selectedYear, userFilter, statusFilter, startDateFilter, endDateFilter, search])
+
+  useEffect(() => {
+    setInputPage(String(currentPage))
+  }, [currentPage])
+
+  const totalPages = Math.ceil(filteredActivities.length / pageSize) || 1
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, filteredActivities.length)
+
+  const paginatedActivities = useMemo(() => {
+    return filteredActivities.slice(startIndex, startIndex + pageSize)
+  }, [filteredActivities, startIndex])
+
   const today = new Date().toISOString().split('T')[0]
 
   // Export Filtered Activities to Excel / CSV File
@@ -252,7 +276,7 @@ export default function WeeklyActivitiesPage() {
     const firstParent = parentPrograms[0]?.id || ''
     setSelectedParentId(firstParent)
     const availableItems = itemPrograms.filter((i: any) => i.programKerjaId === firstParent)
-    
+
     setForm({
       idProgram: availableItems[0]?.id || itemPrograms[0]?.id || '',
       kegiatan: '',
@@ -373,31 +397,31 @@ export default function WeeklyActivitiesPage() {
       {/* Month & Week Sprints Bar */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Pilih Bulan Operasional:</span>
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(Number(e.target.value))}
-            className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
-          >
-            {MONTH_NAMES.map((name, idx) => (
-              <option key={name} value={idx + 1}>
-                Bulan {name} {selectedYear}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={e => setSelectedYear(Number(e.target.value))}
-            className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
-          >
-            {yearOptions.map(y => (
-              <option key={y} value={y}>
-                Tahun {y}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Pilih Bulan Operasional:</span>
+            <select
+              value={selectedMonth}
+              onChange={e => setSelectedMonth(Number(e.target.value))}
+              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+            >
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={name} value={idx + 1}>
+                  Bulan {name} {selectedYear}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+            >
+              {yearOptions.map(y => (
+                <option key={y} value={y}>
+                  Tahun {y}
+                </option>
+              ))}
+            </select>
+          </div>
           <span className="text-xs font-bold text-slate-500">
             Total Laporan: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
           </span>
@@ -519,12 +543,12 @@ export default function WeeklyActivitiesPage() {
 
       {/* Mobile Card List View (Visible on Mobile Screens) */}
       <div className="grid grid-cols-1 gap-3.5 md:hidden">
-        {filteredActivities.length === 0 ? (
+        {paginatedActivities.length === 0 ? (
           <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-500 font-semibold text-xs">
             Tidak ada laporan aktivitas pada rentang tanggal/filter terpilih.
           </div>
         ) : (
-          filteredActivities.map((a) => (
+          paginatedActivities.map((a) => (
             <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-3 w-full min-w-0">
               {/* Top Row: Program Badge & Status */}
               <div className="space-y-1.5 border-b border-slate-200 pb-2.5 min-w-0">
@@ -588,7 +612,7 @@ export default function WeeklyActivitiesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center">No</th>
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
                 <th className="py-3.5 px-4 w-64">Program &amp; Item Kerja</th>
                 <th className="py-3.5 px-4">Laporan Kegiatan</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
@@ -598,16 +622,16 @@ export default function WeeklyActivitiesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
-              {filteredActivities.length === 0 ? (
+              {paginatedActivities.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-400 font-bold">
                     Tidak ada data laporan aktivitas pada rentang tanggal/filter terpilih.
                   </td>
                 </tr>
               ) : (
-                filteredActivities.map((a, i) => (
+                paginatedActivities.map((a, i) => (
                   <tr key={a.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-4 text-center text-slate-400 font-mono font-bold text-xs">{i + 1}</td>
+                    <td className="py-4 px-4 text-center font-mono font-black text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">{startIndex + i + 1}</td>
                     
                     {/* Program Column - Clean Responsive Formatting */}
                     <td className="py-4 px-4 space-y-1">
@@ -679,218 +703,273 @@ export default function WeeklyActivitiesPage() {
         </div>
       </div>
 
-      {/* Streamlined Add / Edit Activity Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-              <h3 className="font-black text-slate-900 text-base">
-                {editItem ? 'Edit Laporan Aktivitas' : 'Tambah Laporan Aktivitas Baru'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
-                <X size={18} />
-              </button>
+      {/* Pagination Bar */}
+      {filteredActivities.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border-2 border-slate-300 shadow-2xs">
+          <p className="text-xs font-extrabold text-slate-600">
+            Menampilkan <span className="text-brand-700">{startIndex + 1}</span>–<span className="text-brand-700">{endIndex}</span> dari <span className="text-slate-900">{filteredActivities.length}</span> data
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+            >
+              <ChevronLeft size={15} /> Prev
+            </button>
+
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <span>Hal</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={inputPage}
+                onChange={(e) => {
+                  const val = Number(e.target.value)
+                  setInputPage(e.target.value)
+                  if (val >= 1 && val <= totalPages) {
+                    setCurrentPage(val)
+                  }
+                }}
+                onBlur={() => {
+                  if (!inputPage || Number(inputPage) < 1 || Number(inputPage) > totalPages) {
+                    setInputPage(String(currentPage))
+                  }
+                }}
+                className="w-12 text-center py-1 rounded-lg neu-input text-xs font-black text-slate-900 outline-none"
+              />
+              <span>dari {totalPages}</span>
             </div>
 
-            <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-              <div className="space-y-4">
-                {/* Streamlined Form Fields */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">1. Program Kerja Induk *</label>
-                  <select
-                    value={selectedParentId}
-                    onChange={e => handleParentChange(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 outline-none cursor-pointer"
-                  >
-                    {parentPrograms.map(p => (
-                      <option key={p.id} value={p.id}>
-                        Program {p.kode}: {p.namaProgram}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Field 2: Searchable Select Dropdown for Sub-Item Program */}
-                <div className="space-y-1 relative">
-                  <label className="text-xs font-bold text-slate-700">2. Sub-Item Program Kerja *</label>
-                  
-                  <div
-                    onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
-                  >
-                    <span className="truncate">
-                      {selectedItemObj ? `Item ${selectedItemObj.kode} — ${selectedItemObj.namaItem}` : 'Pilih Sub-Item Program Kerja...'}
-                    </span>
-                    <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
-                  </div>
-
-                  {subDropdownOpen && (
-                    <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
-                      <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder="Ketik untuk mencari item program..."
-                          value={subSearchQuery}
-                          onChange={e => setSubSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        {filteredItemOptsSearch.length === 0 ? (
-                          <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
-                        ) : (
-                          filteredItemOptsSearch.map((i: any) => (
-                            <div
-                              key={i.id}
-                              onClick={() => {
-                                setForm({ ...form, idProgram: i.id })
-                                setSubDropdownOpen(false)
-                                setSubSearchQuery('')
-                              }}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                                form.idProgram === i.id
-                                  ? 'neu-active-green'
-                                  : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
-                              }`}
-                            >
-                              Item {i.kode} — {i.namaItem}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">3. Kegiatan / Detail Laporan *</label>
-                  <textarea
-                    rows={3}
-                    required
-                    placeholder="Tuliskan uraian kegiatan/laporan aktivitas..."
-                    value={form.kegiatan}
-                    onChange={e => setForm({ ...form, kegiatan: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">4. Tanggal Start *</label>
-                    <input
-                      type="date"
-                      required
-                      value={form.startDate}
-                      onChange={e => setForm({ ...form, startDate: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Status Aktivitas</label>
-                    <select
-                      value={form.status}
-                      onChange={e => setForm({ ...form, status: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-                    >
-                      <option value="On Progress">On Progress (Berjalan)</option>
-                      <option value="Open">Open (Belum Dimulai)</option>
-                      <option value="Closed">Closed (Selesai)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Hidden/Defaulted PIC Field */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                  <span className="font-medium">Penanggung Jawab (PIC):</span>
-                  <span className="font-extrabold text-slate-900">{form.picNama}</span>
-                </div>
-              </div>
-
-              {/* Sticky Footer */}
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Tambah Aktivitas'}
-                </button>
-              </div>
-            </form>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+            >
+              Next <ChevronRight size={15} />
+            </button>
           </div>
         </div>
       )}
 
+      {/* Streamlined Add / Edit Activity Modal */}
+      {showModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <h3 className="font-black text-slate-900 text-base">
+                  {editItem ? 'Edit Laporan Aktivitas' : 'Tambah Laporan Aktivitas Baru'}
+                </h3>
+                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+                <div className="space-y-4">
+                  {/* Streamlined Form Fields */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">1. Program Kerja Induk *</label>
+                    <select
+                      value={selectedParentId}
+                      onChange={e => handleParentChange(e.target.value)}
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 outline-none cursor-pointer"
+                    >
+                      {parentPrograms.map(p => (
+                        <option key={p.id} value={p.id}>
+                          Program {p.kode}: {p.namaProgram}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Field 2: Searchable Select Dropdown for Sub-Item Program */}
+                  <div className="space-y-1 relative">
+                    <label className="text-xs font-bold text-slate-700">2. Sub-Item Program Kerja *</label>
+                    
+                    <div
+                      onClick={() => setSubDropdownOpen(!subDropdownOpen)}
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
+                    >
+                      <span className="truncate">
+                        {selectedItemObj ? `Item ${selectedItemObj.kode} — ${selectedItemObj.namaItem}` : 'Pilih Sub-Item Program Kerja...'}
+                      </span>
+                      <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
+                    </div>
+
+                    {subDropdownOpen && (
+                      <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
+                        <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Ketik untuk mencari item program..."
+                            value={subSearchQuery}
+                            onChange={e => setSubSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          {filteredItemOptsSearch.length === 0 ? (
+                            <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
+                          ) : (
+                            filteredItemOptsSearch.map((i: any) => (
+                              <div
+                                key={i.id}
+                                onClick={() => {
+                                  setForm({ ...form, idProgram: i.id })
+                                  setSubDropdownOpen(false)
+                                  setSubSearchQuery('')
+                                }}
+                                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+                                  form.idProgram === i.id
+                                    ? 'neu-active-green'
+                                    : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
+                                }`}
+                              >
+                                Item {i.kode} — {i.namaItem}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">3. Kegiatan / Detail Laporan *</label>
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="Tuliskan uraian kegiatan/laporan aktivitas..."
+                      value={form.kegiatan}
+                      onChange={e => setForm({ ...form, kegiatan: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">4. Tanggal Start *</label>
+                      <input
+                        type="date"
+                        required
+                        value={form.startDate}
+                        onChange={e => setForm({ ...form, startDate: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Status Aktivitas</label>
+                      <select
+                        value={form.status}
+                        onChange={e => setForm({ ...form, status: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                      >
+                        <option value="On Progress">On Progress (Berjalan)</option>
+                        <option value="Open">Open (Belum Dimulai)</option>
+                        <option value="Closed">Closed (Selesai)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Hidden/Defaulted PIC Field */}
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                    <span className="font-medium">Penanggung Jawab (PIC):</span>
+                    <span className="font-extrabold text-slate-900">{form.picNama}</span>
+                  </div>
+                </div>
+
+                {/* Sticky Footer */}
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Tambah Aktivitas'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
       {/* Quick Update Status Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-              <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
-                <RefreshCw size={16} className="text-brand-700" /> Update Status Aktivitas
-              </h3>
-              <button onClick={() => setShowStatusModal(false)} className="p-1 rounded-lg neu-btn text-slate-500 cursor-pointer">
-                <X size={16} />
-              </button>
-            </div>
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                  <RefreshCw size={16} className="text-brand-700" /> Update Status Aktivitas
+                </h3>
+                <button onClick={() => setShowStatusModal(false)} className="p-1 rounded-lg neu-btn text-slate-500 cursor-pointer">
+                  <X size={16} />
+                </button>
+              </div>
 
-            <form onSubmit={submitQuickStatus} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-              <div className="space-y-3.5">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Status Baru *</label>
-                  <select
-                    value={statusForm.status}
-                    onChange={e => setStatusForm({ ...statusForm, status: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+              <form onSubmit={submitQuickStatus} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+                <div className="space-y-3.5">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Status Baru *</label>
+                    <select
+                      value={statusForm.status}
+                      onChange={e => setStatusForm({ ...statusForm, status: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                    >
+                      <option value="Closed">Closed (Selesai)</option>
+                      <option value="On Progress">On Progress (Berjalan)</option>
+                      <option value="Open">Open (Belum Dimulai)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Catatan / Tindak Lanjut</label>
+                    <input
+                      type="text"
+                      placeholder="Opsional: catatan penyelesaian..."
+                      value={statusForm.tindakLanjut}
+                      onChange={e => setStatusForm({ ...statusForm, tindakLanjut: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowStatusModal(false)}
+                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
                   >
-                    <option value="Closed">Closed (Selesai)</option>
-                    <option value="On Progress">On Progress (Berjalan)</option>
-                    <option value="Open">Open (Belum Dimulai)</option>
-                  </select>
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Memperbarui...' : 'Perbarui Status'}
+                  </button>
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Catatan / Tindak Lanjut</label>
-                  <input
-                    type="text"
-                    placeholder="Opsional: catatan penyelesaian..."
-                    value={statusForm.tindakLanjut}
-                    onChange={e => setStatusForm({ ...statusForm, tindakLanjut: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
-                <button
-                  type="button"
-                  onClick={() => setShowStatusModal(false)}
-                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? 'Memperbarui...' : 'Perbarui Status'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   )

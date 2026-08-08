@@ -12,8 +12,11 @@ import {
   Plus,
   X,
   FileSpreadsheet,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
+import ModalPortal from '@/components/ModalPortal'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -118,6 +121,28 @@ export default function MonthlyActivitiesPage() {
       return true
     })
   }, [monthActivities, userFilter, statusFilter, search])
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [inputPage, setInputPage] = useState('1')
+  const pageSize = 10
+
+  useEffect(() => {
+    setCurrentPage(1)
+    setInputPage('1')
+  }, [selectedMonth, selectedYear, userFilter, statusFilter, search])
+
+  useEffect(() => {
+    setInputPage(String(currentPage))
+  }, [currentPage])
+
+  const totalPages = Math.ceil(filteredActivities.length / pageSize) || 1
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, filteredActivities.length)
+
+  const paginatedActivities = useMemo(() => {
+    return filteredActivities.slice(startIndex, startIndex + pageSize)
+  }, [filteredActivities, startIndex])
 
   // Searchable Sub-Item Program Options for Modal
   const filteredSubItems = useMemo(() => {
@@ -245,75 +270,32 @@ export default function MonthlyActivitiesPage() {
         </div>
       </div>
 
-      {/* 3 Clean Border Pill Badges & 1 Live Running Marquee Ticker Bar */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Badge 1: Total Action */}
-          <div className="bg-white rounded-full border-2 border-slate-300 shadow-2xs px-4 py-2 flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Action</span>
-            <span className="text-base font-black text-slate-900 bg-slate-100 px-3 py-0.5 rounded-full border border-slate-300">
-              {totalCount} Laporan
-            </span>
-          </div>
-
-          {/* Badge 2: Open Tasks */}
-          <div className="bg-white rounded-full border-2 border-red-200 shadow-2xs px-4 py-2 flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase text-red-600 tracking-wider">Open Tasks</span>
-            <span className="text-base font-black text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-200">
-              {openCount} Tasks
-            </span>
-          </div>
-
-          {/* Badge 3: On Progress */}
-          <div className="bg-white rounded-full border-2 border-amber-200 shadow-2xs px-4 py-2 flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider">On Progress</span>
-            <span className="text-base font-black text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full border border-amber-200">
-              {progressCount} Tasks
-            </span>
-          </div>
+      {/* 3 Clean Border Pill Badges */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Badge 1: Total Action */}
+        <div className="bg-white rounded-full border-2 border-slate-300 shadow-2xs px-4 py-2 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Action</span>
+          <span className="text-base font-black text-slate-900 bg-slate-100 px-3 py-0.5 rounded-full border border-slate-300">
+            {totalCount} Laporan
+          </span>
         </div>
 
-        {/* Dynamic Running Marquee Ticker Banner without Bullet Lists */}
-        <div className="bg-white rounded-2xl border-2 border-emerald-700 shadow-sm p-3.5 overflow-hidden relative">
-          <div className="overflow-hidden whitespace-nowrap w-full">
-            <div className="animate-marquee items-center gap-12 text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800">
-              <span className="inline-flex items-center gap-2 text-brand-800">
-                CLOSURE RATE: <span className="text-emerald-700 font-black text-sm sm:text-base bg-emerald-50 px-3 py-1 rounded-xl border-2 border-emerald-600">{closureRate}%</span>
-              </span>
-              <span>
-                REALISASI OPERASIONAL TIM IT &amp; SISTEM: <strong className="text-emerald-700 font-black">{closedCount} DARI {totalCount} LAPORAN SELESAI ({closureRate}%)</strong>
-              </span>
-              <span>
-                ON PROGRESS: <strong className="text-amber-600 font-black">{progressCount} AKTIVITAS</strong>
-              </span>
-              <span>
-                OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
-              </span>
-              <span>
-                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">{slaRate}% HIGH PERFORMANCE</strong>
-              </span>
+        {/* Badge 2: Open Tasks */}
+        <div className="bg-white rounded-full border-2 border-red-200 shadow-2xs px-4 py-2 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-red-600 tracking-wider">Open Tasks</span>
+          <span className="text-base font-black text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-200">
+            {openCount} Tasks
+          </span>
+        </div>
 
-              {/* Duplicated for Seamless Infinite Loop */}
-              <span className="inline-flex items-center gap-2 text-brand-800">
-                CLOSURE RATE: <span className="text-emerald-700 font-black text-sm sm:text-base bg-emerald-50 px-3 py-1 rounded-xl border-2 border-emerald-600">{closureRate}%</span>
-              </span>
-              <span>
-                REALISASI OPERASIONAL TIM IT &amp; SISTEM: <strong className="text-emerald-700 font-black">{closedCount} DARI {totalCount} LAPORAN SELESAI ({closureRate}%)</strong>
-              </span>
-              <span>
-                ON PROGRESS: <strong className="text-amber-600 font-black">{progressCount} AKTIVITAS</strong>
-              </span>
-              <span>
-                OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
-              </span>
-              <span>
-                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">{slaRate}% HIGH PERFORMANCE</strong>
-              </span>
-            </div>
-          </div>
+        {/* Badge 3: On Progress */}
+        <div className="bg-white rounded-full border-2 border-amber-200 shadow-2xs px-4 py-2 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider">On Progress</span>
+          <span className="text-base font-black text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full border border-amber-200">
+            {progressCount} Tasks
+          </span>
         </div>
       </div>
-
       {/* Month Filter Selector Bar */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 min-w-0">
@@ -378,7 +360,7 @@ export default function MonthlyActivitiesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center">No</th>
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
                 <th className="py-3.5 px-4 w-60">Program Kerja</th>
                 <th className="py-3.5 px-4">Sub-Item Program</th>
                 <th className="py-3.5 px-4">Action / Kegiatan Highlight</th>
@@ -388,16 +370,16 @@ export default function MonthlyActivitiesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
-              {filteredActivities.length === 0 ? (
+              {paginatedActivities.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-400 font-bold">
                     Tidak ada data highlight aktivitas pada bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                   </td>
                 </tr>
               ) : (
-                filteredActivities.map((a, idx) => (
+                paginatedActivities.map((a, idx) => (
                   <tr key={a.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-400">{idx + 1}</td>
+                    <td className="py-3.5 px-4 text-center font-mono font-black text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">{startIndex + idx + 1}</td>
                     <td className="py-3.5 px-4 font-extrabold text-slate-900">
                       <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
                         {a.program?.programKerja?.kode}. {a.program?.programKerja?.namaProgram?.substring(0, 30)}
@@ -438,12 +420,12 @@ export default function MonthlyActivitiesPage() {
 
       {/* Mobile View */}
       <div className="grid grid-cols-1 gap-3 md:hidden">
-        {filteredActivities.length === 0 ? (
+        {paginatedActivities.length === 0 ? (
           <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
             Tidak ada data highlight aktivitas pada bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
           </div>
         ) : (
-          filteredActivities.map((a) => (
+          paginatedActivities.map((a) => (
             <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-2.5 w-full min-w-0">
               <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
@@ -467,130 +449,183 @@ export default function MonthlyActivitiesPage() {
         )}
       </div>
 
-      {/* Modal Add Highlight with Searchable Dropdown */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-              <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
-                <X size={18} />
-              </button>
+      {/* Pagination Bar */}
+      {filteredActivities.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border-2 border-slate-300 shadow-2xs">
+          <p className="text-xs font-extrabold text-slate-600">
+            Menampilkan <span className="text-brand-700">{startIndex + 1}</span>–<span className="text-brand-700">{endIndex}</span> dari <span className="text-slate-900">{filteredActivities.length}</span> data
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+            >
+              <ChevronLeft size={15} /> Prev
+            </button>
+
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <span>Hal</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={inputPage}
+                onChange={(e) => {
+                  const val = Number(e.target.value)
+                  setInputPage(e.target.value)
+                  if (val >= 1 && val <= totalPages) {
+                    setCurrentPage(val)
+                  }
+                }}
+                onBlur={() => {
+                  if (!inputPage || Number(inputPage) < 1 || Number(inputPage) > totalPages) {
+                    setInputPage(String(currentPage))
+                  }
+                }}
+                className="w-12 text-center py-1 rounded-lg neu-input text-xs font-black text-slate-900 outline-none"
+              />
+              <span>dari {totalPages}</span>
             </div>
 
-            <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-              <div className="space-y-4">
-                {/* Searchable Select Dropdown for Sub-Item Program */}
-                <div className="space-y-1 relative">
-                  <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
-                  
-                  <div
-                    onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
-                  >
-                    <span className="truncate">
-                      {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
-                    </span>
-                    <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
-                  </div>
-
-                  {subDropdownOpen && (
-                    <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
-                      <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder="Ketik untuk mencari sub-item program..."
-                          value={subSearchQuery}
-                          onChange={e => setSubSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        {filteredSubItems.length === 0 ? (
-                          <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
-                        ) : (
-                          filteredSubItems.map(s => (
-                            <div
-                              key={s.id}
-                              onClick={() => {
-                                setForm({ ...form, idProgram: s.id })
-                                setSubDropdownOpen(false)
-                                setSubSearchQuery('')
-                              }}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                                form.idProgram === s.id
-                                  ? 'neu-active-green'
-                                  : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
-                              }`}
-                            >
-                              [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Action / Kegiatan Highlight *</label>
-                  <textarea
-                    rows={3}
-                    value={form.kegiatan}
-                    onChange={e => setForm({ ...form, kegiatan: e.target.value })}
-                    required
-                    placeholder="Tuliskan uraian kegiatan highlight..."
-                    className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Target Due Date *</label>
-                    <input
-                      type="date"
-                      value={form.dueDate}
-                      onChange={e => setForm({ ...form, dueDate: e.target.value })}
-                      required
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Penanggung Jawab (PIC)</label>
-                    <input
-                      type="text"
-                      placeholder="Nama PIC"
-                      value={form.picNama}
-                      onChange={e => setForm({ ...form, picNama: e.target.value })}
-                      required
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Sticky Footer */}
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? 'Menyimpan...' : 'Simpan Laporan'}
-                </button>
-              </div>
-            </form>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+            >
+              Next <ChevronRight size={15} />
+            </button>
           </div>
         </div>
+      )}
+
+      {/* Modal Add Highlight with Searchable Dropdown */}
+      {showModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
+                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+                <div className="space-y-4">
+                  {/* Searchable Select Dropdown for Sub-Item Program */}
+                  <div className="space-y-1 relative">
+                    <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
+                    
+                    <div
+                      onClick={() => setSubDropdownOpen(!subDropdownOpen)}
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
+                    >
+                      <span className="truncate">
+                        {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
+                      </span>
+                      <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
+                    </div>
+
+                    {subDropdownOpen && (
+                      <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
+                        <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Ketik untuk mencari sub-item program..."
+                            value={subSearchQuery}
+                            onChange={e => setSubSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          {filteredSubItems.length === 0 ? (
+                            <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
+                          ) : (
+                            filteredSubItems.map(s => (
+                              <div
+                                key={s.id}
+                                onClick={() => {
+                                  setForm({ ...form, idProgram: s.id })
+                                  setSubDropdownOpen(false)
+                                  setSubSearchQuery('')
+                                }}
+                                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+                                  form.idProgram === s.id
+                                    ? 'neu-active-green'
+                                    : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
+                                }`}
+                              >
+                                [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Action / Kegiatan Highlight *</label>
+                    <textarea
+                      rows={3}
+                      value={form.kegiatan}
+                      onChange={e => setForm({ ...form, kegiatan: e.target.value })}
+                      required
+                      placeholder="Tuliskan uraian kegiatan highlight..."
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Target Due Date *</label>
+                      <input
+                        type="date"
+                        value={form.dueDate}
+                        onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                        required
+                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Penanggung Jawab (PIC)</label>
+                      <input
+                        type="text"
+                        placeholder="Nama PIC"
+                        value={form.picNama}
+                        onChange={e => setForm({ ...form, picNama: e.target.value })}
+                        required
+                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sticky Footer */}
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Menyimpan...' : 'Simpan Laporan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   )

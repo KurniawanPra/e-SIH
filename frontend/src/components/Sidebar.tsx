@@ -19,6 +19,7 @@ import {
   ShieldCheck
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
+import ModalPortal from '@/components/ModalPortal'
 
 interface SidebarProps {
   user: SessionUser | null
@@ -28,9 +29,9 @@ interface SidebarProps {
 
 const nav = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Weekly Activities', path: '/dashboard/weekly', icon: CalendarDays },
-  { name: 'Monthly Report', path: '/dashboard/monthly', icon: CalendarRange },
-  { name: 'All Activities', path: '/dashboard/activities', icon: ListFilter },
+  { name: 'Aktivitas Mingguan', path: '/dashboard/weekly', icon: CalendarDays },
+  { name: 'Laporan Bulanan', path: '/dashboard/monthly', icon: CalendarRange },
+  { name: 'Semua Aktivitas', path: '/dashboard/activities', icon: ListFilter },
 ]
 
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
@@ -84,11 +85,11 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                       onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                       className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${
                         active
-                          ? 'neu-active-green font-black'
+                          ? 'neu-active-green font-black border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
                           : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
                       }`}
                     >
-                      <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} />
+                      <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-emerald-300' : ''} />
                       {item.name}
                     </Link>
                   </li>
@@ -102,7 +103,11 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
             <button
               onClick={() => setMasterOpen(!masterOpen)}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 neu-btn transition-all cursor-pointer"
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                pathname.includes('/master')
+                  ? 'neu-active-green font-extrabold border-2 border-emerald-300'
+                  : 'neu-btn text-slate-700 hover:text-slate-900'
+              }`}
             >
               <span className="flex items-center gap-3"><FolderKanban size={18} strokeWidth={1.8} /> Kelola Data</span>
               {masterOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -116,7 +121,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/program-kerja')
-                        ? 'neu-active-green font-extrabold'
+                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
@@ -125,24 +130,11 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                 </li>
                 <li>
                   <Link
-                    href="/dashboard/master/items"
-                    onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                    className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                      pathname.includes('/master/items')
-                        ? 'neu-active-green font-extrabold'
-                        : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2"><ListChecks size={15} /> Item Program</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/dashboard/master/users"
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/users')
-                        ? 'neu-active-green font-extrabold'
+                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
@@ -155,7 +147,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/roles')
-                        ? 'neu-active-green font-extrabold'
+                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
@@ -194,39 +186,41 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
-            <div className="p-5 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto neu-btn">
-                <AlertTriangle size={24} />
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
+              <div className="p-5 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto neu-btn">
+                  <AlertTriangle size={24} />
+                </div>
+                <h3 className="font-black text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
+                <p className="text-xs text-slate-600 font-medium">
+                  Apakah Anda yakin ingin mengakhiri sesi login saat ini dan keluar dari aplikasi <strong className="text-slate-900">e-SIH Operation</strong>?
+                </p>
               </div>
-              <h3 className="font-black text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
-              <p className="text-xs text-slate-600 font-medium">
-                Apakah Anda yakin ingin mengakhiri sesi login saat ini dan keluar dari aplikasi <strong className="text-slate-900">e-SIH Operation</strong>?
-              </p>
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const { api } = await import('@/lib/api')
-                    await api.post('/api/auth/logout')
-                  } catch {}
-                  window.location.href = '/'
-                }}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm"
-              >
-                Ya, Keluar Sesi
-              </button>
+              <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { api } = await import('@/lib/api')
+                      await api.post('/api/auth/logout')
+                    } catch {}
+                    window.location.href = '/'
+                  }}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm"
+                >
+                  Ya, Keluar Sesi
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </>
   )
