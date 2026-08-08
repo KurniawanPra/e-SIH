@@ -26,7 +26,7 @@ export default function Header({ user, onLogout, loggingOut }: HeaderProps) {
             <div className="d-flex align-items-center gap-2">
               <div className="text-end d-none d-sm-block lh-sm">
                 <div className="fw-bold fs-6 text-dark">{user.name}</div>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>{user.employee?.position_name || 'Staff'}</div>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>{user.employee?.jabatan || 'Staff'}</div>
               </div>
               <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
                 {user.name?.charAt(0).toUpperCase()}

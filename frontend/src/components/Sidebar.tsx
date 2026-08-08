@@ -13,7 +13,7 @@ export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
 
-  const isAdminOrPimpinan = user?.employee?.position_name?.toLowerCase().includes('pimpinan') || user?.employee?.position_name?.toLowerCase().includes('admin') || true // Default fallback for dev
+  const isAdminOrPimpinan = user?.employee?.jabatan?.toLowerCase().includes('pimpinan') || user?.employee?.jabatan?.toLowerCase().includes('admin') || true // Default fallback for dev
 
   const navItems = [
     { name: 'Executive Dashboard', path: '/dashboard', icon: 'bi-speedometer2' },
