@@ -1,7 +1,5 @@
 {
-  "consoleErrors": [
-    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
-  ],
+  "consoleErrors": [],
   "pageResults": [
     {
       "label": "Weekly Activities",
@@ -37,7 +35,7 @@
   "interactions": [
     {
       "type": "add-activity",
-      "name": "QA TEST 640785",
+      "name": "QA TEST 430774",
       "appeared": true
     },
     {
@@ -46,12 +44,10 @@
     },
     {
       "type": "mobile-sidebar",
+      "toggleButtons": 1,
       "closed": "-100%",
-      "afterToggle": "0px",
-      "overlayOpacity": "1"
+      "afterToggle": "0px"
     }
   ],
-  "failedRequests": [
-    "401 http://localhost:4101/api/auth/me"
-  ]
+  "failedRequests": []
 }

@@ -67,7 +67,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             </div>
           </Link>
           {/* Close button on mobile only */}
-          <button onClick={onToggle} className="lg:hidden p-2 rounded-xl neu-btn text-slate-600 cursor-pointer">
+          <button onClick={onToggle} className="lg:hidden p-2 rounded-xl neu-btn text-slate-600 cursor-pointer" aria-label="Tutup Sidebar">
             <X size={18} />
           </button>
         </div>

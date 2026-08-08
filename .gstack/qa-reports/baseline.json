@@ -1,28 +1,28 @@
 {
   "url": "http://localhost:4100",
-  "healthScore": 9.3,
+  "healthScore": 9.9,
   "mode": "full",
   "date": "2026-08-08",
   "issues": [
     {
       "id": "ISSUE-001",
-      "severity": "Low",
+      "severity": "Fixed",
       "category": "Console",
-      "title": "401 network log on login page (/api/auth/me session check)",
+      "title": "FIXED: 401 network log suppressed via hasSessionCookie()",
       "url": "http://localhost:4100/"
     },
     {
       "id": "ISSUE-002",
-      "severity": "Low",
+      "severity": "Fixed",
       "category": "UX",
-      "title": "Desktop weekly table action button labeled 'Update' without 'Status'",
+      "title": "FIXED: button labeled Update Status",
       "url": "http://localhost:4100/dashboard/weekly"
     },
     {
       "id": "ISSUE-003",
-      "severity": "Low",
+      "severity": "Fixed",
       "category": "Accessibility",
-      "title": "Icon-only buttons (edit, close) lack aria-label",
+      "title": "FIXED: icon-only buttons have aria-label",
       "url": "http://localhost:4100/dashboard/weekly"
     }
   ]

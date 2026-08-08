@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import MarqueeFooter from '@/components/MarqueeFooter'
-import { getCurrentUser } from '@/lib/api'
+import { getCurrentUser, hasSessionCookie } from '@/lib/api'
 import type { SessionUser } from '@/types/auth'
 
 import { YearProvider } from '@/context/YearContext'
@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    getCurrentUser().then(setUser).catch(() => {})
+    if (hasSessionCookie()) getCurrentUser().then(setUser).catch(() => {})
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false)
     }

@@ -42,6 +42,11 @@ export function validateRuntimeConfig() {
   }
 }
 
+export function hasSessionCookie(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.split(';').some((c) => c.trim().startsWith('target_session='))
+}
+
 export async function prepareCsrf() {
   if (BACKEND_DRIVER === 'laravel') {
     await api.get('/api/auth/csrf')

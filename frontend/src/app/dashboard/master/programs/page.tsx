@@ -76,7 +76,7 @@ export default function MasterProgramPage() {
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-300 text-[11px] font-extrabold text-slate-700">
                     <Layers size={12} className="text-brand-700" /> {parent.items.length} Sub-Program
                   </span>
-                  <Link href="/dashboard/master/sub-pk" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Kelola Sub-Program">
+                  <Link href="/dashboard/master/sub-pk" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Kelola Sub-Program" aria-label="Kelola Sub-Program">
                     <Pencil size={15} />
                   </Link>
                 </div>

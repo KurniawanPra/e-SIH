@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, getCurrentUser } from '@/lib/api'
+import { api, getCurrentUser, hasSessionCookie } from '@/lib/api'
 import { LogIn, ShieldCheck, Sparkles, Building2, User, Lock, ShieldAlert, UserCheck } from 'lucide-react'
 
 export default function DemoLoginPage() {
@@ -11,6 +11,10 @@ export default function DemoLoginPage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
+    if (!hasSessionCookie()) {
+      setChecking(false)
+      return
+    }
     getCurrentUser()
       .then(() => router.replace('/dashboard'))
       .catch(() => setChecking(false))
