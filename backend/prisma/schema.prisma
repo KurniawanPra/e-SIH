@@ -10,9 +10,10 @@ datasource db {
 // Parent: Master Program Kerja Induk
 model ProgramKerja {
   id          String   @id
-  kode        String   // e.g., "1.0", "2.0"
-  namaProgram String   // e.g., "Program Kerja IT & Digitalisasi"
+  kode        String   // e.g., "A", "B", "C"
+  namaProgram String   // e.g., "ENABLING DIGITAL AND RELIABLE OPERATION"
   deskripsi   String?
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   items MasterProgram[]
@@ -22,11 +23,12 @@ model ProgramKerja {
 model MasterProgram {
   id             String   @id
   programKerjaId String
-  kode           String   // e.g., "1.1", "1.2"
-  namaItem       String   // e.g., "Migrasi e-SIH ke Next.js & Fastify"
+  kode           String   // e.g., "A.1", "A.2"
+  namaItem       String   // e.g., "IT Development"
   status         String   @default("On Progress") // "On Progress", "Closed", "Open"
   progress       Int      @default(0)
   keterangan     String?
+  isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
 
   programKerja ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
@@ -50,6 +52,7 @@ model Activity {
   remarks           String?
   picEmail          String
   picNama           String
+  isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
 
   program MasterProgram @relation(fields: [idProgram], references: [id])

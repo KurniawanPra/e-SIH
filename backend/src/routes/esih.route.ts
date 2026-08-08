@@ -2,7 +2,11 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prisma from '../plugins/prisma'
 
 const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-  // Get all Parent Program Kerja along with their Child items
+  // ==========================================
+  // 1. PARENT PROGRAM KERJA ROUTES
+  // ==========================================
+
+  // GET all Parent Program Kerja with average progress & items
   fastify.get('/program-kerja', async (request, reply) => {
     const parentPrograms = await prisma.programKerja.findMany({
       orderBy: { kode: 'asc' },
@@ -12,10 +16,76 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         }
       }
     })
-    return { data: parentPrograms }
+
+    // Calculate total progress percentage from sub-items for each parent
+    const result = parentPrograms.map(parent => {
+      const activeItems = parent.items.filter(i => i.isActive)
+      const totalProgress = activeItems.length > 0
+        ? Math.round(activeItems.reduce((acc, curr) => acc + curr.progress, 0) / activeItems.length)
+        : 0
+
+      return {
+        ...parent,
+        totalProgress,
+      }
+    })
+
+    return { data: result }
   })
 
-  // Get all Sub-Program / Child items
+  // POST create Parent Program Kerja
+  fastify.post('/program-kerja', async (request: any, reply) => {
+    const { kode, namaProgram, deskripsi } = request.body || {}
+    if (!kode || !namaProgram) {
+      return reply.code(400).send({ success: false, error: 'Kode dan Nama Program Induk wajib diisi' })
+    }
+
+    const newId = `PK-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`
+    const created = await prisma.programKerja.create({
+      data: {
+        id: newId,
+        kode,
+        namaProgram,
+        deskripsi,
+      }
+    })
+    return reply.code(201).send({ success: true, data: created })
+  })
+
+  // PUT edit Parent Program Kerja
+  fastify.put('/program-kerja/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const { kode, namaProgram, deskripsi } = request.body || {}
+
+    const updated = await prisma.programKerja.update({
+      where: { id },
+      data: {
+        kode,
+        namaProgram,
+        deskripsi,
+      }
+    })
+    return { success: true, data: updated }
+  })
+
+  // PATCH toggle active/inactive (Soft Delete) Parent Program Kerja
+  fastify.patch('/program-kerja/:id/toggle', async (request: any, reply) => {
+    const { id } = request.params
+    const current = await prisma.programKerja.findUnique({ where: { id } })
+    if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
+
+    const updated = await prisma.programKerja.update({
+      where: { id },
+      data: { isActive: !current.isActive }
+    })
+    return { success: true, data: updated }
+  })
+
+  // ==========================================
+  // 2. SUB-PROGRAM (CHILD ITEMS) ROUTES
+  // ==========================================
+
+  // GET all Sub-Programs (MasterProgram)
   fastify.get('/programs', async (request, reply) => {
     const programs = await prisma.masterProgram.findMany({
       orderBy: { kode: 'asc' },
@@ -26,13 +96,70 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     return { data: programs }
   })
 
-  // Get all activities (with optional filters)
+  // POST create Sub-Program
+  fastify.post('/programs', async (request: any, reply) => {
+    const { programKerjaId, kode, namaItem, status, progress, keterangan } = request.body || {}
+    if (!programKerjaId || !kode || !namaItem) {
+      return reply.code(400).send({ success: false, error: 'Program Induk, Kode, dan Nama Sub-Program wajib diisi' })
+    }
+
+    const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`
+    const created = await prisma.masterProgram.create({
+      data: {
+        id: newId,
+        programKerjaId,
+        kode,
+        namaItem,
+        status: status || 'On Progress',
+        progress: Number(progress) || 0,
+        keterangan,
+      }
+    })
+    return reply.code(201).send({ success: true, data: created })
+  })
+
+  // PUT edit Sub-Program (termasuk IT Development, dll)
+  fastify.put('/programs/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const { programKerjaId, kode, namaItem, status, progress, keterangan } = request.body || {}
+
+    const updated = await prisma.masterProgram.update({
+      where: { id },
+      data: {
+        programKerjaId,
+        kode,
+        namaItem,
+        status,
+        progress: Number(progress) || 0,
+        keterangan,
+      }
+    })
+    return { success: true, data: updated }
+  })
+
+  // PATCH toggle active/inactive Sub-Program
+  fastify.patch('/programs/:id/toggle', async (request: any, reply) => {
+    const { id } = request.params
+    const current = await prisma.masterProgram.findUnique({ where: { id } })
+    if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
+
+    const updated = await prisma.masterProgram.update({
+      where: { id },
+      data: { isActive: !current.isActive }
+    })
+    return { success: true, data: updated }
+  })
+
+  // ==========================================
+  // 3. WEEKLY & MONTHLY ACTIVITIES ROUTES
+  // ==========================================
+
+  // GET all activities
   fastify.get('/activities', async (request: any, reply) => {
     const { status, category } = request.query
     
     const where: any = {}
     if (status && status !== 'ALL') where.status = status
-    if (category && category !== 'ALL') where.kategoriProgram = category
 
     const activities = await prisma.activity.findMany({
       where,
@@ -52,17 +179,105 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     return { data: activities }
   })
 
-  // Get Dashboard KPI data
+  // POST create Activity
+  fastify.post('/activities', async (request: any, reply) => {
+    const { idProgram, kegiatan, descriptionAction, startDate, dueDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
+    if (!idProgram || !kegiatan || !picNama) {
+      return reply.code(400).send({ success: false, error: 'Sub-Program, Kegiatan, dan Nama PIC wajib diisi' })
+    }
+
+    const count = await prisma.activity.count()
+    const newNo = count + 1
+    const newId = `ACT-${String(newNo).padStart(3, '0')}`
+
+    const programItem = await prisma.masterProgram.findUnique({
+      where: { id: idProgram },
+      include: { programKerja: true }
+    })
+
+    const created = await prisma.activity.create({
+      data: {
+        id: newId,
+        no: newNo,
+        idProgram,
+        kategoriProgram: programItem?.programKerja ? `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` : 'Program',
+        itemName: programItem?.namaItem || 'Item',
+        kegiatan,
+        descriptionAction,
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        dueDate: dueDate || new Date().toISOString().split('T')[0],
+        status: status || 'On Progress',
+        picNama,
+        picEmail: picEmail || `${picNama.toLowerCase().replace(/\s+/g, '')}@inl.co.id`,
+        tindakLanjut,
+        kendala,
+        remarks,
+      }
+    })
+
+    return reply.code(201).send({ success: true, data: created })
+  })
+
+  // PUT edit Activity
+  fastify.put('/activities/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const { idProgram, kegiatan, descriptionAction, startDate, dueDate, closedDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
+
+    const programItem = await prisma.masterProgram.findUnique({
+      where: { id: idProgram },
+      include: { programKerja: true }
+    })
+
+    const updated = await prisma.activity.update({
+      where: { id },
+      data: {
+        idProgram,
+        kategoriProgram: programItem?.programKerja ? `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` : undefined,
+        itemName: programItem?.namaItem,
+        kegiatan,
+        descriptionAction,
+        startDate,
+        dueDate,
+        closedDate,
+        status,
+        picNama,
+        picEmail,
+        tindakLanjut,
+        kendala,
+        remarks,
+      }
+    })
+
+    return { success: true, data: updated }
+  })
+
+  // PATCH toggle active/inactive Activity
+  fastify.patch('/activities/:id/toggle', async (request: any, reply) => {
+    const { id } = request.params
+    const current = await prisma.activity.findUnique({ where: { id } })
+    if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
+
+    const updated = await prisma.activity.update({
+      where: { id },
+      data: { isActive: !current.isActive }
+    })
+    return { success: true, data: updated }
+  })
+
+  // ==========================================
+  // 4. DASHBOARD KPI
+  // ==========================================
+
   fastify.get('/dashboard', async (request, reply) => {
     const [totalParents, totalChildPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities] = await Promise.all([
-      prisma.programKerja.count(),
-      prisma.masterProgram.count(),
-      prisma.masterProgram.count({ where: { status: 'On Progress' } }),
-      prisma.masterProgram.count({ where: { status: 'Closed' } }),
-      prisma.activity.count(),
-      prisma.activity.count({ where: { status: 'Open' } }),
-      prisma.activity.count({ where: { status: 'On Progress' } }),
-      prisma.activity.count({ where: { status: 'Closed' } })
+      prisma.programKerja.count({ where: { isActive: true } }),
+      prisma.masterProgram.count({ where: { isActive: true } }),
+      prisma.masterProgram.count({ where: { isActive: true, status: 'On Progress' } }),
+      prisma.masterProgram.count({ where: { isActive: true, status: 'Closed' } }),
+      prisma.activity.count({ where: { isActive: true } }),
+      prisma.activity.count({ where: { isActive: true, status: 'Open' } }),
+      prisma.activity.count({ where: { isActive: true, status: 'On Progress' } }),
+      prisma.activity.count({ where: { isActive: true, status: 'Closed' } })
     ])
 
     return {

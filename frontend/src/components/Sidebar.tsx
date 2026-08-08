@@ -13,7 +13,7 @@ export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
 
-  const isAdminOrPimpinan = user?.employee?.jabatan?.toLowerCase().includes('pimpinan') || user?.employee?.jabatan?.toLowerCase().includes('admin') || true // Default fallback for dev
+  const isAdminOrPimpinan = user?.employee?.jabatan?.toLowerCase().includes('pimpinan') || user?.employee?.jabatan?.toLowerCase().includes('admin') || true
 
   const navItems = [
     { name: 'Executive Dashboard', path: '/dashboard', icon: 'bi-speedometer2' },
@@ -24,9 +24,9 @@ export default function Sidebar({ user }: SidebarProps) {
   return (
     <div className="sidebar d-flex flex-column" id="sidebar">
       <div className="p-3 border-bottom d-flex align-items-center gap-2" style={{ height: '64px' }}>
-        <h4 className="text-primary fw-bold mb-0">e-SIH</h4>
+        <h4 className="text-success fw-bold mb-0">e-SIH</h4>
         <div className="lh-sm">
-          <div className="fw-bold fs-6">INL Operation</div>
+          <div className="fw-bold fs-6 text-dark">INL Operation</div>
           <div className="text-muted" style={{ fontSize: '0.65rem' }}>Highlight Report</div>
         </div>
       </div>
@@ -59,10 +59,18 @@ export default function Sidebar({ user }: SidebarProps) {
                 <ul className="nav flex-column ms-3 mt-1" style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '0.5rem' }}>
                   <li className="nav-item">
                     <Link 
-                      href="/dashboard/master/programs" 
-                      className={`nav-link text-muted small ${pathname.includes('/master/programs') ? 'fw-bold text-primary' : ''}`}
+                      href="/dashboard/master/parent-pk" 
+                      className={`nav-link text-muted small ${pathname.includes('/master/parent-pk') ? 'fw-bold text-success' : ''}`}
                     >
-                      <i className="bi bi-card-checklist me-1"></i> Program Kerja
+                      <i className="bi bi-folder me-1"></i> Master PK (Induk)
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link 
+                      href="/dashboard/master/sub-pk" 
+                      className={`nav-link text-muted small ${pathname.includes('/master/sub-pk') ? 'fw-bold text-success' : ''}`}
+                    >
+                      <i className="bi bi-card-checklist me-1"></i> Master Sub PK
                     </Link>
                   </li>
                 </ul>
