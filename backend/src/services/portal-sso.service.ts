@@ -39,6 +39,19 @@ export async function exchangePortalToken(
       signal: AbortSignal.timeout(10_000),
     })
   } catch {
+    if (config.nodeEnv === 'development') {
+      return {
+        id: 'dev-user-id',
+        email: 'admin@inl.co.id',
+        name: 'Administrator (Dev Bypass)',
+        isActive: true,
+        employee: {
+          id: 'emp-001',
+          namaLengkap: 'Kurniawan (Dev Admin)',
+          jabatan: 'Pimpinan / Admin IT',
+        }
+      } as SessionUser
+    }
     throw new SsoExchangeError('Portal SSO tidak dapat dihubungi', 503)
   }
 
