@@ -1,16 +1,16 @@
 # Graph Report - e-SIH  (2026-08-08)
 
 ## Corpus Check
-- 308 files · ~223,647 words
+- 276 files · ~212,454 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3668 nodes · 3509 edges · 294 communities (273 shown, 21 thin omitted)
+- 3435 nodes · 3308 edges · 262 communities (241 shown, 21 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f9bb6e52`
+- Built from commit: `f429ccc8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -271,22 +271,6 @@
 - frontend/README.md
 - extraction-spec.md
 - postman/README.md
-- Workflow
-- Workflow
-- Workflow
-- qa-only/SKILL.md
-- Workflow
-- review/SKILL.md
-- ship/SKILL.md
-- plan-eng-review/SKILL.md
-- retro/SKILL.md
-- document-release/SKILL.md
-- browse/SKILL.md
-- debug/SKILL.md
-- setup-browser-cookies/SKILL.md
-- gstack-upgrade/SKILL.md
-- design-review/SKILL.md
-- design-consultation/SKILL.md
 
 ## God Nodes (most connected - your core abstractions)
 1. `Troubleshooting Prisma Compute` - 22 edges
@@ -315,7 +299,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (294 total, 21 thin omitted)
+## Communities (262 total, 21 thin omitted)
 
 ### Community 0 - "dependencies"
 Cohesion: 0.04
@@ -1257,72 +1241,8 @@ Nodes (3): For git commit hook, For native CLAUDE.md integration, graphify refer
 Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
-### Community 262 - "Workflow"
-Cohesion: 0.12
-Nodes (16): 1. Read Inputs, 2. Determine UI Scope Decision, 3. Evaluate Information Architecture, 4. Map Interaction State Coverage, 5. Identify AI Slop Risk, 6. Identify Responsive & Accessibility Gaps, 7. Produce Scope and Deferrals, 8. Produce Local Validation (+8 more)
-
-### Community 263 - "Workflow"
-Cohesion: 0.12
-Nodes (16): 1. Initialize, 2. Orient, 3. Explore, 4. Document, 5. Score, 6. Write Outputs, 7. Optional Fix Loop, Execution Contract (+8 more)
-
-### Community 264 - "Workflow"
-Cohesion: 0.12
-Nodes (15): 1. Read Inputs, 2. Produce Premise Challenge, 3. Produce 10x Check, 4. Produce Alternative Approaches, 5. Produce Recommendation, 6. Produce Scope and Deferrals, 7. Produce Local Validation, 8. Produce Not In Scope (+7 more)
-
-### Community 265 - "qa-only/SKILL.md"
-Cohesion: 0.12
-Nodes (15): 1. Initialize, 2. Orient, 3. Explore, 4. Document, 5. Score, 6. Write Outputs, Execution Contract, Full (+7 more)
-
-### Community 266 - "Workflow"
-Cohesion: 0.13
-Nodes (14): 1. Read Inputs, 2. Identify The Core Question, 3. Pressure-Test Demand, 4. Check The Status Quo, 5. Name The Narrowest Wedge, 6. Recommend The Next Step, 7. Write The Memo, Execution Contract (+6 more)
-
-### Community 267 - "review/SKILL.md"
-Cohesion: 0.13
-Nodes (14): 1. Initialize, 2. Read Inputs, 3. Run Structural Review, 4. Optional Fix Loop, 5. Write Findings, Base Branch Detection, Enum & Value Completeness, Execution Contract (+6 more)
-
-### Community 268 - "ship/SKILL.md"
-Cohesion: 0.13
-Nodes (14): 1. Gather Branch Context, 2. Run Verification, 3. Check Review Readiness, 4. Write Ship Decision, 5. Optional Shipping Actions, Base Branch Detection, Execution Contract, Fixed Report Sections (+6 more)
-
-### Community 269 - "plan-eng-review/SKILL.md"
-Cohesion: 0.14
-Nodes (13): 1. Read Inputs, 2. Produce Architecture Summary, 3. Produce Data Flow, 4. Produce Risks, 5. Produce Test Matrix, 6. Produce Not In Scope, Execution Contract, Fixed Report Sections (+5 more)
-
-### Community 270 - "retro/SKILL.md"
-Cohesion: 0.14
-Nodes (13): 1. Gather Local History, 2. Summarize Shipping Activity, 3. Call Out Wins, 4. Call Out Friction, 5. Note Test Health Signals, 6. Recommend The Next Focus, Execution Contract, Fixed Report Sections (+5 more)
-
-### Community 271 - "document-release/SKILL.md"
-Cohesion: 0.15
-Nodes (12): 1. Initialize, 2. Select Candidate Docs, 3. Gather Evidence, 4. Apply Updates, 5. Write Summary, Base Branch Detection, Documents In Scope, Execution Contract (+4 more)
-
-### Community 272 - "browse/SKILL.md"
-Cohesion: 0.17
-Nodes (11): Binary Setup, Capture evidence, Common Patterns, Compare environments, Core Rules, Explore and click through a flow, Snapshot Guidance, Test responsive layouts (+3 more)
-
-### Community 273 - "debug/SKILL.md"
-Cohesion: 0.17
-Nodes (11): 1. Reproduce, 2. Trace, 3. Hypothesize, 4. Write Report, Execution Contract, Iron Law, Outputs, Required Inputs (+3 more)
-
-### Community 274 - "setup-browser-cookies/SKILL.md"
-Cohesion: 0.17
-Nodes (11): 1. Verify Browse Setup, 2. Choose Import Mode, 3. Execute The Import, 4. Write The Summary, Execution Contract, Fixed Report Sections, Output, Required Input (+3 more)
-
-### Community 275 - "gstack-upgrade/SKILL.md"
-Cohesion: 0.18
-Nodes (10): 1. Inspect Local Inputs, 2. Perform Version Check, 3. Determine Setup State, 4. Write The Report, Execution Contract, Fixed Report Sections, Output, Rules (+2 more)
-
-### Community 276 - "design-review/SKILL.md"
-Cohesion: 0.20
-Nodes (9): Browse Setup, Execution Contract, Optional Fix Loop, Output, Report Contract, Required Command Sequence, Required Input, Required Sections (+1 more)
-
-### Community 277 - "design-consultation/SKILL.md"
-Cohesion: 0.29
-Nodes (6): Execution Contract, Output, Required Input, Required Sections, Rules, Section Rules
-
 ## Knowledge Gaps
-- **2642 isolated node(s):** `docker-entrypoint.sh script`, `name`, `version`, `private`, `description` (+2637 more)
+- **2458 isolated node(s):** `docker-entrypoint.sh script`, `name`, `version`, `private`, `description` (+2453 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **21 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1330,16 +1250,16 @@ Nodes (6): Execution Contract, Output, Required Input, Required Sections, Rules,
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Troubleshooting Prisma Compute` connect `Troubleshooting Prisma Compute` to `.agents/skills/prisma-compute/SKILL.md`?**
-  _High betweenness centrality (0.001) - this node is a cross-community bridge._
-- **Why does `Prisma Platform CLI App Deploy` connect `Prisma Platform CLI App Deploy` to `.agents/skills/prisma-compute/SKILL.md`?**
   _High betweenness centrality (0.000) - this node is a cross-community bridge._
-- **Why does `Prisma Compute Config` connect `Prisma Compute Config` to `.agents/skills/prisma-compute/SKILL.md`?**
+- **Why does `Prisma Compute Framework Readiness` connect `Prisma Compute Framework Readiness` to `.agents/skills/prisma-compute/SKILL.md`?**
   _High betweenness centrality (0.000) - this node is a cross-community bridge._
 - **What connects `docker-entrypoint.sh script`, `name`, `version` to the rest of the system?**
-  _2642 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2458 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.044444444444444446 - nodes in this community are weakly interconnected._
 - **Should `plugins/auth.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.09358974358974359 - nodes in this community are weakly interconnected._
 - **Should `Model Queries` be split into smaller, more focused modules?**
+  _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
+- **Should `Driver Adapters` be split into smaller, more focused modules?**
   _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
