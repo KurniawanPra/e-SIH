@@ -469,106 +469,110 @@ export default function MonthlyActivitiesPage() {
 
       {/* Modal Add Highlight with Searchable Dropdown */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 animate-overlay-fade">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in my-auto">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 rounded-t-2xl bg-white">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
               <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
                 <X size={18} />
               </button>
             </div>
-            <form onSubmit={submitForm} className="p-5 space-y-4">
-              {/* Searchable Select Dropdown for Sub-Item Program */}
-              <div className="space-y-1 relative">
-                <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
-                
-                <div
-                  onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
-                >
-                  <span className="truncate">
-                    {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
-                  </span>
-                  <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
-                </div>
 
-                {subDropdownOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border-2 border-slate-400 shadow-2xl z-50 p-2 space-y-2 max-h-60 overflow-y-auto">
-                    <div className="relative sticky top-0 bg-white pb-1 z-10">
-                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Ketik untuk mencari sub-item program..."
-                        value={subSearchQuery}
-                        onChange={e => setSubSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      {filteredSubItems.length === 0 ? (
-                        <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
-                      ) : (
-                        filteredSubItems.map(s => (
-                          <div
-                            key={s.id}
-                            onClick={() => {
-                              setForm({ ...form, idProgram: s.id })
-                              setSubDropdownOpen(false)
-                              setSubSearchQuery('')
-                            }}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                              form.idProgram === s.id
-                                ? 'neu-active-green'
-                                : 'hover:bg-slate-100 text-slate-800'
-                            }`}
-                          >
-                            [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
-                          </div>
-                        ))
-                      )}
-                    </div>
+            <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+              <div className="space-y-4">
+                {/* Searchable Select Dropdown for Sub-Item Program */}
+                <div className="space-y-1 relative">
+                  <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
+                  
+                  <div
+                    onClick={() => setSubDropdownOpen(!subDropdownOpen)}
+                    className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
+                  >
+                    <span className="truncate">
+                      {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
+                    </span>
+                    <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
                   </div>
-                )}
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Action / Kegiatan Highlight *</label>
-                <textarea
-                  rows={3}
-                  value={form.kegiatan}
-                  onChange={e => setForm({ ...form, kegiatan: e.target.value })}
-                  required
-                  placeholder="Tuliskan uraian kegiatan highlight..."
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
-                />
-              </div>
+                  {subDropdownOpen && (
+                    <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
+                      <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Ketik untuk mencari sub-item program..."
+                          value={subSearchQuery}
+                          onChange={e => setSubSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        {filteredSubItems.length === 0 ? (
+                          <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
+                        ) : (
+                          filteredSubItems.map(s => (
+                            <div
+                              key={s.id}
+                              onClick={() => {
+                                setForm({ ...form, idProgram: s.id })
+                                setSubDropdownOpen(false)
+                                setSubSearchQuery('')
+                              }}
+                              className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+                                form.idProgram === s.id
+                                  ? 'neu-active-green'
+                                  : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
+                              }`}
+                            >
+                              [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Target Due Date *</label>
-                  <input
-                    type="date"
-                    value={form.dueDate}
-                    onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                  <label className="text-xs font-bold text-slate-700">Action / Kegiatan Highlight *</label>
+                  <textarea
+                    rows={3}
+                    value={form.kegiatan}
+                    onChange={e => setForm({ ...form, kegiatan: e.target.value })}
                     required
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    placeholder="Tuliskan uraian kegiatan highlight..."
+                    className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Penanggung Jawab (PIC)</label>
-                  <input
-                    type="text"
-                    placeholder="Nama PIC"
-                    value={form.picNama}
-                    onChange={e => setForm({ ...form, picNama: e.target.value })}
-                    required
-                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Target Due Date *</label>
+                    <input
+                      type="date"
+                      value={form.dueDate}
+                      onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                      required
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Penanggung Jawab (PIC)</label>
+                    <input
+                      type="text"
+                      placeholder="Nama PIC"
+                      value={form.picNama}
+                      onChange={e => setForm({ ...form, picNama: e.target.value })}
+                      required
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-200">
+              {/* Sticky Footer */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

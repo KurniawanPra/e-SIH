@@ -308,86 +308,88 @@ export default function MasterUsersPage() {
 
       {/* Modal Form Create/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md overflow-hidden animate-zoom-in my-auto">
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-              <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 z-10">
+              <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
                 <ShieldCheck size={18} className="text-brand-700" />
-                {editId ? 'Edit Data User SDM' : 'Tambah User SDM Baru'}
+                {editId ? 'Edit Data User IT' : 'Tambah User IT Baru'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:bg-slate-100"
+                className="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:bg-slate-100 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
-              {errorMsg && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
-                  {errorMsg}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+              <div className="space-y-4">
+                {errorMsg && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+                    {errorMsg}
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: Herbina"
+                    value={form.nama}
+                    onChange={e => setForm({ ...form, nama: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  />
                 </div>
-              )}
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Herbina"
-                  value={form.nama}
-                  onChange={e => setForm({ ...form, nama: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                />
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Email Resmi INL *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Contoh: herbina@inl.co.id"
+                    value={form.email}
+                    onChange={e => setForm({ ...form, email: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Staff IT Development"
+                    value={form.jabatan}
+                    onChange={e => setForm({ ...form, jabatan: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Unit Kerja / Divisi</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: IT &amp; Sistem Operational"
+                    value={form.unit}
+                    onChange={e => setForm({ ...form, unit: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Email Resmi INL *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="Contoh: herbina@inl.co.id"
-                  value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Staff IT Development"
-                  value={form.jabatan}
-                  onChange={e => setForm({ ...form, jabatan: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Unit Kerja / Divisi</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: IT & Sistem Operational"
-                  value={form.unit}
-                  onChange={e => setForm({ ...form, unit: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-200">
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 font-bold text-xs text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-brand-700 font-extrabold text-xs text-white hover:bg-brand-800 transition-colors shadow-xs"
+                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? 'Menyimpan...' : 'Simpan User'}
                 </button>
