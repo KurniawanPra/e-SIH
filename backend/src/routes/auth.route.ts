@@ -13,6 +13,26 @@ export default async function authRoutes(app: FastifyInstance) {
     data: { csrfToken: null },
   }))
 
+  app.post('/demo-login', async (request, reply) => {
+    const user = {
+      sub: 'demo-user-id',
+      email: 'kurniawan@inl.co.id',
+      employeeId: 'emp-demo',
+      name: 'Kurniawan Pralambang',
+      jabatan: 'Pimpinan IT & Sistem',
+      employee: {
+        id: 'emp-demo',
+        namaLengkap: 'Kurniawan Pralambang',
+        jabatan: 'Pimpinan IT & Sistem',
+      },
+      grade: 'M1',
+      unit: 'IT Department',
+      penempatanArea: 'Head Office',
+    }
+    request.session.set('user', user)
+    return reply.send({ success: true, data: { user } })
+  })
+
   app.post('/login', async (request, reply) => {
     const parsed = loginSchema.safeParse(request.body)
     if (!parsed.success) {
