@@ -42,15 +42,18 @@ export async function exchangePortalToken(
     if (config.nodeEnv === 'development') {
       return {
         id: 'dev-user-id',
+        sub: 'dev-user-id',
         email: 'admin@inl.co.id',
         name: 'Administrator (Dev Bypass)',
         isActive: true,
+        employeeId: 'emp-001',
+        jabatan: 'Pimpinan / Admin IT',
         employee: {
           id: 'emp-001',
           namaLengkap: 'Kurniawan (Dev Admin)',
           jabatan: 'Pimpinan / Admin IT',
         }
-      } as SessionUser
+      } as unknown as SessionUser
     }
     throw new SsoExchangeError('Portal SSO tidak dapat dihubungi', 503)
   }
