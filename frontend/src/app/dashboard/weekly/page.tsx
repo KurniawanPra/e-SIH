@@ -14,6 +14,8 @@ import {
   RefreshCw,
   CalendarDays,
   ChevronDown,
+  ChevronUp,
+  ListFilter,
   Download,
   FilterX,
   ChevronLeft,
@@ -28,6 +30,7 @@ const MONTH_NAMES = [
 ]
 
 export default function WeeklyActivitiesPage() {
+  const [showFilters, setShowFilters] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
   const [parentPrograms, setParentPrograms] = useState<any[]>([])
   const [itemPrograms, setItemPrograms] = useState<any[]>([])
@@ -377,7 +380,7 @@ export default function WeeklyActivitiesPage() {
   return (
     <div className="space-y-5">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <CalendarDays className="text-brand-700" size={24} /> Weekly Activities (Sprint Mingguan)
@@ -386,23 +389,43 @@ export default function WeeklyActivitiesPage() {
             Pengelompokan Aktivitas Operasional per Bulan &amp; Minggu Sprints (Minggu 1 - 5)
           </p>
         </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
-        >
-          <Plus size={16} /> Tambah Aktivitas
-        </button>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center justify-center gap-2 font-extrabold text-xs px-3.5 py-2.5 rounded-xl cursor-pointer transition-all ${
+              showFilters || (userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter)
+                ? 'bg-brand-50 text-brand-800 border-2 border-brand-300 shadow-xs'
+                : 'neu-btn text-slate-700 hover:text-slate-900'
+            }`}
+          >
+            <ListFilter size={16} />
+            <span>Filter Lanjutan &amp; Ekspor</span>
+            {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
+              <span className="w-2 h-2 rounded-full bg-brand-600 animate-pulse" />
+            )}
+            {showFilters ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+
+          <button
+            onClick={openAdd}
+            className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+          >
+            <Plus size={16} /> Tambah Aktivitas
+          </button>
+        </div>
       </div>
 
-      {/* Month & Week Sprints Bar */}
+      {/* Primary Always-Visible Control Bar (Bulan, Year, Sprint Pills & Quick Search) */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Month & Year Selection */}
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Pilih Bulan Operasional:</span>
+            <span className="text-xs font-black text-slate-900 uppercase tracking-wider hidden sm:inline">Bulan Operasional:</span>
             <select
               value={selectedMonth}
               onChange={e => setSelectedMonth(Number(e.target.value))}
-              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+              className="px-3 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer"
             >
               {MONTH_NAMES.map((name, idx) => (
                 <option key={name} value={idx + 1}>
@@ -410,10 +433,11 @@ export default function WeeklyActivitiesPage() {
                 </option>
               ))}
             </select>
+
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+              className="px-3 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer"
             >
               {yearOptions.map(y => (
                 <option key={y} value={y}>
@@ -421,15 +445,28 @@ export default function WeeklyActivitiesPage() {
                 </option>
               ))}
             </select>
+
+            <span className="text-xs font-bold text-slate-500 ml-1">
+              Total: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
+            </span>
           </div>
-          <span className="text-xs font-bold text-slate-500">
-            Total Laporan: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
-          </span>
+
+          {/* Quick Search Bar */}
+          <div className="relative w-full lg:w-72">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari kegiatan, PIC, deskripsi..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+            />
+          </div>
         </div>
 
-        {/* Week Sprint Pills (Minggu 1 s/d Minggu 5) */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-slate-500 mr-1">Sprint Minggu:</span>
+        {/* Sprint Week Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-200">
+          <span className="text-xs font-black text-slate-700 mr-1">Sprint:</span>
           {[
             { id: 'ALL', label: 'Semua Minggu' },
             { id: 'W1', label: 'Minggu 1 (Tgl 1-7)' },
@@ -456,90 +493,99 @@ export default function WeeklyActivitiesPage() {
         </div>
       </div>
 
-      {/* Date Range Filter for Excel Export & Custom Range */}
-      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <Calendar size={15} className="text-brand-700" /> Range Tanggal Export:
-          </span>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={startDateFilter}
-              onChange={e => setStartDateFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-              title="Tanggal Awal"
-            />
-            <span className="text-xs font-bold text-slate-400">s/d</span>
-            <input
-              type="date"
-              value={endDateFilter}
-              onChange={e => setEndDateFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-              title="Tanggal Akhir"
-            />
+      {/* Collapsible Expandable Panel for Advanced Filters & Export */}
+      {showFilters && (
+        <div className="bg-white p-4 rounded-2xl border-2 border-brand-200 shadow-sm space-y-3 animate-dropdown-in relative z-50">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span className="text-xs font-black uppercase tracking-wider text-brand-800 flex items-center gap-1.5">
+              <ListFilter size={15} /> Konfigurasi Filter Lanjutan &amp; Ekspor Data
+            </span>
+            {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
+              <button
+                onClick={() => {
+                  setUserFilter('ALL')
+                  setStatusFilter('ALL')
+                  setStartDateFilter('')
+                  setEndDateFilter('')
+                }}
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
+              >
+                <FilterX size={14} /> Reset Semua Filter
+              </button>
+            )}
           </div>
-          {(startDateFilter || endDateFilter) && (
-            <button
-              onClick={() => { setStartDateFilter(''); setEndDateFilter('') }}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 flex items-center gap-1 cursor-pointer neu-btn"
-              title="Reset Filter Tanggal"
-            >
-              <FilterX size={14} /> Reset Tanggal
-            </button>
-          )}
-        </div>
 
-        <button
-          onClick={handleExportExcel}
-          className="px-3.5 py-1.5 rounded-xl neu-btn-emerald font-extrabold text-xs flex items-center gap-1.5 cursor-pointer"
-        >
-          <Download size={14} /> Unduh (.CSV / Excel)
-        </button>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end pt-1">
+            {/* Range Tanggal Export */}
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
+                Range Tanggal Export
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={startDateFilter}
+                  onChange={e => setStartDateFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  title="Tanggal Awal"
+                />
+                <span className="text-xs font-bold text-slate-400">s/d</span>
+                <input
+                  type="date"
+                  value={endDateFilter}
+                  onChange={e => setEndDateFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  title="Tanggal Akhir"
+                />
+              </div>
+            </div>
 
-      {/* Search & Filters Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Search */}
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari kegiatan, PIC, atau deskripsi..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-          />
-        </div>
+            {/* Filter PIC */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
+                Filter PIC
+              </label>
+              <select
+                value={userFilter}
+                onChange={e => setUserFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+              >
+                <option value="ALL">Semua User ({availablePics.length})</option>
+                {availablePics.map(pic => (
+                  <option key={pic} value={pic}>{pic}</option>
+                ))}
+              </select>
+            </div>
 
-        {/* Filter by User */}
-        <div className="relative">
-          <select
-            value={userFilter}
-            onChange={e => setUserFilter(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-          >
-            <option value="ALL">Filter PIC: Semua User ({availablePics.length})</option>
-            {availablePics.map(pic => (
-              <option key={pic} value={pic}>{pic}</option>
-            ))}
-          </select>
-        </div>
+            {/* Filter Status & Unduh Button */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
+                Status &amp; Ekspor
+              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                >
+                  <option value="ALL">Semua Status</option>
+                  <option value="Closed">Closed</option>
+                  <option value="On Progress">On Progress</option>
+                  <option value="Open">Open</option>
+                </select>
 
-        {/* Filter by Status */}
-        <div className="relative">
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-          >
-            <option value="ALL">Filter Status: Semua Status</option>
-            <option value="Closed">Closed (Selesai)</option>
-            <option value="On Progress">On Progress (Berjalan)</option>
-            <option value="Open">Open (Belum Dimulai)</option>
-          </select>
+                <button
+                  onClick={handleExportExcel}
+                  className="px-3 py-2 rounded-xl neu-btn-emerald font-extrabold text-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                  title="Unduh Excel/CSV"
+                >
+                  <Download size={14} /> Unduh
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Card List View (Visible on Mobile Screens) */}
       <div className="grid grid-cols-1 gap-3.5 md:hidden">

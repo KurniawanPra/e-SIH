@@ -12,6 +12,7 @@ import {
   FolderKanban,
   FilterX,
   ChevronDown,
+  ChevronUp,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -57,7 +58,7 @@ function SearchableDropdown({
   )
 
   return (
-    <div className="space-y-1 relative" ref={containerRef}>
+    <div className={`space-y-1 relative ${isOpen ? 'z-50' : 'z-auto'}`} ref={containerRef}>
       <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider block">
         {label}
       </label>
@@ -71,7 +72,7 @@ function SearchableDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-slate-300 shadow-xl z-30 p-2 space-y-2 animate-dropdown-in max-h-64 flex flex-col">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-slate-300 shadow-xl z-[100] p-2 space-y-2 animate-dropdown-in max-h-64 flex flex-col">
           <div className="relative shrink-0">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -154,7 +155,7 @@ function CustomStatusDropdown({
   const currentStatus = statuses.find((s) => s.value === value) || statuses[0]
 
   return (
-    <div className="space-y-1 relative" ref={containerRef}>
+    <div className={`space-y-1 relative ${isOpen ? 'z-50' : 'z-auto'}`} ref={containerRef}>
       <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider block">
         Status Aktivitas
       </label>
@@ -171,7 +172,7 @@ function CustomStatusDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-slate-300 shadow-xl z-30 p-1.5 space-y-1 animate-dropdown-in">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-slate-300 shadow-xl z-[100] p-1.5 space-y-1 animate-dropdown-in">
           {statuses.map((st) => (
             <button
               key={st.value}
@@ -201,6 +202,7 @@ export default function AllActivitiesPage() {
   const [activities, setActivities] = useState<any[]>([])
   const [parentPrograms, setParentPrograms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
 
   // Table Scroll States & Ref
   const tableScrollRef = useRef<HTMLDivElement>(null)
@@ -397,7 +399,7 @@ export default function AllActivitiesPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <ListFilter className="text-brand-700" size={24} /> Semua Aktivitas (Log Master)
@@ -406,122 +408,145 @@ export default function AllActivitiesPage() {
             Database Log Master Seluruh Aktivitas Operasional ({activities.length} Aktivitas Terdaftar)
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3.5 py-1.5 rounded-xl border border-slate-300">
-            Total Ditampilkan: <strong className="text-brand-700">{filteredActivities.length}</strong>
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-300 hidden sm:inline">
+            Total: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
           </span>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center justify-center gap-2 font-extrabold text-xs px-3.5 py-2 rounded-xl cursor-pointer transition-all ${
+              showFilters || (userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter)
+                ? 'bg-brand-50 text-brand-800 border-2 border-brand-300 shadow-xs'
+                : 'neu-btn text-slate-700 hover:text-slate-900'
+            }`}
+          >
+            <ListFilter size={15} />
+            <span>Filter Lanjutan</span>
+            {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
+              <span className="w-2 h-2 rounded-full bg-brand-600 animate-pulse" />
+            )}
+            {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
         </div>
       </div>
 
-      {/* Program Kerja Underline Tabs */}
-      <div className="bg-white px-4 pt-2.5 rounded-2xl border-2 border-slate-300 shadow-xs overflow-x-auto scrollbar-thin">
-        <div className="flex items-center gap-2 border-b border-slate-200 min-w-max">
-          <button
-            onClick={() => handleTabChange('ALL')}
-            className={`px-4 py-3 text-xs transition-all cursor-pointer flex items-center gap-2 border-b-3 font-black -mb-[1px] ${
-              activeTab === 'ALL'
-                ? 'border-brand-700 text-brand-700 bg-emerald-50/50 rounded-t-xl'
-                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-t-xl font-bold'
-            }`}
-          >
-            <FolderKanban size={16} className={activeTab === 'ALL' ? 'text-brand-700' : 'text-slate-400'} />
-            Semua Program Kerja
-          </button>
-          {parentPrograms.map((p) => {
-            const isActive = activeTab === p.id || activeTab === p.kode
-            return (
+      {/* Program Kerja Tabs & Quick Search */}
+      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="overflow-x-auto scrollbar-thin flex-1 min-w-0">
+            <div className="flex items-center gap-2 border-b border-slate-200 min-w-max pb-1">
               <button
-                key={p.id}
-                onClick={() => handleTabChange(p.id)}
-                className={`px-4 py-3 text-xs transition-all cursor-pointer flex items-center gap-2.5 border-b-3 font-black -mb-[1px] ${
-                  isActive
+                onClick={() => handleTabChange('ALL')}
+                className={`px-3.5 py-2 text-xs transition-all cursor-pointer flex items-center gap-2 border-b-3 font-black -mb-[1px] ${
+                  activeTab === 'ALL'
                     ? 'border-brand-700 text-brand-700 bg-emerald-50/50 rounded-t-xl'
                     : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-t-xl font-bold'
                 }`}
               >
-                <span
-                  className={`w-5.5 h-5.5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 ${
-                    isActive ? 'bg-brand-700 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {p.kode}
-                </span>
-                <span className="truncate max-w-[260px]">{p.namaProgram}</span>
+                <FolderKanban size={15} className={activeTab === 'ALL' ? 'text-brand-700' : 'text-slate-400'} />
+                Semua Program Kerja
               </button>
-            )
-          })}
+              {parentPrograms.map((p) => {
+                const isActive = activeTab === p.id || activeTab === p.kode
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handleTabChange(p.id)}
+                    className={`px-3.5 py-2 text-xs transition-all cursor-pointer flex items-center gap-2 border-b-3 font-black -mb-[1px] ${
+                      isActive
+                        ? 'border-brand-700 text-brand-700 bg-emerald-50/50 rounded-t-xl'
+                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-t-xl font-bold'
+                    }`}
+                  >
+                    <span
+                      className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 ${
+                        isActive ? 'bg-brand-700 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {p.kode}
+                    </span>
+                    <span className="truncate max-w-[220px]">{p.namaProgram}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Quick Search Box */}
+          <div className="relative w-full lg:w-72 shrink-0">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari kegiatan, uraian..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Filters Bar: Custom Status, Searchable PIC & Search */}
-      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Custom Status Dropdown */}
-          <CustomStatusDropdown value={statusFilter} onChange={setStatusFilter} />
-
-          {/* Searchable PIC Dropdown */}
-          <SearchableDropdown
-            label="Penanggung Jawab (PIC)"
-            options={picDropdownOptions}
-            value={userFilter}
-            onChange={setUserFilter}
-            placeholder="Cari nama PIC..."
-          />
-
-          {/* Keyword Search Box */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider block">
-              Cari Uraian / Kata Kunci
-            </label>
-            <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Cari kegiatan, aksi..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Date Range Filter Row */}
-        <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            <span className="font-extrabold text-slate-700 flex items-center gap-1 shrink-0">
-              <Calendar size={14} className="text-brand-700" /> Filter Tanggal Start:
+      {/* Collapsible Panel for Advanced Filters (Status, PIC, Range Tanggal) */}
+      {showFilters && (
+        <div className="bg-white p-4 rounded-2xl border-2 border-brand-200 shadow-sm space-y-3 animate-dropdown-in relative z-50">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span className="text-xs font-black uppercase tracking-wider text-brand-800 flex items-center gap-1.5">
+              <ListFilter size={15} /> Konfigurasi Filter Spesifik Aktivitas
             </span>
-            <input
-              type="date"
-              value={startDateFilter}
-              onChange={(e) => setStartDateFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-              title="Tanggal Mulai"
-            />
-            <span className="text-slate-400 font-bold">—</span>
-            <input
-              type="date"
-              value={endDateFilter}
-              onChange={(e) => setEndDateFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-              title="Tanggal Sampai"
-            />
-            {(startDateFilter || endDateFilter) && (
+            {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
               <button
                 onClick={() => {
+                  setUserFilter('ALL')
+                  setStatusFilter('ALL')
                   setStartDateFilter('')
                   setEndDateFilter('')
                 }}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 flex items-center gap-1 cursor-pointer neu-btn"
-                title="Reset Tanggal"
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
               >
-                <FilterX size={14} /> Reset Tanggal
+                <FilterX size={14} /> Reset Semua Filter
               </button>
             )}
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Custom Status Dropdown */}
+            <CustomStatusDropdown value={statusFilter} onChange={setStatusFilter} />
+
+            {/* Searchable PIC Dropdown */}
+            <SearchableDropdown
+              label="Penanggung Jawab (PIC)"
+              options={picDropdownOptions}
+              value={userFilter}
+              onChange={setUserFilter}
+              placeholder="Cari nama PIC..."
+            />
+
+            {/* Range Tanggal Start */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider block">
+                Filter Tanggal Start
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={startDateFilter}
+                  onChange={(e) => setStartDateFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  title="Tanggal Mulai"
+                />
+                <span className="text-xs font-bold text-slate-400">—</span>
+                <input
+                  type="date"
+                  value={endDateFilter}
+                  onChange={(e) => setEndDateFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  title="Tanggal Sampai"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Horizontal Scrollable Table Container with Floating Side Scroll Buttons */}
       <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative group overflow-hidden">
