@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Build the browse binary from vendored source.
+# Requires bun >= 1.3.10. Run once after cloning: ./setup
+set -e
+
+DIR="$(cd "$(dirname "$0")" && pwd -P)"
+DIST="$DIR/dist"
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "ERROR: bun not found. Install it first: curl -fsSL https://bun.sh/install | bash" >&2
+  exit 1
+fi
+
+cd "$DIR"
+if [ ! -d node_modules ]; then
+  echo "Installing dependencies (playwright, diff, socks)..."
+  bun install --no-save >/dev/null
+fi
+
+echo "Building browse binary..."
+mkdir -p "$DIST"
+bun build --compile src/cli.ts --outfile "$DIST/browse"
+bun build --compile src/find-browse.ts --outfile "$DIST/find-browse"
+chmod +x "$DIST/browse" "$DIST/find-browse"
+
+echo "Ensuring Chromium is installed..."
+bunx playwright install chromium >/dev/null 2>&1 || true
+
+echo "OK: $DIST/browse"

@@ -10,3 +10,4 @@ dev.db
 *.sqlite
 *.sqlite-journal
 .DS_Store
+.gstack/

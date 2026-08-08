@@ -42,11 +42,6 @@ export function validateRuntimeConfig() {
   }
 }
 
-export function hasSessionCookie(): boolean {
-  if (typeof document === 'undefined') return false
-  return document.cookie.split(';').some((c) => c.trim().startsWith('target_session='))
-}
-
 export async function prepareCsrf() {
   if (BACKEND_DRIVER === 'laravel') {
     await api.get('/api/auth/csrf')
@@ -63,9 +58,9 @@ export async function exchangeSsoToken(ssoToken: string) {
   return response.data.data.user
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<SessionUser | null> {
   validateRuntimeConfig()
-  const response = await api.get<ApiEnvelope<SessionUser>>('/api/auth/me')
+  const response = await api.get<ApiEnvelope<SessionUser | null>>('/api/auth/me')
   return response.data.data
 }
 

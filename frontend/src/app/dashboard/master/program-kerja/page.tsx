@@ -251,8 +251,8 @@ export default function ProgramKerjaPage() {
                   </div>
 
                   {/* Progress & Actions */}
-                  <div className="flex items-center justify-between sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-slate-200">
-                    <div className="w-36 sm:w-44 text-right">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-slate-200">
+                    <div className="w-full sm:w-44">
                       <div className="flex justify-between items-center text-xs font-bold text-slate-600 mb-1">
                         <span className="text-[11px] text-slate-400">Total Progress:</span>
                         <span>{p.totalProgress}%</span>
@@ -322,7 +322,8 @@ export default function ProgramKerjaPage() {
                       </div>
                     ) : (
                       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                        <table className="w-full text-left border-collapse text-xs">
+                        <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs min-w-[640px]">
                           <thead>
                             <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase">
                               <th className="py-2.5 px-3.5 w-20">Kode</th>
@@ -402,6 +403,7 @@ export default function ProgramKerjaPage() {
                             ))}
                           </tbody>
                         </table>
+                        </div>
                       </div>
                     )}
                   </div>

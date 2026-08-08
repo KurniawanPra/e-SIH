@@ -65,9 +65,9 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/me', { preHandler: [app.authenticate] }, async (request) => ({
+  app.get('/me', async (request) => ({
     success: true,
-    data: request.session.get('user'),
+    data: request.session.get('user') ?? null,
   }))
 
   app.post('/logout', async (request, reply) => {

@@ -118,7 +118,7 @@ export default function WeeklyActivitiesPage() {
   }
 
   useEffect(() => {
-    getCurrentUser().then(setUser)
+    getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => undefined)
     fetchAll()
   }, [])
 
