@@ -143,19 +143,21 @@ export default function MasterParentPKPage() {
 
       {/* Modal Add/Edit Parent PK */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center overflow-y-auto p-3 sm:p-4 modal-backdrop">
-          <div className="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-lg my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm sm:text-base">{editItem ? 'Edit Program Kerja Induk' : 'Tambah Program Kerja Induk'}</h3>
-              <button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400 cursor-pointer"><X size={18} /></button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+              <h3 className="font-black text-slate-900 text-sm sm:text-base">{editItem ? 'Edit Program Kerja Induk' : 'Tambah Program Kerja Induk'}</h3>
+              <button onClick={() => setShowModal(false)} className="p-1 rounded-xl neu-btn text-slate-500 cursor-pointer"><X size={18} /></button>
             </div>
-            <form onSubmit={submit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kode PK (Singkat)</label><input type="text" placeholder="A, B, C" value={form.kode} onChange={e => setForm({ ...form, kode: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Program Kerja Induk</label><input type="text" placeholder="ENABLING DIGITAL AND RELIABLE OPERATION" value={form.namaProgram} onChange={e => setForm({ ...form, namaProgram: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label><textarea rows={2} placeholder="Penjelasan singkat..." value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none resize-none" /></div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Batal</button>
-                <button type="submit" disabled={submitting} className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 transition-colors cursor-pointer">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
+            <form onSubmit={submit} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
+              <div className="space-y-3.5">
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kode PK (Singkat)</label><input type="text" placeholder="A, B, C" value={form.kode} onChange={e => setForm({ ...form, kode: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Program Kerja Induk</label><input type="text" placeholder="ENABLING DIGITAL AND RELIABLE OPERATION" value={form.namaProgram} onChange={e => setForm({ ...form, namaProgram: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label><textarea rows={2} placeholder="Penjelasan singkat..." value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-brand-200 outline-none resize-none" /></div>
+              </div>
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer">Batal</button>
+                <button type="submit" disabled={submitting} className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
               </div>
             </form>
           </div>
