@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: esih-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: esih
+      POSTGRES_PASSWORD: esih
+      POSTGRES_DB: esih
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esih -d esih"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: esih-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 4101
+      DATABASE_URL: postgresql://esih:esih@postgres:5432/esih?schema=public
+      PORTAL_API_URL: http://portal:3001
+      SSO_INTERNAL_TOKEN: 4fc937e29cf4bf2ca3c0e1813cd7685e
+      TARGET_APP_ID: 77777777-7777-4777-8777-777777777777
+      TARGET_FRONTEND_ORIGIN: http://localhost:4100
+      ALLOWED_ORIGINS: ""
+      SESSION_SECRET_HEX: 9e4f9b209d89550b03607cd9fd9b28764f69e82c1218e6911d5cf622b4b0ab47
+      COOKIE_NAME: target_session
+      COOKIE_MAX_AGE_SECONDS: 1800
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4101:4101"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_PUBLIC_PORTAL_URL: http://localhost:3001
+        NEXT_PUBLIC_PORTAL_LOGIN_URL: http://localhost:3001/login
+        NEXT_PUBLIC_TARGET_APP_ID: 77777777-7777-4777-8777-777777777777
+        NEXT_PUBLIC_APP_NAME: e-SIH Operation
+        NEXT_PUBLIC_APP_DESCRIPTION: System Highlight Report & Activity Tracking - PT Industri Nabati Lestari
+        NEXT_PUBLIC_APP_LOGO_URL: /app-logo.svg
+        NEXT_PUBLIC_PORTAL_NAME: InTes / Portal SSO
+        NEXT_PUBLIC_PORTAL_ACCOUNT_NAME: Portal INL
+        NEXT_PUBLIC_BACKEND_DRIVER: fastify
+    container_name: esih-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "4100:4100"
+
+volumes:
+  pgdata:

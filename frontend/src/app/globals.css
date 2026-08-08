@@ -71,6 +71,74 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ===== Page & Element Entrance Animations ===== */
+
+/* Page transition on route change */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-page-enter {
+  animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered fade-in-up (cards, list items) */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Modal overlay fade (backdrop) */
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-overlay-fade {
+  animation: overlayFade 0.2s ease-out both;
+}
+
+/* Modal panel zoom-in (used by all modals via animate-zoom-in) */
+.animate-zoom-in {
+  animation: zoomIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Sidebar slide-in on mobile open */
+@keyframes sidebarIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-sidebar-in {
+  animation: sidebarIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dropdown / submenu expansion */
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-dropdown-in {
+  animation: dropdownIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-enter,
+  .animate-fade-in-up,
+  .animate-overlay-fade,
+  .animate-zoom-in,
+  .animate-sidebar-in,
+  .animate-dropdown-in,
+  .animate-marquee,
+  .modal-backdrop,
+  .modal-content,
+  .chart-tooltip-zoom {
+    animation: none !important;
+  }
+}
+
 /* Realistic Progressive Edge Blur with Smooth Transition */
 .edge-blur-left {
   position: absolute;

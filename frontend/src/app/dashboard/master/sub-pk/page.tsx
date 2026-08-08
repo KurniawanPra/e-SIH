@@ -2,41 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { Plus, Pencil, Eye, EyeOff, X, Layers } from 'lucide-react'
 
-interface ParentPK {
-  id: string
-  kode: string
-  namaProgram: string
-}
-
-interface SubPK {
-  id: string
-  programKerjaId: string
-  kode: string
-  namaItem: string
-  status: string
-  progress: number
-  keterangan?: string
-  isActive: boolean
-  programKerja?: ParentPK
-}
+interface ParentPK { id: string; kode: string; namaProgram: string }
+interface SubPK { id: string; programKerjaId: string; kode: string; namaItem: string; status: string; progress: number; keterangan?: string; isActive: boolean; programKerja?: ParentPK }
 
 export default function MasterSubPKPage() {
   const [subPrograms, setSubPrograms] = useState<SubPK[]>([])
   const [parentOptions, setParentOptions] = useState<ParentPK[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Modal State
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState<SubPK | null>(null)
-  const [formData, setFormData] = useState({
-    programKerjaId: '',
-    kode: '',
-    namaItem: '',
-    status: 'On Progress',
-    progress: 0,
-    keterangan: '',
-  })
+  const [form, setForm] = useState({ programKerjaId: '', kode: '', namaItem: '', status: 'On Progress', progress: 0, keterangan: '' })
   const [submitting, setSubmitting] = useState(false)
 
   const fetchData = async () => {
@@ -50,259 +27,131 @@ export default function MasterSubPKPage() {
       setLoading(false)
     } catch (err) {
       console.error(err)
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  useEffect(() => { fetchData() }, [])
 
-  const handleOpenAdd = () => {
-    setEditItem(null)
-    setFormData({
-      programKerjaId: parentOptions[0]?.id || '',
-      kode: '',
-      namaItem: '',
-      status: 'On Progress',
-      progress: 0,
-      keterangan: '',
-    })
-    setShowModal(true)
-  }
+  const openAdd = () => { setEditItem(null); setForm({ programKerjaId: parentOptions[0]?.id || '', kode: '', namaItem: '', status: 'On Progress', progress: 0, keterangan: '' }); setShowModal(true) }
+  const openEdit = (item: SubPK) => { setEditItem(item); setForm({ programKerjaId: item.programKerjaId, kode: item.kode, namaItem: item.namaItem, status: item.status, progress: item.progress, keterangan: item.keterangan || '' }); setShowModal(true) }
 
-  const handleOpenEdit = (item: SubPK) => {
-    setEditItem(item)
-    setFormData({
-      programKerjaId: item.programKerjaId,
-      kode: item.kode,
-      namaItem: item.namaItem,
-      status: item.status,
-      progress: item.progress,
-      keterangan: item.keterangan || '',
-    })
-    setShowModal(true)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setSubmitting(true)
     try {
-      if (editItem) {
-        await api.put(`/api/esih/programs/${editItem.id}`, formData)
-      } else {
-        await api.post('/api/esih/programs', formData)
-      }
-      setShowModal(false)
-      fetchData()
-    } catch (err) {
-      alert('Gagal menyimpan Sub-Program Kerja')
-    } finally {
-      setSubmitting(false)
-    }
+      editItem ? await api.put(`/api/esih/programs/${editItem.id}`, form) : await api.post('/api/esih/programs', form)
+      setShowModal(false); fetchData()
+    } catch { alert('Gagal menyimpan Sub-Program Kerja') } finally { setSubmitting(false) }
   }
 
-  const handleToggleActive = async (id: string) => {
+  const toggle = async (id: string) => {
     if (confirm('Apakah Anda yakin ingin mengubah status aktif Sub-Program ini?')) {
-      try {
-        await api.patch(`/api/esih/programs/${id}/toggle`)
-        fetchData()
-      } catch (err) {
-        alert('Gagal mengubah status aktif')
-      }
+      try { await api.patch(`/api/esih/programs/${id}/toggle`); fetchData() }
+      catch { alert('Gagal mengubah status aktif') }
     }
   }
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-success" role="status"></div>
-        <p className="mt-2 text-muted small">Memuat Master Sub-Program Kerja...</p>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h4 className="fw-bold mb-1 text-dark">Master Sub-Program Kerja (Sub PK)</h4>
-          <p className="text-muted mb-0">Kelola rincian item Sub-Program Kerja (misal: IT Development, IT Infrastructure, dll).</p>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Layers size={20} className="text-brand-700" /> Master Sub-Program Kerja (Sub PK)
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Kelola rincian item Sub-Program Kerja (misal: IT Development, IT Infrastructure, dll).</p>
         </div>
-        <button className="btn btn-success fw-bold px-4" onClick={handleOpenAdd}>
-          <i className="bi bi-plus-lg me-2"></i>Tambah Sub PK
-        </button>
+        <button onClick={openAdd} className="w-full sm:w-auto flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"><Plus size={16} /> Tambah Sub PK</button>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-3">
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="bg-light">
-                <tr>
-                  <th className="py-3 px-4">Kode Sub</th>
-                  <th className="py-3">Program Induk (Parent)</th>
-                  <th className="py-3">Nama Sub-Program (Item)</th>
-                  <th className="py-3">Status</th>
-                  <th className="py-3" style={{ width: '180px' }}>Progress</th>
-                  <th className="py-3 text-center">Status Aktif</th>
-                  <th className="py-3 text-end px-4">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subPrograms.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-4 text-muted">Belum ada data Sub-Program Kerja.</td>
-                  </tr>
-                ) : (
-                  subPrograms.map((item) => (
-                    <tr key={item.id} className={!item.isActive ? 'table-secondary opacity-75' : ''}>
-                      <td className="px-4 fw-bold text-success">{item.kode}</td>
-                      <td>
-                        <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                          {item.programKerja?.kode} - {item.programKerja?.namaProgram}
-                        </span>
-                      </td>
-                      <td className="fw-bold text-dark">{item.namaItem}</td>
-                      <td>
-                        <span className={`badge rounded-pill ${item.status === 'Closed' ? 'bg-success' : item.status === 'On Progress' ? 'bg-warning text-dark' : 'bg-danger'}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="progress w-100" style={{ height: '8px' }}>
-                            <div 
-                              className={`progress-bar ${item.progress === 100 ? 'bg-success' : 'bg-primary'}`} 
-                              style={{ width: `${item.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="small text-muted fw-bold">{item.progress}%</span>
-                        </div>
-                      </td>
-                      <td className="text-center">
-                        <span className={`badge rounded-pill ${item.isActive ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary'}`}>
-                          {item.isActive ? 'Aktif' : 'Non-Aktif'}
-                        </span>
-                      </td>
-                      <td className="text-end px-4">
-                        <button className="btn btn-sm btn-light me-1" onClick={() => handleOpenEdit(item)} title="Edit Sub PK">
-                          <i className="bi bi-pencil"></i>
-                        </button>
-                        <button 
-                          className={`btn btn-sm ${item.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`} 
-                          onClick={() => handleToggleActive(item.id)}
-                          title={item.isActive ? 'Nonaktifkan Sub PK' : 'Aktifkan Sub PK'}
-                        >
-                          <i className={`bi bi-${item.isActive ? 'eye-slash' : 'check-circle'}`}></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      {/* Mobile Cards */}
+      <div className="grid grid-cols-1 gap-3 sm:hidden">
+        {subPrograms.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
+            Belum ada data Sub-Program Kerja.
           </div>
+        ) : (
+          subPrograms.map(it => (
+            <div key={it.id} className={`bg-white rounded-2xl border border-slate-100 p-4 shadow-xs space-y-3 ${!it.isActive ? 'opacity-40' : ''}`}>
+              <div className="flex items-start justify-between gap-2 min-w-0">
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900 text-sm truncate min-w-0">{it.namaItem}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate min-w-0">Bagian dari: <strong className="text-brand-700">{it.programKerja?.kode} {it.programKerja?.namaProgram}</strong></p>
+                </div>
+                <span className={`inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold shrink-0 ${it.status === 'Closed' ? 'bg-green-50 text-green-700' : it.status === 'On Progress' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>{it.status}</span>
+              </div>
+              {it.keterangan && <p className="text-xs text-slate-500">{it.keterangan}</p>}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div className="flex-1 mr-4 min-w-0">
+                  <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Progress</span><span className="font-bold text-slate-700">{it.progress}%</span></div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${it.progress === 100 ? 'bg-green-500' : 'bg-brand-600'}`} style={{ width: `${it.progress}%` }} /></div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => openEdit(it)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><Pencil size={14} /></button>
+                  <button onClick={() => toggle(it.id)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer">{it.isActive ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Kode</th>
+              <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Program Induk (Parent)</th>
+              <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Nama Sub-Program (Item)</th>
+              <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Status</th>
+              <th className="text-left px-5 py-3 font-semibold text-slate-500 text-xs uppercase w-40">Progress</th>
+              <th className="text-center px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Status Aktif</th>
+              <th className="text-right px-5 py-3 font-semibold text-slate-500 text-xs uppercase">Aksi</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-50">
+              {subPrograms.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-10 text-slate-400 font-semibold text-sm">Belum ada data Sub-Program Kerja.</td></tr>
+              ) : (
+                subPrograms.map(it => (
+                  <tr key={it.id} className={`hover:bg-slate-50 transition-colors ${!it.isActive ? 'opacity-40' : ''}`}>
+                    <td className="px-5 py-3.5 font-bold text-brand-700">{it.kode}</td>
+                    <td className="px-5 py-3.5"><span className="inline-flex px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-xs font-medium">{it.programKerja?.kode} - {it.programKerja?.namaProgram}</span></td>
+                    <td className="px-5 py-3.5"><p className="font-semibold text-slate-800">{it.namaItem}</p>{it.keterangan && <p className="text-xs text-slate-400 mt-0.5 truncate max-w-xs">{it.keterangan}</p>}</td>
+                    <td className="px-5 py-3.5"><span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-semibold ${it.status === 'Closed' ? 'bg-green-50 text-green-700' : it.status === 'On Progress' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>{it.status}</span></td>
+                    <td className="px-5 py-3.5"><div className="flex items-center gap-2"><div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${it.progress === 100 ? 'bg-green-500' : 'bg-brand-600'}`} style={{ width: `${it.progress}%` }} /></div><span className="text-xs font-bold text-slate-500 w-8 text-right">{it.progress}%</span></div></td>
+                    <td className="px-5 py-3.5 text-center"><span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-semibold ${it.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{it.isActive ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td className="px-5 py-3.5 text-right"><div className="inline-flex gap-1"><button onClick={() => openEdit(it)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"><Pencil size={15} /></button><button onClick={() => toggle(it.id)} className={`p-1.5 rounded-md transition-colors cursor-pointer ${it.isActive ? 'hover:bg-amber-50 text-slate-400 hover:text-amber-600' : 'hover:bg-green-50 text-slate-400 hover:text-green-600'}`}>{it.isActive ? <EyeOff size={15} /> : <Eye size={15} />}</button></div></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Modal Add/Edit Sub PK */}
       {showModal && (
-        <div className="modal d-block bg-dark bg-opacity-50" tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content rounded-4 border-0 shadow">
-              <div className="modal-header border-bottom">
-                <h5 className="modal-title fw-bold text-dark">
-                  {editItem ? `Edit Sub PK: ${editItem.namaItem}` : 'Tambah Sub-Program Kerja'}
-                </h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body p-4">
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Pilih Program Kerja Induk (Parent)</label>
-                    <select 
-                      className="form-select" 
-                      value={formData.programKerjaId}
-                      onChange={(e) => setFormData({ ...formData, programKerjaId: e.target.value })}
-                      required
-                    >
-                      {parentOptions.map((p) => (
-                        <option value={p.id} key={p.id}>
-                          [{p.kode}] {p.namaProgram}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="row g-3 mb-3">
-                    <div className="col-12 col-md-4">
-                      <label className="form-label fw-bold text-dark">Kode Sub</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Contoh: A.1, B.2" 
-                        value={formData.kode}
-                        onChange={(e) => setFormData({ ...formData, kode: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-8">
-                      <label className="form-label fw-bold text-dark">Nama Sub-Program (Item)</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Contoh: IT Development" 
-                        value={formData.namaItem}
-                        onChange={(e) => setFormData({ ...formData, namaItem: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="row g-3 mb-3">
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-bold text-dark">Status Pekerjaan</label>
-                      <select 
-                        className="form-select" 
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      >
-                        <option value="Open">Open</option>
-                        <option value="On Progress">On Progress</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-bold text-dark">Progress (%)</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max="100" 
-                        className="form-control" 
-                        value={formData.progress}
-                        onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label fw-bold text-dark">Keterangan / Detail Sub PK</label>
-                    <textarea 
-                      className="form-control" 
-                      rows={3}
-                      placeholder="Penjelasan aktivitas atau ruang lingkup sub program ini..."
-                      value={formData.keterangan}
-                      onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
-                    ></textarea>
-                  </div>
-                </div>
-                <div className="modal-footer border-top bg-light">
-                  <button type="button" className="btn btn-light fw-bold" onClick={() => setShowModal(false)}>Batal</button>
-                  <button type="submit" className="btn btn-success fw-bold px-4" disabled={submitting}>
-                    {submitting ? 'Menyimpan...' : 'Simpan Sub PK'}
-                  </button>
-                </div>
-              </form>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center overflow-y-auto p-3 sm:p-4 modal-backdrop">
+          <div className="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-lg my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">{editItem ? `Edit Sub PK: ${editItem.namaItem}` : 'Tambah Sub-Program Kerja'}</h3>
+              <button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
+            <form onSubmit={submit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Pilih Program Kerja Induk (Parent)</label><select value={form.programKerjaId} onChange={e => setForm({ ...form, programKerjaId: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200">{parentOptions.map(p => <option key={p.id} value={p.id}>[{p.kode}] {p.namaProgram}</option>)}</select></div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Kode Sub</label><input type="text" placeholder="A.1" value={form.kode} onChange={e => setForm({ ...form, kode: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+                <div className="sm:col-span-2"><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Sub-Program (Item)</label><input type="text" placeholder="IT Development" value={form.namaItem} onChange={e => setForm({ ...form, namaItem: e.target.value })} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Status Pekerjaan</label><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200"><option>Open</option><option>On Progress</option><option>Closed</option></select></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Progress (%)</label><input type="number" min={0} max={100} value={form.progress} onChange={e => setForm({ ...form, progress: Number(e.target.value) })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200" /></div>
+              </div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Keterangan / Detail Sub PK</label><textarea rows={2} value={form.keterangan} onChange={e => setForm({ ...form, keterangan: e.target.value })} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-brand-200 resize-none" /></div>
+              <div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Batal</button><button type="submit" disabled={submitting} className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-brand-700 text-white hover:bg-brand-800 disabled:opacity-50 transition-colors cursor-pointer">{submitting ? 'Menyimpan...' : 'Simpan Sub PK'}</button></div>
+            </form>
           </div>
         </div>
       )}

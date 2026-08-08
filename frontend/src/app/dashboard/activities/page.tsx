@@ -218,29 +218,35 @@ export default function AllActivitiesPage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="grid gap-3 md:hidden">
-        {filteredActivities.map(a => (
-          <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-2xs space-y-2.5">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate">
-                {a.program?.programKerja?.kode} - {a.program?.kode}
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
-                a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
-              }`}>
-                {a.status}
-              </span>
-            </div>
-            <div>
-              <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
-              {a.descriptionAction && <p className="text-xs text-slate-500 mt-1">{a.descriptionAction}</p>}
-            </div>
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-              <span className="flex items-center gap-1.5"><User size={13} className="text-slate-400" /> {a.picNama?.split('/')[0]}</span>
-              <span className="text-slate-500 font-medium">{a.startDate}</span>
-            </div>
+      <div className="grid grid-cols-1 gap-3 md:hidden">
+        {filteredActivities.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
+            Tidak ada aktivitas yang sesuai dengan kriteria filter.
           </div>
-        ))}
+        ) : (
+          filteredActivities.map(a => (
+            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-2xs space-y-2.5 w-full min-w-0">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
+                  {a.program?.programKerja?.kode} - {a.program?.kode}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
+                  a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`}>
+                  {a.status}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
+                {a.descriptionAction && <p className="text-xs text-slate-500 mt-1">{a.descriptionAction}</p>}
+              </div>
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2 text-xs font-bold text-slate-700 min-w-0">
+                <span className="flex items-center gap-1.5 truncate min-w-0"><User size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{a.picNama?.split('/')[0]}</span></span>
+                <span className="text-slate-500 font-medium shrink-0">{a.startDate}</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

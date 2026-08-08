@@ -97,7 +97,9 @@ export default fp(async function authPlugin(app) {
   app.decorate('authenticate', async function authenticate(request, reply) {
     const user = request.session.get('user') as SessionUser | undefined
     if (!user) {
-      await reply.code(401).send({ success: false, error: 'Unauthorized' })
+      const error = new Error('Unauthorized') as Error & { statusCode: number }
+      error.statusCode = 401
+      throw error
     }
   })
 })

@@ -186,8 +186,8 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       return reply.code(400).send({ success: false, error: 'Sub-Program, Kegiatan, dan Nama PIC wajib diisi' })
     }
 
-    const count = await prisma.activity.count()
-    const newNo = count + 1
+    const count = await prisma.activity.aggregate({ _max: { no: true } })
+    const newNo = (count._max.no ?? 0) + 1
     const newId = `ACT-${String(newNo).padStart(3, '0')}`
 
     const programItem = await prisma.masterProgram.findUnique({
@@ -223,10 +223,16 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const { id } = request.params
     const { idProgram, kegiatan, descriptionAction, startDate, dueDate, closedDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
 
-    const programItem = await prisma.masterProgram.findUnique({
-      where: { id: idProgram },
-      include: { programKerja: true }
-    })
+    let programItem = null
+    if (idProgram) {
+      programItem = await prisma.masterProgram.findUnique({
+        where: { id: idProgram },
+        include: { programKerja: true }
+      })
+      if (!programItem) {
+        return reply.code(400).send({ success: false, error: 'Sub-Program tidak ditemukan' })
+      }
+    }
 
     const updated = await prisma.activity.update({
       where: { id },
@@ -344,12 +350,12 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PUT edit user
   fastify.put('/users/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { nama, email, jabatan, unit } = request.body || {}
+    const { nama, email, jabatan, unit, role } = request.body || {}
 
     try {
       const updated = await (prisma as any).user.update({
         where: { id },
-        data: { nama, email, jabatan, unit }
+        data: { nama, email, jabatan, unit, role }
       })
       return { success: true, data: updated }
     } catch (e: any) {

@@ -95,8 +95,66 @@ export default function AccessControlPage() {
         </div>
       </div>
 
+      {/* Mobile Card List View */}
+      <div className="md:hidden space-y-3">
+        {users.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl text-center border-2 border-slate-300 text-slate-400 text-xs font-semibold">
+            Tidak ada data user yang tersedia.
+          </div>
+        ) : (
+          users.map(u => (
+            <div key={u.id} className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-9 h-9 rounded-xl font-black text-xs flex items-center justify-center shrink-0 ${
+                    u.role === 'ADMIN' ? 'bg-emerald-700 text-white' : 'bg-slate-900 text-white'
+                  }`}>
+                    {u.nama.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-900 text-sm leading-tight truncate min-w-0">{u.nama}</h4>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate min-w-0">
+                      <Mail size={11} className="text-slate-400 shrink-0" /> {u.email}
+                    </p>
+                  </div>
+                </div>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border shrink-0 ${
+                  u.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-300'
+                }`}>
+                  {u.role === 'ADMIN' ? <ShieldCheck size={11} /> : <UserCheck size={11} />}
+                  {u.role === 'ADMIN' ? 'ADMIN' : 'STAFF'}
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 text-xs space-y-1">
+                <p className="text-slate-700 font-semibold flex items-center gap-1.5">
+                  <Briefcase size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{u.jabatan}</span>
+                </p>
+                <p className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Building2 size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{u.unit}</span>
+                </p>
+              </div>
+
+              <div className="pt-1 flex justify-end">
+                <button
+                  onClick={() => handleRoleToggle(u.id, u.role)}
+                  className={`px-3 py-1.5 rounded-lg border font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    u.role === 'ADMIN'
+                      ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  {u.role === 'ADMIN' ? <Lock size={13} /> : <Unlock size={13} />}
+                  {u.role === 'ADMIN' ? 'Ubah ke Staff User' : 'Jadikan Admin'}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* User Roles Table */}
-      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

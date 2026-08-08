@@ -38,7 +38,7 @@ export default function DemoLoginPage() {
 
   return (
     <div className="min-h-dvh flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-950 text-slate-100">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 shadow-2xl space-y-6">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 shadow-2xl space-y-6 animate-fade-in-up">
         {/* Header Logo */}
         <div className="text-center space-y-2">
           <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center font-black text-2xl mx-auto shadow-lg shadow-brand-600/30">
@@ -60,7 +60,8 @@ export default function DemoLoginPage() {
             type="button"
             disabled={loadingRole !== null}
             onClick={() => handleDemoLoginRole('ADMIN')}
-            className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-between cursor-pointer border border-emerald-400/30 group disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-between cursor-pointer border border-emerald-400/30 group disabled:opacity-50 animate-fade-in-up"
+            style={{ animationDelay: '150ms' }}
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-black">
@@ -79,7 +80,8 @@ export default function DemoLoginPage() {
             type="button"
             disabled={loadingRole !== null}
             onClick={() => handleDemoLoginRole('USER')}
-            className="w-full py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs sm:text-sm transition-all shadow-md flex items-center justify-between cursor-pointer border border-white/10 group disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs sm:text-sm transition-all shadow-md flex items-center justify-between cursor-pointer border border-white/10 group disabled:opacity-50 animate-fade-in-up"
+            style={{ animationDelay: '260ms' }}
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-black">

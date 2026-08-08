@@ -216,7 +216,10 @@ export default function DashboardPage() {
         setActivities(r3.data.data || [])
         setLoading(false)
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error(error)
+        setLoading(false)
+      })
   }, [])
 
   const filtered = useMemo(() => {
@@ -254,6 +257,12 @@ export default function DashboardPage() {
 
   const rate = stats.total > 0 ? Math.round((stats.closed / stats.total) * 100) : 0
 
+  const slaRate = useMemo(() => {
+    const closed = filtered.filter((a: any) => a.status === 'Closed' && a.closedDate && a.dueDate)
+    const onTime = closed.filter((a: any) => a.closedDate <= a.dueDate).length
+    return closed.length > 0 ? Math.round((onTime / closed.length) * 100) : 0
+  }, [filtered])
+
   const monthlyData = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return months.map((month, index) => {
@@ -276,7 +285,7 @@ export default function DashboardPage() {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return months.map((month, index) => {
       const closedAccumulated = filtered.filter((a: any) => {
-        const d = new Date(a.closedDate || a.startDate)
+        const d = new Date(a.startDate)
         return d.getMonth() <= index && a.status === 'Closed'
       }).length
       return { month, Akumulatif: closedAccumulated }
@@ -331,9 +340,9 @@ export default function DashboardPage() {
     })
 
     return [
-      { program: 'Prog A', avgDays: map['A'].count > 0 ? Number((map['A'].totalDays / map['A'].count).toFixed(1)) : 4.5 },
-      { program: 'Prog B', avgDays: map['B'].count > 0 ? Number((map['B'].totalDays / map['B'].count).toFixed(1)) : 5.8 },
-      { program: 'Prog C', avgDays: map['C'].count > 0 ? Number((map['C'].totalDays / map['C'].count).toFixed(1)) : 3.2 },
+      { program: 'Prog A', avgDays: map['A'].count > 0 ? Number((map['A'].totalDays / map['A'].count).toFixed(1)) : 0 },
+      { program: 'Prog B', avgDays: map['B'].count > 0 ? Number((map['B'].totalDays / map['B'].count).toFixed(1)) : 0 },
+      { program: 'Prog C', avgDays: map['C'].count > 0 ? Number((map['C'].totalDays / map['C'].count).toFixed(1)) : 0 },
     ]
   }, [filtered])
 
@@ -473,14 +482,14 @@ export default function DashboardPage() {
         {/* 3 Personal KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Card 1: My Total Tasks */}
-          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2">
+          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
             <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Total Laporan Aktivitas Saya</p>
             <div className="text-4xl font-black text-slate-900">{myStats.total}</div>
             <p className="text-xs font-semibold text-slate-600">Ditugaskan pada tahun {selectedYear}</p>
           </div>
 
           {/* Card 2: My Closure Rate */}
-          <div className="bg-brand-50/80 p-5 rounded-2xl border-2 border-brand-200 shadow-sm space-y-2">
+          <div className="bg-brand-50/80 p-5 rounded-2xl border-2 border-brand-200 shadow-sm space-y-2 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
             <p className="text-xs font-black text-brand-800 uppercase tracking-wider">Realisasi Selesai (Closure Rate)</p>
             <div className="text-4xl font-black text-brand-700">{myRate}%</div>
             <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-brand-200">
@@ -492,7 +501,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: My Status Breakdown */}
-          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2.5 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
             <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Status Tugas Saya</p>
             <div className="space-y-1.5 text-xs font-bold">
               <div className="flex justify-between text-emerald-700">
@@ -512,7 +521,7 @@ export default function DashboardPage() {
         </div>
 
         {/* My Monthly Line / Area Chart */}
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: '320ms' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -553,7 +562,7 @@ export default function DashboardPage() {
         </div>
 
         {/* My Current Assigned Tasks Table */}
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
               <CalendarDays size={16} className="text-slate-800" /> Daftar Tugas Aktivitas Saya ({myActivities.length})
@@ -622,7 +631,7 @@ export default function DashboardPage() {
       {/* LEFT MAIN CONTENT AREA */}
       <div className="lg:col-span-2 2xl:col-span-3 min-w-0 space-y-6 overflow-hidden">
         {/* Header Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm animate-fade-in-up">
           <div>
             <h2 className="text-xl font-black text-slate-900 tracking-tight">Executive Dashboard Pimpinan IT</h2>
             <p className="text-xs text-slate-500 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT</p>
@@ -645,8 +654,10 @@ export default function DashboardPage() {
             <TrendingUp size={16} className="text-slate-800" /> Program Kerja Utama ({selectedYear})
           </h3>
           <div className="grid gap-4 w-full">
-            {parents.filter(p => p.isActive).map(parent => (
-              <ProgramKerjaItemCard key={parent.id} parent={parent} />
+            {parents.filter(p => p.isActive).map((parent, index) => (
+              <div key={parent.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(index * 90, 450)}ms` }}>
+                <ProgramKerjaItemCard parent={parent} />
+              </div>
             ))}
           </div>
         </div>
@@ -659,7 +670,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Chart 1: Recharts Bar Chart */}
-            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden">
+            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
               <div className="mb-4">
                 <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Aktivitas per Bulan</h4>
                 <p className="text-[11px] text-slate-500 font-medium">Jumlah aktivitas selesai vs dalam proses per bulan</p>
@@ -680,7 +691,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Chart 2: Recharts Area Chart */}
-            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden">
+            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '240ms' }}>
               <div className="mb-4">
                 <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Tren Akumulatif Penyelesaian</h4>
                 <p className="text-[11px] text-slate-500 font-medium">Perkembangan kumulatif aktivitas yang telah closed</p>
@@ -706,7 +717,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Chart 3: Doughnut Chart */}
-          <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden">
+          <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '330ms' }}>
             <div className="mb-4">
               <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Komposisi Status Aktivitas Tim IT</h4>
               <p className="text-[11px] text-slate-500 font-medium">Rincian proporsi status aktivitas operasional ({stats.total} total)</p>
@@ -767,8 +778,8 @@ export default function DashboardPage() {
             <Users size={16} className="text-slate-800" /> Kinerja Penanggung Jawab Aktivitas (PIC) Sub Bagian Sistem &amp; IT ({selectedYear})
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {employeeProgress.map((emp) => (
-              <div key={emp.name} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 hover:border-slate-800 transition-all overflow-hidden">
+            {employeeProgress.map((emp, index) => (
+              <div key={emp.name} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 hover:border-slate-800 transition-all overflow-hidden animate-fade-in-up" style={{ animationDelay: `${Math.min(index * 60, 420)}ms` }}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0">
@@ -814,7 +825,7 @@ export default function DashboardPage() {
       {/* RIGHT SIDEBAR (Perfectly level with Executive Dashboard card, mt-0) */}
       <div className="lg:col-span-1 2xl:col-span-1 min-w-0 space-y-4 mt-0">
         {/* Card 1: Overall Program Kerja, Target Kuartal & Lead Time SLA */}
-        <div className="bg-white rounded-2xl border-2 border-brand-700 shadow-md p-5 space-y-5">
+        <div className="bg-white rounded-2xl border-2 border-brand-700 shadow-md p-5 space-y-5 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <h3 className="font-extrabold text-slate-900 text-base leading-tight">
               Overall Program Kerja ({selectedYear})
@@ -961,7 +972,7 @@ export default function DashboardPage() {
             <span className="flex items-center gap-1.5 text-slate-600 font-bold">
               <ShieldCheck size={14} className="text-emerald-600" /> Kepatuhan Target SLA
             </span>
-            <span className="font-black text-emerald-700">96.8%</span>
+            <span className="font-black text-emerald-700">{slaRate}%</span>
           </div>
         </div>
 

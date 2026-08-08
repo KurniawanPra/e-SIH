@@ -140,6 +140,11 @@ export default function MonthlyActivitiesPage() {
   const progressCount = activities.filter((a: any) => a.status === 'On Progress').length
   const closedCount = activities.filter((a: any) => a.status === 'Closed').length
   const closureRate = totalCount > 0 ? Math.round((closedCount / totalCount) * 100) : 0
+  const slaRate = (() => {
+    const closed = activities.filter((a: any) => a.status === 'Closed' && a.closedDate && a.dueDate)
+    const onTime = closed.filter((a: any) => a.closedDate <= a.dueDate).length
+    return closed.length > 0 ? Math.round((onTime / closed.length) * 100) : 0
+  })()
 
   const handleExportExcel = () => {
     if (filteredActivities.length === 0) {
@@ -172,7 +177,7 @@ export default function MonthlyActivitiesPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.setAttribute('href', url)
-    link.setAttribute('download', `e-SIH_Monthly_Highlight_${MONTH_NAMES[selectedMonth - 1]}_2026.csv`)
+    link.setAttribute('download', `e-SIH_Monthly_Highlight_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -285,7 +290,7 @@ export default function MonthlyActivitiesPage() {
                 OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
               </span>
               <span>
-                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">96.8% HIGH PERFORMANCE</strong>
+                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">{slaRate}% HIGH PERFORMANCE</strong>
               </span>
 
               {/* Duplicated for Seamless Infinite Loop */}
@@ -302,7 +307,7 @@ export default function MonthlyActivitiesPage() {
                 OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
               </span>
               <span>
-                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">96.8% HIGH PERFORMANCE</strong>
+                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">{slaRate}% HIGH PERFORMANCE</strong>
               </span>
             </div>
           </div>
@@ -311,12 +316,12 @@ export default function MonthlyActivitiesPage() {
 
       {/* Month Filter Selector Bar */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Rekapitulasi Bulan:</span>
+        <div className="flex flex-wrap items-center gap-3 min-w-0">
+          <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Rekapitulasi Bulan:</span>
           <select
             value={selectedMonth}
             onChange={e => setSelectedMonth(Number(e.target.value))}
-            className="px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer"
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
           >
             {MONTH_NAMES.map((name, idx) => (
               <option key={name} value={idx + 1}>
@@ -432,34 +437,40 @@ export default function MonthlyActivitiesPage() {
       </div>
 
       {/* Mobile View */}
-      <div className="grid gap-3 md:hidden">
-        {filteredActivities.map((a) => (
-          <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-2.5">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate">
-                {a.program?.programKerja?.kode} - {a.program?.kode}
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
-                a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
-              }`}>
-                {a.status}
-              </span>
-            </div>
-            <div>
-              <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan || a.descriptionAction}</p>
-            </div>
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-              <span className="flex items-center gap-1.5"><User size={13} className="text-slate-400" /> {a.picNama?.split('/')[0]}</span>
-              <span className="text-slate-500 font-medium">{a.dueDate}</span>
-            </div>
+      <div className="grid grid-cols-1 gap-3 md:hidden">
+        {filteredActivities.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
+            Tidak ada data highlight aktivitas pada bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
           </div>
-        ))}
+        ) : (
+          filteredActivities.map((a) => (
+            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-2.5 w-full min-w-0">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
+                  {a.program?.programKerja?.kode} - {a.program?.kode}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
+                  a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`}>
+                  {a.status}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan || a.descriptionAction}</p>
+              </div>
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2 text-xs font-bold text-slate-700 min-w-0">
+                <span className="flex items-center gap-1.5 truncate min-w-0"><User size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{a.picNama?.split('/')[0]}</span></span>
+                <span className="text-slate-500 font-medium shrink-0">{a.dueDate}</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Modal Add Highlight with Searchable Dropdown */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 animate-overlay-fade">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in my-auto">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 rounded-t-2xl bg-white">
               <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">

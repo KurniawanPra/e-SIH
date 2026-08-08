@@ -146,21 +146,21 @@ export default function MasterUsersPage() {
 
       {/* KPI Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
+        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "80ms" }}>
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total User IT</p>
           <p className="text-2xl font-black text-slate-900 mt-1">{users.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
+        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "160ms" }}>
           <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">User Aktif</p>
           <p className="text-2xl font-black text-emerald-700 mt-1">{totalActive}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
+        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "240ms" }}>
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unit Kerja</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">{uniqueUnits.length || 1}</p>
+          <p className="text-2xl font-black text-slate-900 mt-1">{uniqueUnits.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
+        <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs animate-fade-in-up" style={{ animationDelay: "320ms" }}>
           <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Akses PIC</p>
-          <p className="text-2xl font-black text-amber-700 mt-1">100%</p>
+          <p className="text-2xl font-black text-amber-700 mt-1">{users.length > 0 ? Math.round((totalActive / users.length) * 100) : 0}%</p>
         </div>
       </div>
 
@@ -308,8 +308,8 @@ export default function MasterUsersPage() {
 
       {/* Modal Form Create/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md overflow-hidden animate-zoom-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-md overflow-hidden animate-zoom-in my-auto">
             <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
                 <ShieldCheck size={18} className="text-brand-700" />

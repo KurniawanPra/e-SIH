@@ -142,7 +142,7 @@ async function main() {
     count++
   }
 
-  console.log('Successfully seeded 100 operational activities into SQLite database!')
+  console.log('Successfully seeded 100 operational activities into PostgreSQL database!')
 }
 
 main()

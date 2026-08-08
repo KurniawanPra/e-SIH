@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { api } from '@/lib/api'
+import { FolderKanban, Layers, Plus, Pencil, FolderPlus } from 'lucide-react'
 
 interface ChildItem {
   id: string
@@ -26,118 +28,104 @@ export default function MasterProgramPage() {
 
   useEffect(() => {
     api.get('/api/esih/program-kerja')
-      .then(res => {
-        setParentPrograms(res.data.data || [])
-        setLoading(false)
-      })
-      .catch(console.error)
+      .then(res => { setParentPrograms(res.data.data || []); setLoading(false) })
+      .catch((err) => { console.error(err); setLoading(false) })
   }, [])
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-success" role="status"></div>
-        <p className="mt-2 text-muted small">Memuat Master Program Kerja...</p>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h4 className="fw-bold mb-1 text-dark">Master Program Kerja</h4>
-          <p className="text-muted mb-0">Struktur hierarki Program Kerja Induk (Parent) dan Sub-Program (Child).</p>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <FolderKanban size={20} className="text-brand-700" /> Master Program Kerja
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Struktur hierarki Program Kerja Induk (Parent) dan Sub-Program (Child).</p>
         </div>
-        <div className="d-flex gap-2">
-          <button className="btn btn-outline-success fw-bold px-3">
-            <i className="bi bi-folder-plus me-2"></i>Tambah Program Induk
-          </button>
-          <button className="btn btn-success fw-bold px-3">
-            <i className="bi bi-plus-lg me-2"></i>Tambah Sub-Program
-          </button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link href="/dashboard/master/parent-pk" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-brand-700 text-brand-700 font-extrabold text-xs hover:bg-brand-700 hover:text-white transition-colors no-underline">
+            <FolderPlus size={15} /> Tambah Program Induk
+          </Link>
+          <Link href="/dashboard/master/sub-pk" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl no-underline">
+            <Plus size={15} /> Tambah Sub-Program
+          </Link>
         </div>
       </div>
 
       {parentPrograms.length === 0 ? (
-        <div className="card border-0 shadow-sm text-center py-5">
-          <div className="card-body">
-            <i className="bi bi-folder-x text-muted" style={{ fontSize: '3rem' }}></i>
-            <h5 className="mt-3 fw-bold">Belum ada data Program Kerja</h5>
-          </div>
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm text-center py-14">
+          <FolderKanban size={40} className="text-slate-300 mx-auto mb-3" />
+          <h5 className="font-bold text-slate-700">Belum ada data Program Kerja</h5>
+          <p className="text-xs text-slate-400 mt-1">Silakan tambahkan Program Kerja Induk terlebih dahulu.</p>
         </div>
       ) : (
-        <div className="d-flex flex-column gap-4">
+        <div className="space-y-4">
           {parentPrograms.map((parent) => (
-            <div className="card border-0 shadow-sm rounded-3 overflow-hidden" key={parent.id}>
+            <div key={parent.id} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
               {/* Parent Program Header */}
-              <div className="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="bg-success text-white rounded-3 px-3 py-2 fw-bold fs-6">
-                    {parent.kode}
-                  </div>
-                  <div>
-                    <h5 className="fw-bold text-dark mb-0">{parent.namaProgram}</h5>
-                    {parent.deskripsi && (
-                      <span className="text-muted small">{parent.deskripsi}</span>
-                    )}
+              <div className="px-4 sm:px-5 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-brand-700 text-white font-black text-sm flex items-center justify-center shrink-0">{parent.kode}</div>
+                  <div className="min-w-0">
+                    <h5 className="font-bold text-slate-900 text-sm leading-snug truncate min-w-0">{parent.namaProgram}</h5>
+                    {parent.deskripsi && <span className="text-[11px] text-slate-500 font-medium block truncate min-w-0">{parent.deskripsi}</span>}
                   </div>
                 </div>
-                <div className="d-flex align-items-center gap-2">
-                  <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                    <i className="bi bi-diagram-2 me-1 text-success"></i> {parent.items.length} Sub-Program
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-300 text-[11px] font-extrabold text-slate-700">
+                    <Layers size={12} className="text-brand-700" /> {parent.items.length} Sub-Program
                   </span>
-                  <button className="btn btn-sm btn-light text-muted">
-                    <i className="bi bi-pencil"></i>
-                  </button>
+                  <Link href="/dashboard/master/sub-pk" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Kelola Sub-Program">
+                    <Pencil size={15} />
+                  </Link>
                 </div>
               </div>
 
-              {/* Child Program Items Table */}
-              <div className="card-body p-0">
+              {/* Mobile Child Cards */}
+              <div className="grid grid-cols-1 gap-2.5 p-3.5 sm:hidden">
                 {parent.items.length === 0 ? (
-                  <div className="p-3 text-center text-muted small">
-                    Belum ada sub-program di bawah grup ini.
-                  </div>
+                  <p className="text-center text-slate-400 font-semibold text-xs py-4">Belum ada sub-program di bawah grup ini.</p>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-hover align-middle mb-0">
-                      <thead className="bg-light">
-                        <tr>
-                          <th className="py-2 px-4" style={{ width: '80px' }}>Kode</th>
-                          <th className="py-2">Nama Sub-Program (Child)</th>
-                          <th className="py-2">Keterangan</th>
-                          <th className="py-2">Status</th>
-                          <th className="py-2" style={{ width: '180px' }}>Progress</th>
-                          <th className="py-2 text-end px-4" style={{ width: '100px' }}>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  parent.items.map((child) => (
+                    <div key={child.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <span className="font-black text-brand-700 text-xs shrink-0">{child.kode}</span>
+                        <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${child.status === 'Closed' ? 'bg-green-100 text-green-700' : child.status === 'On Progress' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>{child.status}</span>
+                      </div>
+                      <p className="font-bold text-slate-900 text-xs truncate min-w-0">{child.namaItem}</p>
+                      {child.keterangan && <p className="text-[11px] text-slate-500 line-clamp-2">{child.keterangan}</p>}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className={`h-full rounded-full ${child.progress === 100 ? 'bg-green-500' : 'bg-brand-600'}`} style={{ width: `${child.progress}%` }} /></div>
+                        <span className="text-[11px] font-bold text-slate-600 shrink-0">{child.progress}%</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop Child Table */}
+              <div className="hidden sm:block">
+                {parent.items.length === 0 ? (
+                  <p className="text-center text-slate-400 font-semibold text-sm py-6">Belum ada sub-program di bawah grup ini.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead><tr className="bg-slate-50 border-b border-slate-100">
+                        <th className="py-2.5 px-5 text-left font-semibold text-slate-500 text-xs uppercase w-20">Kode</th>
+                        <th className="py-2.5 px-5 text-left font-semibold text-slate-500 text-xs uppercase">Nama Sub-Program (Child)</th>
+                        <th className="py-2.5 px-5 text-left font-semibold text-slate-500 text-xs uppercase">Keterangan</th>
+                        <th className="py-2.5 px-5 text-left font-semibold text-slate-500 text-xs uppercase">Status</th>
+                        <th className="py-2.5 px-5 text-left font-semibold text-slate-500 text-xs uppercase w-44">Progress</th>
+                      </tr></thead>
+                      <tbody className="divide-y divide-slate-50">
                         {parent.items.map((child) => (
-                          <tr key={child.id}>
-                            <td className="px-4 fw-bold text-success">{child.kode}</td>
-                            <td className="fw-bold text-dark">{child.namaItem}</td>
-                            <td className="small text-muted">{child.keterangan || '-'}</td>
-                            <td>
-                              <span className={`badge rounded-pill ${child.status === 'Closed' ? 'bg-success' : child.status === 'On Progress' ? 'bg-warning text-dark' : 'bg-danger'}`}>
-                                {child.status}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="d-flex align-items-center gap-2">
-                                <div className="progress w-100" style={{ height: '8px' }}>
-                                  <div 
-                                    className={`progress-bar ${child.progress === 100 ? 'bg-success' : 'bg-primary'}`} 
-                                    style={{ width: `${child.progress}%` }}
-                                  ></div>
-                                </div>
-                                <span className="small text-muted fw-bold">{child.progress}%</span>
-                              </div>
-                            </td>
-                            <td className="text-end px-4">
-                              <button className="btn btn-sm btn-light me-1"><i className="bi bi-pencil"></i></button>
-                              <button className="btn btn-sm btn-outline-danger"><i className="bi bi-trash"></i></button>
-                            </td>
+                          <tr key={child.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 px-5 font-bold text-brand-700">{child.kode}</td>
+                            <td className="py-3 px-5"><p className="font-semibold text-slate-800">{child.namaItem}</p></td>
+                            <td className="py-3 px-5 text-xs text-slate-400 truncate max-w-xs">{child.keterangan || '-'}</td>
+                            <td className="py-3 px-5"><span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-semibold ${child.status === 'Closed' ? 'bg-green-50 text-green-700' : child.status === 'On Progress' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'}`}>{child.status}</span></td>
+                            <td className="py-3 px-5"><div className="flex items-center gap-2"><div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${child.progress === 100 ? 'bg-green-500' : 'bg-brand-600'}`} style={{ width: `${child.progress}%` }} /></div><span className="text-xs font-bold text-slate-500 w-8 text-right">{child.progress}%</span></div></td>
                           </tr>
                         ))}
                       </tbody>

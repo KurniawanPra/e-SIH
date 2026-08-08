@@ -37,6 +37,19 @@ export default function WeeklyActivitiesPage() {
   const currentMonthIdx = new Date().getMonth() + 1
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthIdx)
   const [selectedWeek, setSelectedWeek] = useState<string>('ALL')
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
+
+  const yearOptions = useMemo(() => {
+    const yearsSet = new Set<number>()
+    yearsSet.add(new Date().getFullYear())
+    activities.forEach((a: any) => {
+      if (a.startDate) {
+        const y = new Date(a.startDate).getFullYear()
+        if (!isNaN(y)) yearsSet.add(y)
+      }
+    })
+    return Array.from(yearsSet).sort((a, b) => a - b)
+  }, [activities])
 
   // Date Range Filters for Excel Export
   const [startDateFilter, setStartDateFilter] = useState('')
@@ -107,7 +120,7 @@ export default function WeeklyActivitiesPage() {
   // Filtered Item Programs based on selected Program Kerja Induk
   const filteredItemOpts = useMemo(() => {
     if (!selectedParentId) return itemPrograms
-    return itemPrograms.filter((i: any) => i.idProgramKerja === selectedParentId)
+    return itemPrograms.filter((i: any) => i.programKerjaId === selectedParentId)
   }, [itemPrograms, selectedParentId])
 
   // Searchable sub-item program options
@@ -124,16 +137,6 @@ export default function WeeklyActivitiesPage() {
     return itemPrograms.find((i: any) => i.id === form.idProgram) || filteredItemOpts[0]
   }, [itemPrograms, filteredItemOpts, form.idProgram])
 
-  // Unique PICs who actually uploaded activities
-  const availablePics = useMemo(() => {
-    const picSet = new Set<string>()
-    activities.forEach((a: any) => {
-      const name = a.picNama?.split('/')[0]?.trim()
-      if (name) picSet.add(name)
-    })
-    return Array.from(picSet).sort()
-  }, [activities])
-
   // Filtered activities based on Month, Week, Date Range, Search, User Filter, and Status Filter
   const filteredActivities = useMemo(() => {
     return activities.filter((a: any) => {
@@ -141,6 +144,7 @@ export default function WeeklyActivitiesPage() {
       const d = new Date(a.startDate)
       const m = d.getMonth() + 1
       const day = d.getDate()
+      const y = d.getFullYear()
 
       // Date Range Custom Filter (if specified)
       if (startDateFilter && a.startDate < startDateFilter) return false
@@ -149,6 +153,7 @@ export default function WeeklyActivitiesPage() {
       // If no custom date range, apply Month Grouping Filter
       if (!startDateFilter && !endDateFilter) {
         if (m !== selectedMonth) return false
+        if (y !== selectedYear) return false
 
         // Week Sprint Grouping Filter (W1: 1-7, W2: 8-14, W3: 15-21, W4: 22-28, W5: 29+)
         if (selectedWeek !== 'ALL') {
@@ -183,7 +188,17 @@ export default function WeeklyActivitiesPage() {
 
       return true
     })
-  }, [activities, selectedMonth, selectedWeek, startDateFilter, endDateFilter, userFilter, statusFilter, search])
+  }, [activities, selectedMonth, selectedYear, selectedWeek, startDateFilter, endDateFilter, userFilter, statusFilter, search])
+
+  // Unique PICs who actually uploaded activities in the filtered period
+  const availablePics = useMemo(() => {
+    const picSet = new Set<string>()
+    filteredActivities.forEach((a: any) => {
+      const name = a.picNama?.split('/')[0]?.trim()
+      if (name) picSet.add(name)
+    })
+    return Array.from(picSet).sort()
+  }, [filteredActivities])
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -225,7 +240,7 @@ export default function WeeklyActivitiesPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.setAttribute('href', url)
-    const dateRangeSuffix = startDateFilter && endDateFilter ? `${startDateFilter}_sd_${endDateFilter}` : `${MONTH_NAMES[selectedMonth - 1]}_2026`
+    const dateRangeSuffix = startDateFilter && endDateFilter ? `${startDateFilter}_sd_${endDateFilter}` : `${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}`
     link.setAttribute('download', `e-SIH_Weekly_Activities_${dateRangeSuffix}.csv`)
     document.body.appendChild(link)
     link.click()
@@ -236,7 +251,7 @@ export default function WeeklyActivitiesPage() {
     setEditItem(null)
     const firstParent = parentPrograms[0]?.id || ''
     setSelectedParentId(firstParent)
-    const availableItems = itemPrograms.filter((i: any) => i.idProgramKerja === firstParent)
+    const availableItems = itemPrograms.filter((i: any) => i.programKerjaId === firstParent)
     
     setForm({
       idProgram: availableItems[0]?.id || itemPrograms[0]?.id || '',
@@ -258,7 +273,7 @@ export default function WeeklyActivitiesPage() {
 
   const openEdit = (a: any) => {
     setEditItem(a)
-    const parentId = a.program?.idProgramKerja || parentPrograms[0]?.id || ''
+    const parentId = a.program?.programKerjaId || parentPrograms[0]?.id || ''
     setSelectedParentId(parentId)
 
     setForm({
@@ -291,7 +306,7 @@ export default function WeeklyActivitiesPage() {
 
   const handleParentChange = (parentId: string) => {
     setSelectedParentId(parentId)
-    const matchingItems = itemPrograms.filter((i: any) => i.idProgramKerja === parentId)
+    const matchingItems = itemPrograms.filter((i: any) => i.programKerjaId === parentId)
     if (matchingItems.length > 0) {
       setForm(prev => ({ ...prev, idProgram: matchingItems[0].id }))
     }
@@ -358,20 +373,31 @@ export default function WeeklyActivitiesPage() {
       {/* Month & Week Sprints Bar */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Pilih Bulan Operasional:</span>
-            <select
-              value={selectedMonth}
-              onChange={e => setSelectedMonth(Number(e.target.value))}
-              className="px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer"
-            >
-              {MONTH_NAMES.map((name, idx) => (
-                <option key={name} value={idx + 1}>
-                  Bulan {name} 2026
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Pilih Bulan Operasional:</span>
+          <select
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(Number(e.target.value))}
+            className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+          >
+            {MONTH_NAMES.map((name, idx) => (
+              <option key={name} value={idx + 1}>
+                Bulan {name} {selectedYear}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
+            className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
+          >
+            {yearOptions.map(y => (
+              <option key={y} value={y}>
+                Tahun {y}
+              </option>
+            ))}
+          </select>
+        </div>
           <span className="text-xs font-bold text-slate-500">
             Total Laporan: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
           </span>
@@ -492,18 +518,18 @@ export default function WeeklyActivitiesPage() {
       </div>
 
       {/* Mobile Card List View (Visible on Mobile Screens) */}
-      <div className="grid gap-3.5 md:hidden">
+      <div className="grid grid-cols-1 gap-3.5 md:hidden">
         {filteredActivities.length === 0 ? (
           <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-500 font-semibold text-xs">
             Tidak ada laporan aktivitas pada rentang tanggal/filter terpilih.
           </div>
         ) : (
           filteredActivities.map((a) => (
-            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-3">
+            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-3 w-full min-w-0">
               {/* Top Row: Program Badge & Status */}
-              <div className="space-y-1.5 border-b border-slate-200 pb-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate">
+              <div className="space-y-1.5 border-b border-slate-200 pb-2.5 min-w-0">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
                     {a.program?.programKerja?.kode} - {a.program?.programKerja?.namaProgram}
                   </span>
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
@@ -513,28 +539,28 @@ export default function WeeklyActivitiesPage() {
                     {a.status}
                   </span>
                 </div>
-                <p className="font-black text-slate-900 text-xs">{a.program?.kode} - {a.itemName}</p>
+                <p className="font-black text-slate-900 text-xs truncate min-w-0">{a.program?.kode} - {a.itemName}</p>
               </div>
 
               {/* Activity Details */}
-              <div>
+              <div className="min-w-0">
                 <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
                 {a.descriptionAction && <p className="text-xs text-slate-600 font-medium mt-1">{a.descriptionAction}</p>}
               </div>
 
               {/* Footer Row: PIC, Date & Action Buttons */}
-              <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 font-bold text-slate-900">
-                    <User size={13} className="text-slate-400" /> {a.picNama?.split('/')[0]}
+              <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600 min-w-0 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex items-center gap-1.5 font-bold text-slate-900 truncate min-w-0">
+                    <User size={13} className="text-slate-400 shrink-0" /> {a.picNama?.split('/')[0]}
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                  <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 shrink-0">
                     <Calendar size={12} className="text-slate-400" /> {a.startDate}
                   </span>
                 </div>
 
                 {/* 2 Action Buttons: Update Status & Edit (NO DELETE) */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => openQuickStatus(a)}
                     className="p-2 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 flex items-center gap-1 text-[11px] font-bold cursor-pointer"
@@ -655,8 +681,8 @@ export default function WeeklyActivitiesPage() {
 
       {/* Streamlined Add / Edit Activity Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 animate-overlay-fade">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in my-auto">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 rounded-t-2xl bg-white">
               <h3 className="font-black text-slate-900 text-base">
                 {editItem ? 'Edit Laporan Aktivitas' : 'Tambah Laporan Aktivitas Baru'}
@@ -805,8 +831,8 @@ export default function WeeklyActivitiesPage() {
 
       {/* Quick Update Status Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 animate-overlay-fade">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
