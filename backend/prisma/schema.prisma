@@ -57,3 +57,13 @@ model Activity {
 
   program MasterProgram @relation(fields: [idProgram], references: [id])
 }
+
+model User {
+  id        String   @id @default(uuid())
+  nama      String
+  email     String   @unique
+  jabatan   String   @default("Staff Operasional")
+  unit      String   @default("IT & Sistem Operational")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

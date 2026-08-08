@@ -293,6 +293,86 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       }
     }
   })
+
+  // ==========================================
+  // 5. USER SDM MANAGEMENT ROUTES
+  // ==========================================
+
+  // GET all users
+  fastify.get('/users', async (request, reply) => {
+    try {
+      const users = await (prisma as any).user.findMany({
+        orderBy: { nama: 'asc' }
+      })
+      return { data: users }
+    } catch (e) {
+      // Fallback if table query fails
+      const activities = await prisma.activity.findMany({ select: { picNama: true, picEmail: true } })
+      const map = new Map()
+      activities.forEach(a => {
+        if (!map.has(a.picEmail)) {
+          map.set(a.picEmail, { id: a.picEmail, nama: a.picNama, email: a.picEmail, jabatan: 'Staff Operasional', unit: 'IT & Sistem Operational', isActive: true })
+        }
+      })
+      return { data: Array.from(map.values()) }
+    }
+  })
+
+  // POST create user
+  fastify.post('/users', async (request: any, reply) => {
+    const { nama, email, jabatan, unit } = request.body || {}
+    if (!nama || !email) {
+      return reply.code(400).send({ success: false, error: 'Nama dan Email wajib diisi' })
+    }
+
+    try {
+      const created = await (prisma as any).user.create({
+        data: {
+          nama,
+          email,
+          jabatan: jabatan || 'Staff Operasional',
+          unit: unit || 'IT & Sistem Operational',
+          isActive: true
+        }
+      })
+      return reply.code(201).send({ success: true, data: created })
+    } catch (e: any) {
+      return reply.code(400).send({ success: false, error: e.message || 'Gagal menambahkan user' })
+    }
+  })
+
+  // PUT edit user
+  fastify.put('/users/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const { nama, email, jabatan, unit } = request.body || {}
+
+    try {
+      const updated = await (prisma as any).user.update({
+        where: { id },
+        data: { nama, email, jabatan, unit }
+      })
+      return { success: true, data: updated }
+    } catch (e: any) {
+      return reply.code(400).send({ success: false, error: 'Gagal memperbarui user' })
+    }
+  })
+
+  // PATCH toggle active user
+  fastify.patch('/users/:id/toggle', async (request: any, reply) => {
+    const { id } = request.params
+    try {
+      const current = await (prisma as any).user.findUnique({ where: { id } })
+      if (!current) return reply.code(404).send({ success: false, error: 'User tidak ditemukan' })
+
+      const updated = await (prisma as any).user.update({
+        where: { id },
+        data: { isActive: !current.isActive }
+      })
+      return { success: true, data: updated }
+    } catch (e: any) {
+      return reply.code(400).send({ success: false, error: 'Gagal mengubah status user' })
+    }
+  })
 }
 
 export default esihRoutes
