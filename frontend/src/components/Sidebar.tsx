@@ -51,7 +51,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {/* Logo Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-300">
           <Link href="/dashboard" className="flex items-center gap-3 no-underline">
-            <div className="w-8 h-8 rounded-xl neu-active-green flex items-center justify-center text-white font-black text-xs">SIH</div>
+            <img src="/esih-logo.png" alt="e-SIH Logo" className="w-9 h-9 rounded-xl object-cover shadow-2xs neu-inset p-0.5" />
             <div className="leading-tight">
               <span className="font-black text-slate-900 text-sm block">e-SIH</span>
               <span className="text-[10px] text-slate-500 font-bold tracking-wide">INL Operation</span>

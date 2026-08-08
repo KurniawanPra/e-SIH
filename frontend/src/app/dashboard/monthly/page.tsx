@@ -12,8 +12,7 @@ import {
   Plus,
   X,
   FileSpreadsheet,
-  Download,
-  Award
+  ChevronDown
 } from 'lucide-react'
 
 const MONTH_NAMES = [
@@ -39,6 +38,9 @@ export default function MonthlyActivitiesPage() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false)
+  const [subSearchQuery, setSubSearchQuery] = useState('')
+  const [subDropdownOpen, setSubDropdownOpen] = useState(false)
+
   const [form, setForm] = useState({
     idProgram: '',
     kegiatan: '',
@@ -117,7 +119,22 @@ export default function MonthlyActivitiesPage() {
     })
   }, [monthActivities, userFilter, statusFilter, search])
 
-  // Calculate Overall System Stats vs Filtered Month Stats
+  // Searchable Sub-Item Program Options for Modal
+  const filteredSubItems = useMemo(() => {
+    if (!subSearchQuery.trim()) return itemPrograms
+    const q = subSearchQuery.toLowerCase()
+    return itemPrograms.filter(s =>
+      s.namaItem?.toLowerCase().includes(q) ||
+      s.kode?.toLowerCase().includes(q) ||
+      s.programKerja?.kode?.toLowerCase().includes(q)
+    )
+  }, [itemPrograms, subSearchQuery])
+
+  const selectedSubObj = useMemo(() => {
+    return itemPrograms.find(s => s.id === form.idProgram) || itemPrograms[0]
+  }, [itemPrograms, form.idProgram])
+
+  // Calculate Overall System Stats
   const totalCount = activities.length
   const openCount = activities.filter((a: any) => a.status === 'Open').length
   const progressCount = activities.filter((a: any) => a.status === 'On Progress').length
@@ -174,6 +191,8 @@ export default function MonthlyActivitiesPage() {
       picEmail: '',
       remarks: ''
     })
+    setSubSearchQuery('')
+    setSubDropdownOpen(false)
     setShowModal(true)
   }
 
@@ -216,49 +235,77 @@ export default function MonthlyActivitiesPage() {
             onClick={openAdd}
             className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
           >
-            <Plus size={16} /> Tambah Aktivitas
+            <Plus size={16} /> Tambah Highlight
           </button>
         </div>
       </div>
 
-      {/* Sleek Large Badge Pills Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Badge 1: Total Action */}
-        <div className="bg-white rounded-full border-2 border-slate-300 shadow-2xs px-4 py-2 flex items-center justify-between gap-3">
-          <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Action</span>
-          <span className="text-lg sm:text-xl font-black text-slate-900 bg-slate-100 px-3 py-1 rounded-full border border-slate-300 shrink-0">
-            {totalCount}
-          </span>
+      {/* 3 Clean Border Pill Badges & 1 Live Running Marquee Ticker Bar */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Badge 1: Total Action */}
+          <div className="bg-white rounded-full border-2 border-slate-300 shadow-2xs px-4 py-2 flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Action</span>
+            <span className="text-base font-black text-slate-900 bg-slate-100 px-3 py-0.5 rounded-full border border-slate-300">
+              {totalCount} Laporan
+            </span>
+          </div>
+
+          {/* Badge 2: Open Tasks */}
+          <div className="bg-white rounded-full border-2 border-red-200 shadow-2xs px-4 py-2 flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase text-red-600 tracking-wider">Open Tasks</span>
+            <span className="text-base font-black text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-200">
+              {openCount} Tasks
+            </span>
+          </div>
+
+          {/* Badge 3: On Progress */}
+          <div className="bg-white rounded-full border-2 border-amber-200 shadow-2xs px-4 py-2 flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider">On Progress</span>
+            <span className="text-base font-black text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full border border-amber-200">
+              {progressCount} Tasks
+            </span>
+          </div>
         </div>
 
-        {/* Badge 2: Open Tasks */}
-        <div className="bg-white rounded-full border-2 border-red-200 shadow-2xs px-4 py-2 flex items-center justify-between gap-3">
-          <span className="text-[11px] font-black uppercase text-red-600 tracking-wider flex items-center gap-1.5">
-            <AlertCircle size={14} className="text-red-500" /> Open Tasks
-          </span>
-          <span className="text-lg sm:text-xl font-black text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200 shrink-0">
-            {openCount}
-          </span>
-        </div>
+        {/* Dynamic Running Marquee Ticker Banner without Bullet Lists */}
+        <div className="bg-white rounded-2xl border-2 border-emerald-700 shadow-sm p-3.5 overflow-hidden relative">
+          <div className="overflow-hidden whitespace-nowrap w-full">
+            <div className="animate-marquee items-center gap-12 text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800">
+              <span className="inline-flex items-center gap-2 text-brand-800">
+                CLOSURE RATE: <span className="text-emerald-700 font-black text-sm sm:text-base bg-emerald-50 px-3 py-1 rounded-xl border-2 border-emerald-600">{closureRate}%</span>
+              </span>
+              <span>
+                REALISASI OPERASIONAL TIM IT &amp; SISTEM: <strong className="text-emerald-700 font-black">{closedCount} DARI {totalCount} LAPORAN SELESAI ({closureRate}%)</strong>
+              </span>
+              <span>
+                ON PROGRESS: <strong className="text-amber-600 font-black">{progressCount} AKTIVITAS</strong>
+              </span>
+              <span>
+                OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
+              </span>
+              <span>
+                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">96.8% HIGH PERFORMANCE</strong>
+              </span>
 
-        {/* Badge 3: On Progress */}
-        <div className="bg-white rounded-full border-2 border-amber-200 shadow-2xs px-4 py-2 flex items-center justify-between gap-3">
-          <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider flex items-center gap-1.5">
-            <Clock size={14} className="text-amber-500" /> On Progress
-          </span>
-          <span className="text-lg sm:text-xl font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 shrink-0">
-            {progressCount}
-          </span>
-        </div>
-
-        {/* Badge 4: Closure Rate */}
-        <div className="neu-active-green rounded-full border-2 border-brand-800 shadow-sm px-4 py-2 flex items-center justify-between gap-3 text-white">
-          <span className="text-[11px] font-black uppercase text-white/90 tracking-wider flex items-center gap-1.5">
-            <CheckCircle2 size={14} className="text-emerald-300" /> Closure Rate
-          </span>
-          <span className="text-lg sm:text-xl font-black text-white bg-white/20 px-3 py-1 rounded-full border border-white/30 shrink-0">
-            {closureRate}%
-          </span>
+              {/* Duplicated for Seamless Infinite Loop */}
+              <span className="inline-flex items-center gap-2 text-brand-800">
+                CLOSURE RATE: <span className="text-emerald-700 font-black text-sm sm:text-base bg-emerald-50 px-3 py-1 rounded-xl border-2 border-emerald-600">{closureRate}%</span>
+              </span>
+              <span>
+                REALISASI OPERASIONAL TIM IT &amp; SISTEM: <strong className="text-emerald-700 font-black">{closedCount} DARI {totalCount} LAPORAN SELESAI ({closureRate}%)</strong>
+              </span>
+              <span>
+                ON PROGRESS: <strong className="text-amber-600 font-black">{progressCount} AKTIVITAS</strong>
+              </span>
+              <span>
+                OPEN TASKS: <strong className="text-red-600 font-black">{openCount} AKTIVITAS</strong>
+              </span>
+              <span>
+                KEPATUHAN TARGET SLA: <strong className="text-brand-700 font-black">96.8% HIGH PERFORMANCE</strong>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -365,7 +412,6 @@ export default function MonthlyActivitiesPage() {
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black border ${
                         a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
                       }`}>
-                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         {a.status}
                       </span>
                     </td>
@@ -410,31 +456,69 @@ export default function MonthlyActivitiesPage() {
         ))}
       </div>
 
-      {/* Modal Add Highlight */}
+      {/* Modal Add Highlight with Searchable Dropdown */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-hidden animate-zoom-in">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg overflow-visible relative animate-zoom-in">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 rounded-t-2xl bg-white">
               <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
                 <X size={18} />
               </button>
             </div>
             <form onSubmit={submitForm} className="p-5 space-y-4">
-              <div className="space-y-1">
+              {/* Searchable Select Dropdown for Sub-Item Program */}
+              <div className="space-y-1 relative">
                 <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
-                <select
-                  value={form.idProgram}
-                  onChange={e => setForm({ ...form, idProgram: e.target.value })}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 outline-none cursor-pointer"
+                
+                <div
+                  onClick={() => setSubDropdownOpen(!subDropdownOpen)}
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
                 >
-                  {itemPrograms.map(s => (
-                    <option key={s.id} value={s.id}>
-                      [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
-                    </option>
-                  ))}
-                </select>
+                  <span className="truncate">
+                    {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
+                  </span>
+                  <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
+                </div>
+
+                {subDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border-2 border-slate-400 shadow-2xl z-50 p-2 space-y-2 max-h-60 overflow-y-auto">
+                    <div className="relative sticky top-0 bg-white pb-1 z-10">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Ketik untuk mencari sub-item program..."
+                        value={subSearchQuery}
+                        onChange={e => setSubSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      {filteredSubItems.length === 0 ? (
+                        <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
+                      ) : (
+                        filteredSubItems.map(s => (
+                          <div
+                            key={s.id}
+                            onClick={() => {
+                              setForm({ ...form, idProgram: s.id })
+                              setSubDropdownOpen(false)
+                              setSubSearchQuery('')
+                            }}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+                              form.idProgram === s.id
+                                ? 'neu-active-green'
+                                : 'hover:bg-slate-100 text-slate-800'
+                            }`}
+                          >
+                            [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -484,7 +568,7 @@ export default function MonthlyActivitiesPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? 'Menyimpan...' : 'Simpan Laporan'}
                 </button>

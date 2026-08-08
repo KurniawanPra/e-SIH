@@ -69,18 +69,9 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
     <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 hover:border-slate-400 transition-all overflow-hidden w-full max-w-full">
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-200 min-w-0 overflow-hidden">
-        {/* Icon + Letter A B C + Title */}
+        {/* Letter A B C + Title */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1 overflow-hidden">
-          <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center shrink-0">
-            {parent.kode === 'A' ? (
-              <Cpu size={24} className="text-emerald-700" />
-            ) : parent.kode === 'B' ? (
-              <ShieldCheck size={24} className="text-amber-600" />
-            ) : (
-              <HeartPulse size={24} className="text-sky-600" />
-            )}
-          </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none shrink-0">
+          <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none shrink-0 pt-0.5">
             {parent.kode}
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
@@ -395,18 +386,25 @@ export default function DashboardPage() {
 
   const CustomBarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const totalSum = payload.reduce((acc: number, entry: any) => acc + (Number(entry.value) || 0), 0)
       return (
-        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-slate-700">
-          <p className="font-extrabold text-slate-300 border-b border-slate-700 pb-1 mb-1">{label}</p>
+        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3.5 rounded-xl shadow-2xl text-xs space-y-1.5 border-2 border-slate-700">
+          <p className="font-black text-slate-300 border-b border-slate-700 pb-1 mb-1 text-[11px] uppercase tracking-wider">Bulan {label}</p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-4 font-semibold">
+            <div key={index} className="flex items-center justify-between gap-5 font-extrabold">
               <span className="flex items-center gap-1.5" style={{ color: entry.color }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                 {entry.name}:
               </span>
-              <span className="font-extrabold text-white">{entry.value} {entry.unit || 'Aktivitas'}</span>
+              <span className="font-black text-white">{entry.value} Aktivitas</span>
             </div>
           ))}
+          {payload.length > 1 && (
+            <div className="pt-1.5 border-t border-slate-700 flex items-center justify-between text-xs font-black text-emerald-400">
+              <span>Total Volume:</span>
+              <span>{totalSum} Aktivitas</span>
+            </div>
+          )}
         </div>
       )
     }
@@ -513,22 +511,43 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* My Monthly Chart */}
+        {/* My Monthly Line / Area Chart */}
         <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
-          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-            <LineIcon size={16} className="text-brand-700" /> Tren Penyelesaian Aktivitas Saya (Tahun {selectedYear})
-          </h3>
-          <div className="h-60 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                <LineIcon size={16} className="text-brand-700" /> Tren Penyelesaian Aktivitas Saya (Tahun {selectedYear})
+              </h3>
+              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                Grafik garis tren realisasi tugas selesai vs berjalan per bulan.
+              </p>
+            </div>
+            <span className="text-[10px] font-black text-brand-800 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200 shrink-0 self-start sm:self-auto">
+              Line Trend Mode
+            </span>
+          </div>
+
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={myMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={myMonthlyData} margin={{ top: 15, right: 15, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorSelesaiUser" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#006837" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#006837" stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="colorBerjalanUser" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomBarTooltip />} wrapperStyle={{ zIndex: 1000 }} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#475569', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#475569', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ stroke: '#006837', strokeWidth: 1.5, strokeDasharray: '4 4' }} wrapperStyle={{ zIndex: 1000 }} />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="Selesai" fill="#006837" radius={[4, 4, 0, 0]} maxBarSize={28} />
-                <Bar dataKey="Berjalan" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={28} />
-              </BarChart>
+                <Area type="monotone" dataKey="Selesai" name="Selesai (Closed)" stroke="#006837" strokeWidth={3} fillOpacity={1} fill="url(#colorSelesaiUser)" dot={{ r: 4, fill: '#006837', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 7, stroke: '#006837', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="Berjalan" name="Dalam Proses (Berjalan)" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorBerjalanUser)" dot={{ r: 4, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 7, stroke: '#f59e0b', strokeWidth: 2 }} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -647,14 +666,14 @@ export default function DashboardPage() {
               </div>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData} barGap={0} barCategoryGap="20%" margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={monthlyData} barGap={2} barCategoryGap="10%" margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.7)' }} wrapperStyle={{ zIndex: 1000 }} />
                     <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                    <Bar dataKey="Selesai" fill="#006837" radius={[4, 4, 0, 0]} maxBarSize={28} />
-                    <Bar dataKey="Berjalan" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                    <Bar dataKey="Selesai" fill="#006837" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                    <Bar dataKey="Berjalan" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={36} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

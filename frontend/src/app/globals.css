@@ -217,6 +217,21 @@ body {
   box-shadow: 2px 2px 5px rgba(4, 120, 87, 0.25);
 }
 
+/* Continuous Running Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 22s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Spinner */
 .spinner {
   width: 32px; height: 32px;

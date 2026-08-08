@@ -31,7 +31,7 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
         </button>
         <div className="sm:block">
           <h1 className="text-sm font-black text-slate-900 leading-none flex items-center gap-2">
-            <span className="w-6 h-6 rounded-md neu-active-green text-white text-[11px] font-black flex items-center justify-center sm:hidden">SIH</span>
+            <img src="/esih-logo.png" alt="e-SIH Logo" className="w-6 h-6 rounded-md object-cover sm:hidden" />
             <span>e-SIH Operation</span>
           </h1>
           <p className="text-[10px] text-slate-500 font-semibold mt-0.5 hidden sm:block">Highlight &amp; Activity Report — PT INL</p>
