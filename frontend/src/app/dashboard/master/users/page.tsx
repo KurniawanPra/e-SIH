@@ -130,24 +130,24 @@ export default function MasterUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Users className="text-brand-700" size={24} /> Kelola Data User SDM
+            <Users className="text-brand-700" size={24} /> Kelola User Sub Bagian Sistem &amp; IT
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Manajemen Pengguna &amp; Penanggung Jawab Aktivitas Operasional (PIC)
+            Manajemen Pengguna &amp; Penanggung Jawab Aktivitas Operasional (PIC IT)
           </p>
         </div>
         <button
           onClick={() => handleOpenModal()}
           className="inline-flex items-center gap-2 bg-brand-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-brand-800 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
         >
-          <UserPlus size={16} /> Tambah User Baru
+          <UserPlus size={16} /> Tambah User IT Baru
         </button>
       </div>
 
       {/* KPI Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total User SDM</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total User IT</p>
           <p className="text-2xl font-black text-slate-900 mt-1">{users.length}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-2xs">
@@ -173,13 +173,13 @@ export default function MasterUsersPage() {
             placeholder="Cari nama, email, atau jabatan user..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-xs font-bold text-slate-900 focus:border-brand-700 outline-none transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
           />
         </div>
         <select
           value={unitFilter}
           onChange={e => setUnitFilter(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-xs font-extrabold text-slate-900 focus:border-brand-700 outline-none cursor-pointer"
+          className="px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
         >
           <option value="ALL">Semua Unit Kerja ({uniqueUnits.length})</option>
           {uniqueUnits.map(u => <option key={u} value={u}>{u}</option>)}
@@ -331,14 +331,14 @@ export default function MasterUsersPage() {
               )}
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Nama Lengkap SDM *</label>
+                <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
                 <input
                   type="text"
                   required
                   placeholder="Contoh: Herbina"
                   value={form.nama}
                   onChange={e => setForm({ ...form, nama: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 text-xs font-bold text-slate-900 focus:border-brand-700 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                 />
               </div>
 
@@ -350,18 +350,18 @@ export default function MasterUsersPage() {
                   placeholder="Contoh: herbina@inl.co.id"
                   value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 text-xs font-bold text-slate-900 focus:border-brand-700 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Jabatan SDM</label>
+                <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
                 <input
                   type="text"
                   placeholder="Contoh: Staff IT Development"
                   value={form.jabatan}
                   onChange={e => setForm({ ...form, jabatan: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 text-xs font-bold text-slate-900 focus:border-brand-700 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function MasterUsersPage() {
                   placeholder="Contoh: IT & Sistem Operational"
                   value={form.unit}
                   onChange={e => setForm({ ...form, unit: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 text-xs font-bold text-slate-900 focus:border-brand-700 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                 />
               </div>
 

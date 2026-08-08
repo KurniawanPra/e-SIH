@@ -55,19 +55,17 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="hidden md:block leading-tight">
-            <p className="text-xs font-extrabold text-slate-900 truncate max-w-[130px]">{user?.name || 'Kurniawan Pralambang'}</p>
-            <p className="text-[10px] text-slate-500 font-medium truncate max-w-[130px]">{user?.employee?.jabatan || 'Pimpinan IT & Sistem'}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs font-extrabold text-slate-900 truncate max-w-[130px]">{user?.name || 'Kurniawan Pralambang'}</p>
+              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
+                user?.role === 'ADMIN' || !user?.role ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+              }`}>
+                {user?.role === 'ADMIN' || !user?.role ? 'ADMIN' : 'USER'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 font-medium truncate max-w-[150px]">{user?.employee?.jabatan || user?.jabatan || 'Pimpinan IT & Sistem'}</p>
           </div>
         </div>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded-xl neu-btn text-slate-500 hover:text-red-600 cursor-pointer"
-          title="Hapus sesi & logout"
-        >
-          <LogOut size={18} />
-        </button>
       </div>
     </header>
   )

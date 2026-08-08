@@ -15,19 +15,23 @@ export default async function authRoutes(app: FastifyInstance) {
   }))
 
   app.post('/demo-login', async (request, reply) => {
+    const { role } = (request.body as { role?: string }) || {}
+    const isAdmin = role === 'ADMIN'
+
     const user: SessionUser = {
-      sub: 'demo-user-id',
-      email: 'kurniawan@inl.co.id',
-      employeeId: 'emp-demo',
-      name: 'Kurniawan Pralambang',
-      jabatan: 'Pimpinan IT & Sistem',
+      sub: isAdmin ? 'demo-admin-id' : 'demo-user-id',
+      email: isAdmin ? 'kurniawan@inl.co.id' : 'herbina@inl.co.id',
+      employeeId: isAdmin ? 'emp-admin' : 'emp-user',
+      name: isAdmin ? 'Kurniawan Pralambang' : 'Herbina',
+      jabatan: isAdmin ? 'Pimpinan IT & Sistem' : 'Staff IT Development',
+      role: isAdmin ? 'ADMIN' : 'USER',
       employee: {
-        id: 'emp-demo',
-        namaLengkap: 'Kurniawan Pralambang',
-        jabatan: 'Pimpinan IT & Sistem',
+        id: isAdmin ? 'emp-admin' : 'emp-user',
+        namaLengkap: isAdmin ? 'Kurniawan Pralambang' : 'Herbina',
+        jabatan: isAdmin ? 'Pimpinan IT & Sistem' : 'Staff IT Development',
       },
-      grade: { id: 'g-1', kode: 'M1', label: 'Manager 1', level: 1 },
-      unit: { id: 'u-1', kode: 'IT', nama: 'IT Department' },
+      grade: { id: 'g-1', kode: isAdmin ? 'M1' : 'S1', label: isAdmin ? 'Manager 1' : 'Staff', level: isAdmin ? 1 : 3 },
+      unit: { id: 'u-1', kode: 'IT', nama: 'IT & Sistem Operational' },
       penempatanArea: { id: 'p-1', kode: 'HO', nama: 'Head Office' },
     }
     request.session.set('user', user)

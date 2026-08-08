@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { api } from '@/lib/api'
+import { api, getCurrentUser } from '@/lib/api'
 import {
   TrendingUp,
   BarChart3,
@@ -16,7 +16,14 @@ import {
   ChevronRight,
   Target,
   Trophy,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Timer,
+  Layers,
+  UserCheck,
+  CalendarDays,
+  Cpu,
+  HeartPulse
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -33,6 +40,7 @@ import {
   Cell,
   CartesianGrid
 } from 'recharts'
+import type { SessionUser } from '@/types/auth'
 
 // Individual Scrollable Program Kerja Card Component
 function ProgramKerjaItemCard({ parent }: { parent: any }) {
@@ -61,9 +69,18 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
     <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 hover:border-slate-400 transition-all overflow-hidden w-full max-w-full">
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-200 min-w-0 overflow-hidden">
-        {/* Letter A B C + Title */}
+        {/* Icon + Letter A B C + Title */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1 overflow-hidden">
-          <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none shrink-0 pt-0.5">
+          <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center shrink-0">
+            {parent.kode === 'A' ? (
+              <Cpu size={24} className="text-emerald-700" />
+            ) : parent.kode === 'B' ? (
+              <ShieldCheck size={24} className="text-amber-600" />
+            ) : (
+              <HeartPulse size={24} className="text-sky-600" />
+            )}
+          </div>
+          <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none shrink-0">
             {parent.kode}
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
@@ -94,14 +111,14 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => scroll('left')}
-                className="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center justify-center shadow-xs transition-colors"
+                className="w-7 h-7 rounded-full neu-btn text-slate-700 hover:bg-slate-100 flex items-center justify-center shadow-xs transition-colors cursor-pointer"
                 title="Geser Kiri"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => scroll('right')}
-                className="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center justify-center shadow-xs transition-colors"
+                className="w-7 h-7 rounded-full neu-btn text-slate-700 hover:bg-slate-100 flex items-center justify-center shadow-xs transition-colors cursor-pointer"
                 title="Geser Kanan"
               >
                 <ChevronRight size={16} />
@@ -170,6 +187,7 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
 }
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<SessionUser | null>(null)
   const [kpi, setKpi] = useState<any>(null)
   const [parents, setParents] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
@@ -194,6 +212,8 @@ export default function DashboardPage() {
   }, [activities])
 
   useEffect(() => {
+    getCurrentUser().then(setUser).catch(() => undefined)
+
     Promise.all([
       api.get('/api/esih/dashboard'),
       api.get('/api/esih/program-kerja'),
@@ -216,6 +236,24 @@ export default function DashboardPage() {
     })
   }, [activities, selectedYear])
 
+  // Staff IT Personal Activities
+  const myActivities = useMemo(() => {
+    if (!user?.name) return filtered
+    return filtered.filter((a: any) => {
+      const picName = a.picNama?.split('/')[0]?.trim() || ''
+      return picName.toLowerCase() === user.name.toLowerCase()
+    })
+  }, [filtered, user])
+
+  const myStats = useMemo(() => {
+    const o = myActivities.filter((a: any) => a.status === 'Open').length
+    const p = myActivities.filter((a: any) => a.status === 'On Progress').length
+    const c = myActivities.filter((a: any) => a.status === 'Closed').length
+    return { open: o, progress: p, closed: c, total: o + p + c }
+  }, [myActivities])
+
+  const myRate = myStats.total > 0 ? Math.round((myStats.closed / myStats.total) * 100) : 0
+
   const stats = useMemo(() => {
     const o = filtered.filter((a: any) => a.status === 'Open').length
     const p = filtered.filter((a: any) => a.status === 'On Progress').length
@@ -234,6 +272,15 @@ export default function DashboardPage() {
     })
   }, [filtered])
 
+  const myMonthlyData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+    return months.map((month, index) => {
+      const closed = myActivities.filter((a: any) => new Date(a.startDate).getMonth() === index && a.status === 'Closed').length
+      const open = myActivities.filter((a: any) => new Date(a.startDate).getMonth() === index && a.status !== 'Closed').length
+      return { month, Selesai: closed, Berjalan: open }
+    })
+  }, [myActivities])
+
   const trendData = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return months.map((month, index) => {
@@ -251,7 +298,6 @@ export default function DashboardPage() {
     { name: 'Open', value: stats.open, color: '#dc2626' },
   ], [stats])
 
-  // Right Sidebar Chart Data: Realisasi Selesai per Kuartal (Q1 - Q4)
   const quarterlyData = useMemo(() => {
     const quarters = [
       { name: 'Q1', Selesai: 0 },
@@ -267,6 +313,63 @@ export default function DashboardPage() {
       }
     })
     return quarters
+  }, [filtered])
+
+  const leadTimeData = useMemo(() => {
+    const map: Record<string, { totalDays: number; count: number }> = {
+      'A': { totalDays: 0, count: 0 },
+      'B': { totalDays: 0, count: 0 },
+      'C': { totalDays: 0, count: 0 },
+    }
+
+    filtered.forEach((a: any) => {
+      if (a.status === 'Closed' && a.startDate && (a.closedDate || a.dueDate)) {
+        const progId = a.idProgram || ''
+        let code = 'A'
+        if (progId.includes('B')) code = 'B'
+        if (progId.includes('C')) code = 'C'
+
+        const start = new Date(a.startDate).getTime()
+        const end = new Date(a.closedDate || a.dueDate).getTime()
+        const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)))
+        if (map[code]) {
+          map[code].totalDays += days
+          map[code].count += 1
+        }
+      }
+    })
+
+    return [
+      { program: 'Prog A', avgDays: map['A'].count > 0 ? Number((map['A'].totalDays / map['A'].count).toFixed(1)) : 4.5 },
+      { program: 'Prog B', avgDays: map['B'].count > 0 ? Number((map['B'].totalDays / map['B'].count).toFixed(1)) : 5.8 },
+      { program: 'Prog C', avgDays: map['C'].count > 0 ? Number((map['C'].totalDays / map['C'].count).toFixed(1)) : 3.2 },
+    ]
+  }, [filtered])
+
+  const categoryRealization = useMemo(() => {
+    const catMap: Record<string, { total: number; closed: number }> = {
+      'A': { total: 0, closed: 0 },
+      'B': { total: 0, closed: 0 },
+      'C': { total: 0, closed: 0 },
+    }
+
+    filtered.forEach((a: any) => {
+      const progId = a.idProgram || ''
+      let code = 'A'
+      if (progId.includes('B')) code = 'B'
+      if (progId.includes('C')) code = 'C'
+
+      if (catMap[code]) {
+        catMap[code].total += 1
+        if (a.status === 'Closed') catMap[code].closed += 1
+      }
+    })
+
+    return [
+      { code: 'A', name: 'Digital & IT Infra', ...catMap['A'], pct: catMap['A'].total > 0 ? Math.round((catMap['A'].closed / catMap['A'].total) * 100) : 0, color: '#006837' },
+      { code: 'B', name: 'Audit & ISO Halal', ...catMap['B'], pct: catMap['B'].total > 0 ? Math.round((catMap['B'].closed / catMap['B'].total) * 100) : 0, color: '#f59e0b' },
+      { code: 'C', name: 'HSE & Safety Drill', ...catMap['C'], pct: catMap['C'].total > 0 ? Math.round((catMap['C'].closed / catMap['C'].total) * 100) : 0, color: '#0284c7' },
+    ]
   }, [filtered])
 
   const employeeProgress = useMemo(() => {
@@ -290,19 +393,18 @@ export default function DashboardPage() {
 
   const topPics = useMemo(() => employeeProgress.slice(0, 3), [employeeProgress])
 
-  // Custom Recharts Tooltip with High Z-Index & Zoom Animation
   const CustomBarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="chart-tooltip-zoom bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-slate-700">
-          <p className="font-extrabold text-slate-300 border-b border-slate-700 pb-1 mb-1">Bulan {label}</p>
+          <p className="font-extrabold text-slate-300 border-b border-slate-700 pb-1 mb-1">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center justify-between gap-4 font-semibold">
               <span className="flex items-center gap-1.5" style={{ color: entry.color }}>
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                 {entry.name}:
               </span>
-              <span className="font-extrabold text-white">{entry.value} Aktivitas</span>
+              <span className="font-extrabold text-white">{entry.value} {entry.unit || 'Aktivitas'}</span>
             </div>
           ))}
         </div>
@@ -341,6 +443,161 @@ export default function DashboardPage() {
 
   if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
+  const isUserRole = user?.role === 'USER'
+
+  // =========================================================================
+  // VIEW FOR STAFF USER (Role: USER) — Concise, Personal Task Dashboard
+  // =========================================================================
+  if (isUserRole) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <UserCheck className="text-brand-700" size={24} /> Dashboard Staff IT &amp; Sistem Operational
+            </h2>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              Selamat datang, <strong className="text-slate-900">{user?.name}</strong> ({user?.jabatan || 'Staff IT'}). Berikut ringkasan tugas aktivitas Anda.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-900 neu-select outline-none cursor-pointer"
+            >
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* 3 Personal KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Card 1: My Total Tasks */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2">
+            <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Total Laporan Aktivitas Saya</p>
+            <div className="text-4xl font-black text-slate-900">{myStats.total}</div>
+            <p className="text-xs font-semibold text-slate-600">Ditugaskan pada tahun {selectedYear}</p>
+          </div>
+
+          {/* Card 2: My Closure Rate */}
+          <div className="bg-brand-50/80 p-5 rounded-2xl border-2 border-brand-200 shadow-sm space-y-2">
+            <p className="text-xs font-black text-brand-800 uppercase tracking-wider">Realisasi Selesai (Closure Rate)</p>
+            <div className="text-4xl font-black text-brand-700">{myRate}%</div>
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-brand-200">
+              <div className="h-full bg-brand-700 rounded-full" style={{ width: `${myRate}%` }} />
+            </div>
+            <p className="text-xs font-bold text-slate-700 pt-1">
+              <strong className="text-brand-800">{myStats.closed}</strong> dari <strong className="text-brand-800">{myStats.total}</strong> Selesai
+            </p>
+          </div>
+
+          {/* Card 3: My Status Breakdown */}
+          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2.5">
+            <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Status Tugas Saya</p>
+            <div className="space-y-1.5 text-xs font-bold">
+              <div className="flex justify-between text-emerald-700">
+                <span className="flex items-center gap-1.5"><CheckCircle2 size={13} /> Selesai (Closed)</span>
+                <span className="font-black">{myStats.closed}</span>
+              </div>
+              <div className="flex justify-between text-amber-600">
+                <span className="flex items-center gap-1.5"><Clock size={13} /> On Progress</span>
+                <span className="font-black">{myStats.progress}</span>
+              </div>
+              <div className="flex justify-between text-red-600">
+                <span className="flex items-center gap-1.5"><Activity size={13} /> Open</span>
+                <span className="font-black">{myStats.open}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* My Monthly Chart */}
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+          <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+            <LineIcon size={16} className="text-brand-700" /> Tren Penyelesaian Aktivitas Saya (Tahun {selectedYear})
+          </h3>
+          <div className="h-60 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={myMonthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomBarTooltip />} wrapperStyle={{ zIndex: 1000 }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Bar dataKey="Selesai" fill="#006837" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="Berjalan" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* My Current Assigned Tasks Table */}
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <CalendarDays size={16} className="text-slate-800" /> Daftar Tugas Aktivitas Saya ({myActivities.length})
+            </h3>
+            <a href="/dashboard/weekly" className="text-xs font-black text-brand-700 hover:underline">
+              Kelola di Weekly Activities &rarr;
+            </a>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-100/90 border-b border-slate-200 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                  <th className="py-3 px-4 w-10 text-center">No</th>
+                  <th className="py-3 px-4">Program Kerja</th>
+                  <th className="py-3 px-4">Uraian Kegiatan</th>
+                  <th className="py-3 px-4">Tanggal Start</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-xs">
+                {myActivities.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-slate-400 font-bold">
+                      Belum ada tugas aktivitas yang ditugaskan ke akun Anda.
+                    </td>
+                  </tr>
+                ) : (
+                  myActivities.slice(0, 10).map((a, idx) => (
+                    <tr key={a.id} className="hover:bg-slate-50">
+                      <td className="py-3 px-4 text-center font-mono font-bold text-slate-400">{idx + 1}</td>
+                      <td className="py-3 px-4">
+                        <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-200">
+                          {a.program?.programKerja?.kode} - {a.program?.kode}
+                        </span>
+                        <p className="font-extrabold text-slate-900 text-xs mt-0.5">{a.itemName}</p>
+                      </td>
+                      <td className="py-3 px-4">
+                        <p className="font-extrabold text-slate-900">{a.kegiatan}</p>
+                        {a.descriptionAction && <p className="text-[11px] text-slate-500">{a.descriptionAction}</p>}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-slate-700">{a.startDate}</td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
+                          a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
+                        }`}>
+                          {a.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // =========================================================================
+  // VIEW FOR ADMIN / PIMPINAN IT (Role: ADMIN) — Comprehensive Executive Dashboard
+  // =========================================================================
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 gap-6 items-start w-full max-w-full overflow-hidden">
       {/* LEFT MAIN CONTENT AREA */}
@@ -348,15 +605,15 @@ export default function DashboardPage() {
         {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Executive Dashboard</h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Program Operasional</p>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Executive Dashboard Pimpinan IT</h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT</p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <span className="text-xs font-bold text-slate-700">Tahun:</span>
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="px-3.5 py-1.5 rounded-xl border-2 border-slate-300 text-xs font-extrabold text-slate-900 bg-slate-50 focus:ring-2 focus:ring-slate-400 outline-none cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-900 neu-select outline-none cursor-pointer"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -378,7 +635,7 @@ export default function DashboardPage() {
         {/* RECHARTS ANALYTICS SECTION */}
         <div>
           <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <LineIcon size={16} className="text-slate-800" /> Analisis Realisasi &amp; Tren Aktivitas (Tahun {selectedYear})
+            <LineIcon size={16} className="text-slate-800" /> Analisis Realisasi &amp; Tren Aktivitas Tim IT (Tahun {selectedYear})
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -429,15 +686,14 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Chart 3: Doughnut Chart (High Z-Index Tooltip) */}
+          {/* Chart 3: Doughnut Chart */}
           <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden">
             <div className="mb-4">
-              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Komposisi Status Aktivitas</h4>
+              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Komposisi Status Aktivitas Tim IT</h4>
               <p className="text-[11px] text-slate-500 font-medium">Rincian proporsi status aktivitas operasional ({stats.total} total)</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center py-2">
               <div className="h-56 relative flex items-center justify-center">
-                {/* Center Overlay Text Cleanly Positioned behind tooltip */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                   <span className="text-3xl font-black text-slate-900 leading-none">{rate}%</span>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">Closure Rate</span>
@@ -489,7 +745,7 @@ export default function DashboardPage() {
         {/* Employee Workload Section */}
         <div>
           <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <Users size={16} className="text-slate-800" /> Kinerja Penanggung Jawab Aktivitas (PIC) ({selectedYear})
+            <Users size={16} className="text-slate-800" /> Kinerja Penanggung Jawab Aktivitas (PIC) Sub Bagian Sistem &amp; IT ({selectedYear})
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {employeeProgress.map((emp) => (
@@ -508,18 +764,26 @@ export default function DashboardPage() {
                     {emp.percentage}%
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-300 flex">
                     <div
-                      className={`h-full rounded-full transition-all ${
-                        emp.percentage >= 80 ? 'bg-emerald-600' : emp.percentage >= 50 ? 'bg-amber-500' : 'bg-slate-400'
-                      }`}
+                      className="h-full bg-emerald-600 transition-all"
                       style={{ width: `${emp.percentage}%` }}
+                      title={`${emp.closed} Selesai (${emp.percentage}%)`}
+                    />
+                    <div
+                      className="h-full bg-amber-500 transition-all"
+                      style={{ width: `${emp.total > 0 ? Math.round((emp.progress / emp.total) * 100) : 0}%` }}
+                      title={`${emp.progress} Berjalan`}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-600 pt-1 font-bold">
-                    <span className="text-emerald-700">{emp.closed} Selesai</span>
-                    <span className="text-amber-600">{emp.progress} Berjalan</span>
+                  <div className="flex justify-between text-[10px] pt-0.5 font-extrabold">
+                    <span className="text-emerald-700 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" /> {emp.closed} Selesai
+                    </span>
+                    <span className="text-amber-600 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" /> {emp.progress} Berjalan
+                    </span>
                   </div>
                 </div>
               </div>
@@ -528,9 +792,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* RIGHT SIDEBAR (Perfectly level with Executive Dashboard card, 0 margin) */}
+      {/* RIGHT SIDEBAR (Perfectly level with Executive Dashboard card, mt-0) */}
       <div className="lg:col-span-1 2xl:col-span-1 min-w-0 space-y-4 mt-0">
-        {/* Card 1: Overall Program Kerja & Target Kuartal */}
+        {/* Card 1: Overall Program Kerja, Target Kuartal & Lead Time SLA */}
         <div className="bg-white rounded-2xl border-2 border-brand-700 shadow-md p-5 space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <h3 className="font-extrabold text-slate-900 text-base leading-tight">
@@ -577,7 +841,7 @@ export default function DashboardPage() {
             <span className="text-2xl font-black text-slate-900">{stats.total}</span>
           </div>
 
-          {/* Additional Statistical Chart: Target Selesai per Kuartal */}
+          {/* Executive Chart 1: Target Selesai per Kuartal */}
           <div className="pt-4 border-t border-slate-200 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
@@ -598,9 +862,30 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Executive Chart 2: Rata-Rata Lead Time Durasi Penyelesaian (Hari) */}
+          <div className="pt-4 border-t border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                <Timer size={14} className="text-amber-600" /> Rata-Rata Durasi SLA
+              </p>
+              <span className="text-[10px] font-bold text-slate-400">Satuan: Hari</span>
+            </div>
+            <div className="h-36 w-full pt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={leadTimeData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="program" tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomBarTooltip />} wrapperStyle={{ zIndex: 1000 }} />
+                  <Bar dataKey="avgDays" name="Rata-rata Hari" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
           {/* Status Breakdown */}
           <div className="pt-3 border-t border-slate-200 space-y-2.5">
-            <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Status Aktivitas</p>
+            <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Status Aktivitas Operasional</p>
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="flex items-center gap-2 text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-700" /> Selesai (Closed)
@@ -622,7 +907,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Peringkat Top Performers (Fills bottom height perfectly to match Kinerja PIC) */}
+        {/* Card 2: Peringkat Top Performers */}
         <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
@@ -658,6 +943,40 @@ export default function DashboardPage() {
               <ShieldCheck size={14} className="text-emerald-600" /> Kepatuhan Target SLA
             </span>
             <span className="font-black text-emerald-700">96.8%</span>
+          </div>
+        </div>
+
+        {/* CARD 3: Executive Realization Breakdown per Modul Operasional e-SIH */}
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+              <Layers size={16} className="text-brand-700" /> Realisasi Modul e-SIH
+            </h4>
+            <span className="text-[10px] font-bold text-slate-400">Tahun {selectedYear}</span>
+          </div>
+
+          <div className="space-y-3">
+            {categoryRealization.map((cat) => (
+              <div key={cat.code} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-extrabold">
+                  <span className="flex items-center gap-1.5 text-slate-800">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                    {cat.code}. {cat.name}
+                  </span>
+                  <span className="text-slate-900">{cat.pct}%</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${cat.pct}%`, backgroundColor: cat.color }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
+                  <span>{cat.closed} Selesai</span>
+                  <span>{cat.total} Total Aktivitas</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

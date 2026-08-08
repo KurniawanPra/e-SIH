@@ -3,7 +3,21 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { LayoutDashboard, CalendarDays, CalendarRange, FolderKanban, ListChecks, ChevronDown, ChevronRight, X, Users } from 'lucide-react'
+import {
+  LayoutDashboard,
+  CalendarDays,
+  CalendarRange,
+  FolderKanban,
+  ListChecks,
+  ChevronDown,
+  ChevronRight,
+  X,
+  Users,
+  LogOut,
+  AlertTriangle,
+  ListFilter,
+  ShieldCheck
+} from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 
 interface SidebarProps {
@@ -16,11 +30,15 @@ const nav = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Weekly Activities', path: '/dashboard/weekly', icon: CalendarDays },
   { name: 'Monthly Report', path: '/dashboard/monthly', icon: CalendarRange },
+  { name: 'All Activities', path: '/dashboard/activities', icon: ListFilter },
 ]
 
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  const isAdmin = user?.role === 'ADMIN' || !user?.role // default Kurniawan is admin
 
   if (collapsed) return null
 
@@ -40,7 +58,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             </div>
           </Link>
           {/* Close button on mobile only */}
-          <button onClick={onToggle} className="lg:hidden p-2 rounded-xl neu-btn text-slate-600">
+          <button onClick={onToggle} className="lg:hidden p-2 rounded-xl neu-btn text-slate-600 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -72,7 +90,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             </ul>
           </div>
 
-          {/* Master Data Section */}
+          {/* Master Data Section (Admin & System Config) */}
           <div>
             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
             <button
@@ -124,17 +142,85 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     <span className="flex items-center gap-2"><Users size={15} /> Kelola Users</span>
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/dashboard/master/roles"
+                    onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
+                    className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
+                      pathname.includes('/master/roles')
+                        ? 'neu-active-green font-extrabold'
+                        : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2"><ShieldCheck size={15} /> Hak Akses</span>
+                  </Link>
+                </li>
               </ul>
             )}
           </div>
         </nav>
 
-        {/* Footer User Info */}
-        <div className="p-3.5 border-t border-slate-300 neu-inset">
-          <p className="text-[11px] font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
-          <p className="text-[10px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Pimpinan IT & Sistem'}</p>
+        {/* Footer User Info & Role Badge & Full Width Logout */}
+        <div className="p-3.5 border-t border-slate-300 neu-inset space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <p className="text-[11px] font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
+              <p className="text-[10px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Pimpinan IT & Sistem'}</p>
+            </div>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+              isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+            }`}>
+              {isAdmin ? 'ADMIN' : 'USER'}
+            </span>
+          </div>
+
+          <button
+            onClick={() => setShowLogoutModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-extrabold text-xs transition-colors cursor-pointer shadow-2xs neu-btn"
+            title="Hapus sesi & logout"
+          >
+            <LogOut size={15} />
+            <span>Hapus Sesi / Logout</span>
+          </button>
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in">
+            <div className="p-5 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto neu-btn">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="font-black text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
+              <p className="text-xs text-slate-600 font-medium">
+                Apakah Anda yakin ingin mengakhiri sesi login saat ini dan keluar dari aplikasi <strong className="text-slate-900">e-SIH Operation</strong>?
+              </p>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const { api } = await import('@/lib/api')
+                    await api.post('/api/auth/logout')
+                  } catch {}
+                  window.location.href = '/'
+                }}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm"
+              >
+                Ya, Keluar Sesi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

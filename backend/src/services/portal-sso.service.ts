@@ -72,6 +72,14 @@ export async function exchangePortalToken(
     throw new SsoExchangeError('Akun Portal tidak aktif atau belum terhubung ke employee', 403)
   }
 
+  // Verifikasi bahwa unit karyawan milik Sub Bagian Sistem & IT (atau seksi turunannya)
+  const unitNama = employee.unit?.nama || ''
+  const unitPath = employee.unit?.path || ''
+  const isItSubBagian = /sistem|it|teknologi|informasi/i.test(unitNama) || /sistem|it|teknologi|informasi/i.test(unitPath)
+  if (!isItSubBagian) {
+    throw new SsoExchangeError('Aplikasi e-SIH khusus untuk karyawan Sub Bagian Sistem & IT serta seksi turunannya', 403)
+  }
+
   // Portal adalah source of truth untuk identitas user + employee.
   // Snapshot ini masuk ke session, bukan ke tabel users aplikasi target.
   const user: SessionUser = {

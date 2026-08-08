@@ -71,6 +71,7 @@ export interface SessionUser {
   employeeId: string
   name: string
   jabatan?: string | null
+  role?: 'ADMIN' | 'USER' | string
   employee?: SessionEmployee
   grade?: EmployeeGrade | null
   unit?: OrganizationUnit | null

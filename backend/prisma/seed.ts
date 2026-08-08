@@ -58,14 +58,15 @@ async function main() {
   } catch (e) {}
 
   const staff = [
-    { name: 'Herbina', email: 'herbina@inl.co.id', jabatan: 'Staff IT Development', unit: 'IT & Sistem Operational' },
-    { name: 'Fitri', email: 'fitri@inl.co.id', jabatan: 'Staff System Analyst', unit: 'IT & Sistem Operational' },
-    { name: 'Agung', email: 'agung@inl.co.id', jabatan: 'Staff Infrastructure & Network', unit: 'IT & Sistem Operational' },
-    { name: 'Salman', email: 'salman@inl.co.id', jabatan: 'Staff Database Administrator', unit: 'IT & Sistem Operational' },
-    { name: 'Tommy', email: 'tommy@inl.co.id', jabatan: 'Staff IT Support & Operation', unit: 'IT & Sistem Operational' },
-    { name: 'Aundry', email: 'aundry@inl.co.id', jabatan: 'Staff Quality Assurance', unit: 'IT & Sistem Operational' },
-    { name: 'Gilang', email: 'gilang@inl.co.id', jabatan: 'Staff HSE Officer', unit: 'HSE Operational' },
-    { name: 'Hendry', email: 'hendry@inl.co.id', jabatan: 'Staff Auditor Operational', unit: 'Internal Audit' },
+    { name: 'Kurniawan Pralambang', email: 'kurniawan@inl.co.id', jabatan: 'Pimpinan IT & Sistem', unit: 'IT & Sistem Operational', role: 'ADMIN' },
+    { name: 'Herbina', email: 'herbina@inl.co.id', jabatan: 'Staff IT Development', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Fitri', email: 'fitri@inl.co.id', jabatan: 'Staff System Analyst', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Agung', email: 'agung@inl.co.id', jabatan: 'Staff Infrastructure & Network', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Salman', email: 'salman@inl.co.id', jabatan: 'Staff Database Administrator', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Tommy', email: 'tommy@inl.co.id', jabatan: 'Staff IT Support & Operation', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Aundry', email: 'aundry@inl.co.id', jabatan: 'Staff Quality Assurance', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Gilang', email: 'gilang@inl.co.id', jabatan: 'Staff HSE Officer', unit: 'HSE Operational', role: 'USER' },
+    { name: 'Hendry', email: 'hendry@inl.co.id', jabatan: 'Staff Auditor Operational', unit: 'Internal Audit', role: 'USER' },
   ]
 
   for (const u of staff) {
@@ -76,6 +77,7 @@ async function main() {
           email: u.email,
           jabatan: u.jabatan,
           unit: u.unit,
+          role: u.role,
           isActive: true
         }
       })

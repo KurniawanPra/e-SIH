@@ -64,6 +64,7 @@ model User {
   email     String   @unique
   jabatan   String   @default("Staff Operasional")
   unit      String   @default("IT & Sistem Operational")
+  role      String   @default("USER") // "ADMIN" or "USER"
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }

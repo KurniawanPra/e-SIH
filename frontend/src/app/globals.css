@@ -147,6 +147,28 @@ body {
   box-shadow: inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff;
 }
 
+.neu-input {
+  background: #f8fafc;
+  box-shadow: inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease-in-out;
+}
+.neu-input:focus {
+  box-shadow: inset 2px 2px 4px #cbd5e1, inset -2px -2px 4px #ffffff, 0 0 0 2px rgba(0, 104, 55, 0.2);
+  border-color: #006837;
+}
+
+.neu-select {
+  background: #f8fafc;
+  box-shadow: 3px 3px 7px #cbd5e1, -3px -3px 7px #ffffff;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease-in-out;
+}
+.neu-select:focus {
+  box-shadow: inset 2px 2px 4px #cbd5e1, inset -2px -2px 4px #ffffff, 0 0 0 2px rgba(0, 104, 55, 0.2);
+  border-color: #006837;
+}
+
 .neu-active-green {
   background: linear-gradient(145deg, #00743e, #00562e);
   color: #ffffff;
