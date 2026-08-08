@@ -138,7 +138,7 @@ export default function MasterUsersPage() {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 bg-brand-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-brand-800 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer self-start sm:self-auto"
         >
           <UserPlus size={16} /> Tambah User IT Baru
         </button>

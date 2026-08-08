@@ -39,7 +39,7 @@ export default function ItemProgramPage() {
     <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div><h2 className="text-lg sm:text-xl font-bold text-slate-900">Item Program</h2><p className="text-xs sm:text-sm text-slate-500 mt-0.5">Rincian item program kerja (IT Development, Infrastructure, dll).</p></div>
-        <button onClick={openAdd} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-brand-800 transition-colors shadow-sm"><Plus size={16} /> Tambah Item</button>
+        <button onClick={openAdd} className="w-full sm:w-auto flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"><Plus size={16} /> Tambah Item</button>
       </div>
 
       {/* Mobile Cards */}

@@ -113,7 +113,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
-                    Program Kerja
+                    <span className="flex items-center gap-2"><FolderKanban size={15} /> Program Kerja</span>
                   </Link>
                 </li>
                 <li>

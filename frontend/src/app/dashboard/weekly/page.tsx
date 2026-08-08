@@ -326,22 +326,12 @@ export default function WeeklyActivitiesPage() {
             Pengelompokan Aktivitas Operasional per Bulan &amp; Minggu Sprints (Minggu 1 - 5)
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          {/* Export Excel Button */}
-          <button
-            onClick={handleExportExcel}
-            className="inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer neu-btn"
-            title="Export data aktivitas ke Excel / CSV"
-          >
-            <FileSpreadsheet size={16} /> Export Excel
-          </button>
-          <button
-            onClick={openAdd}
-            className="inline-flex items-center justify-center gap-2 bg-brand-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-brand-800 transition-colors shadow-sm cursor-pointer neu-btn"
-          >
-            <Plus size={16} /> Tambah Aktivitas
-          </button>
-        </div>
+        <button
+          onClick={openAdd}
+          className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+        >
+          <Plus size={16} /> Tambah Aktivitas
+        </button>
       </div>
 
       {/* Month & Week Sprints Bar */}
@@ -431,7 +421,7 @@ export default function WeeklyActivitiesPage() {
 
         <button
           onClick={handleExportExcel}
-          className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+          className="px-3.5 py-1.5 rounded-xl neu-btn-emerald font-extrabold text-xs flex items-center gap-1.5 cursor-pointer"
         >
           <Download size={14} /> Unduh (.CSV / Excel)
         </button>

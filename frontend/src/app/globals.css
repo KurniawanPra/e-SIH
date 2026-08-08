@@ -180,6 +180,43 @@ body {
   box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
 }
 
+/* Outlined Neumorphic Action Buttons with Smooth Hover Fill Animations */
+.neu-btn-brand {
+  background: #f8fafc !important;
+  color: #006837 !important;
+  border: 2px solid #006837 !important;
+  box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neu-btn-brand:hover {
+  background: #006837 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 4px 6px 14px rgba(0, 104, 55, 0.35);
+}
+.neu-btn-brand:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 5px rgba(0, 104, 55, 0.25);
+}
+
+.neu-btn-emerald {
+  background: #f8fafc !important;
+  color: #047857 !important;
+  border: 2px solid #047857 !important;
+  box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neu-btn-emerald:hover {
+  background: #047857 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 4px 6px 14px rgba(4, 120, 87, 0.35);
+}
+.neu-btn-emerald:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 5px rgba(4, 120, 87, 0.25);
+}
+
 /* Spinner */
 .spinner {
   width: 32px; height: 32px;
