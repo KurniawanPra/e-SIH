@@ -800,7 +800,7 @@ export default function DashboardPage() {
           <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
             <TrendingUp size={16} className="text-slate-800" /> Program Kerja Utama ({selectedYear})
           </h3>
-          <div className="grid gap-4 w-full">
+          <div className="grid grid-cols-1 gap-4 w-full min-w-0">
             {parents.filter(p => p.isActive).map((parent, index) => (
               <div key={parent.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(index * 90, 450)}ms` }}>
                 <ProgramKerjaItemCard parent={parent} />

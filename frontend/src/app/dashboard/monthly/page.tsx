@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { api } from '@/lib/api'
+import { api, getCurrentUser } from '@/lib/api'
 import {
   CalendarRange,
   CheckCircle2,
@@ -13,12 +13,11 @@ import {
   X,
   FileSpreadsheet,
   Printer,
-  ChevronLeft,
-  ChevronRight,
   ArrowLeft,
   Pencil,
   Trash2,
-  FileText
+  FileText,
+  FolderOpen
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
 
@@ -26,8 +25,6 @@ const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ]
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 const STATUS_COLORS: Record<string, string> = {
   Open: 'bg-sky-100 text-sky-700 border-sky-200',
   'On Progress': 'bg-amber-100 text-amber-700 border-amber-200',
@@ -49,18 +46,29 @@ const emptyForm = {
 }
 
 export default function MonthlyActivitiesPage() {
+  const [userRole, setUserRole] = useState<string>('USER')
   const [highlights, setHighlights] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const today = new Date()
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
-  const [view, setView] = useState<'calendar' | 'table'>('calendar')
+  const [view, setView] = useState<'cards' | 'table'>('table')
   const [search, setSearch] = useState('')
 
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ ...emptyForm })
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((u) => {
+        const isAdmin = u?.role === 'ADMIN'
+        setUserRole(u?.role || 'USER')
+        setView(isAdmin ? 'cards' : 'table')
+      })
+      .catch(() => setView('table'))
+  }, [])
 
   const fetchHighlights = async (month: number, year: number) => {
     try {
@@ -77,17 +85,14 @@ export default function MonthlyActivitiesPage() {
     fetchHighlights(selectedMonth, selectedYear)
   }, [selectedMonth, selectedYear])
 
-  // ---- Calendar grid ----
-  const calendarDays = useMemo(() => {
-    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
-    const firstDay = new Date(selectedYear, selectedMonth - 1, 1).getDay()
-    const cells: (number | null)[] = Array(firstDay).fill(null)
-    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
-    while (cells.length % 7 !== 0) cells.push(null)
-    return cells
-  }, [selectedMonth, selectedYear])
+  const [yearHighlights, setYearHighlights] = useState<any[]>([])
+  useEffect(() => {
+    api
+      .get('/api/esih/highlights', { params: { year: selectedYear } })
+      .then(r => setYearHighlights(r.data.data || []))
+      .catch(() => setYearHighlights([]))
+  }, [selectedYear])
 
-  // ---- Stats for selected month ----
   const stats = useMemo(() => {
     const total = highlights.length
     const open = highlights.filter(h => h.status === 'Open').length
@@ -95,8 +100,18 @@ export default function MonthlyActivitiesPage() {
     const closed = highlights.filter(h => h.status === 'Closed').length
     const cancelled = highlights.filter(h => h.status === 'Cancelled').length
     const closure = total > 0 ? Math.round((closed / total) * 100) : 0
-    return { total, open, progress, closed, cancelled, closure }
-  }, [highlights])
+
+    const bulanan: Record<number, { total: number; closure: number }> = {}
+    for (let m = 1; m <= 12; m++) {
+      const items = yearHighlights.filter(h => h.bulan === m)
+      const c = items.filter(h => h.status === 'Closed').length
+      bulanan[m] = {
+        total: items.length,
+        closure: items.length > 0 ? Math.round((c / items.length) * 100) : 0,
+      }
+    }
+    return { total, open, progress, closed, cancelled, closure, bulanan }
+  }, [highlights, yearHighlights])
 
   const filteredHighlights = useMemo(() => {
     if (!search.trim()) return highlights
@@ -109,18 +124,14 @@ export default function MonthlyActivitiesPage() {
     )
   }, [highlights, search])
 
-  const navigateMonth = (dir: number) => {
-    let m = selectedMonth + dir
-    let y = selectedYear
-    if (m < 1) { m = 12; y -= 1 }
-    if (m > 12) { m = 1; y += 1 }
-    setSelectedMonth(m)
-    setSelectedYear(y)
-  }
+  const yearOptions = useMemo(
+    () => Array.from({ length: 6 }, (_, i) => selectedYear - 2 + i).sort((a, b) => b - a),
+    [selectedYear],
+  )
 
-  const openAddModal = () => {
+  const openAddModal = (bulan = selectedMonth, tahun = selectedYear) => {
     setEditingId(null)
-    setForm({ ...emptyForm, bulan: selectedMonth, tahun: selectedYear })
+    setForm({ ...emptyForm, bulan, tahun })
     setShowModal(true)
   }
 
@@ -187,7 +198,7 @@ export default function MonthlyActivitiesPage() {
   }
 
   const StatCard = ({ label, value, color, icon }: any) => (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm min-w-0">
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${color}`}>{icon}</div>
       <div className="min-w-0">
         <div className="truncate text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{label}</div>
@@ -196,18 +207,19 @@ export default function MonthlyActivitiesPage() {
     </div>
   )
 
-  const formInput = (label: string, field: keyof typeof form, type = 'text', props: any = {}) => (
+  const formInput = (label: string, field: keyof typeof form, type = 'text') => (
     <label className="block">
       <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">{label}</span>
       <input
         type={type}
         value={form[field] as string}
-        onChange={e => setForm({ ...form, [field]: type === 'number' ? Number(e.target.value) : e.target.value })}
+        onChange={e => setForm({ ...form, [field]: e.target.value })}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-        {...props}
       />
     </label>
   )
+
+  const periodLabel = `PERIODE : 01 - ${new Date(selectedYear, selectedMonth, 0).getDate()} ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
 
   if (loading) {
     return (
@@ -221,13 +233,11 @@ export default function MonthlyActivitiesPage() {
     <div className="space-y-5">
       {/* ===== HEADER ===== */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="flex items-center gap-2 text-xl font-black text-slate-800">
-            <CalendarRange size={22} className="text-brand-600" /> Management Highlight Report
+            <CalendarRange size={22} className="text-brand-600 shrink-0" /> Management Highlight Report
           </h1>
-          <p className="text-xs font-medium text-slate-500">
-            No. Dokumen: INLHO/REP-F/-021 · PERIODE : 01 - {new Date(selectedYear, selectedMonth, 0).getDate()} {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-          </p>
+          <p className="text-xs font-medium text-slate-500">No. Dokumen: INLHO/REP-F/-021 · {periodLabel}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCsv} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
@@ -240,7 +250,7 @@ export default function MonthlyActivitiesPage() {
       </div>
 
       {/* ===== STATS ===== */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Action Item" value={stats.total} color="bg-brand-100 text-brand-700" icon={<FileText size={16} />} />
         <StatCard label="Open" value={stats.open} color="bg-sky-100 text-sky-600" icon={<AlertCircle size={16} />} />
         <StatCard label="On Progress" value={stats.progress} color="bg-amber-100 text-amber-600" icon={<Clock size={16} />} />
@@ -249,90 +259,98 @@ export default function MonthlyActivitiesPage() {
         <StatCard label="Closure (%)" value={`${stats.closure}%`} color="bg-indigo-100 text-indigo-600" icon={<CheckCircle2 size={16} />} />
       </div>
 
-      {view === 'calendar' ? (
-        /* ===== CALENDAR VIEW ===== */
+      {view === 'cards' ? (
+        /* ===== ADMIN: MONTH CARDS ===== */
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button onClick={() => navigateMonth(-1)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50">
-                <ChevronLeft size={16} />
-              </button>
-              <h2 className="min-w-44 text-center text-lg font-black text-slate-800">
-                {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-              </h2>
-              <button onClick={() => navigateMonth(1)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedMonth}
-                onChange={e => setSelectedMonth(Number(e.target.value))}
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-semibold text-slate-700"
-              >
-                {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={e => setSelectedYear(Number(e.target.value))}
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-semibold text-slate-700"
-              >
-                {Array.from({ length: 6 }, (_, i) => selectedYear - 2 + i).map(y =>
-                  <option key={y} value={y}>{y}</option>
-                )}
-              </select>
-              <button onClick={openAddModal} className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
-                <Plus size={15} /> Tambah Highlight
-              </button>
-            </div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-black text-slate-800">
+              <FolderOpen size={18} className="text-brand-600" /> Pilih Periode Bulanan {selectedYear}
+            </h2>
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700"
+            >
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
 
-          <div className="grid grid-cols-7 gap-1.5">
-            {DAY_NAMES.map(d => (
-              <div key={d} className="pb-1 text-center text-[11px] font-black text-slate-400 uppercase">{d}</div>
-            ))}
-            {calendarDays.map((day, i) => {
-              const isToday = day === today.getDate() && selectedMonth === today.getMonth() + 1 && selectedYear === today.getFullYear()
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {MONTH_NAMES.map((m, i) => {
+              const month = i + 1
+              const isCurrent = month === today.getMonth() + 1 && selectedYear === today.getFullYear()
               return (
                 <button
-                  key={i}
-                  onClick={() => setView('table')}
-                  className={`flex aspect-square flex-col items-center justify-center rounded-xl border text-sm font-bold transition hover:bg-brand-50 hover:border-brand-300 ${
-                    isToday ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600'
+                  key={m}
+                  onClick={() => {
+                    setSelectedMonth(month)
+                    setView('table')
+                  }}
+                  className={`group relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
+                    isCurrent
+                      ? 'border-brand-500 bg-brand-50'
+                      : 'border-slate-200 bg-white hover:border-brand-300'
                   }`}
-                  title={`Lihat tabel highlight ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}
                 >
-                  <span className={day === null ? 'opacity-0' : ''}>{day ?? ''}</span>
+                  {isCurrent && (
+                    <span className="absolute right-2 top-2 rounded-full bg-brand-600 px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                      Sekarang
+                    </span>
+                  )}
+                  <span className="text-xl font-black text-slate-800">{m}</span>
+                  <div className="w-full space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                      <span>Action Item</span>
+                      <span className="text-slate-800">{stats.bulanan?.[month]?.total ?? 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                      <span>Closure</span>
+                      <span className="text-emerald-600">{stats.bulanan?.[month]?.closure ?? 0}%</span>
+                    </div>
+                  </div>
+                  <span className="mt-1 text-[10px] font-semibold text-brand-600 opacity-0 transition group-hover:opacity-100">
+                    Buka tabel →
+                  </span>
                 </button>
               )
             })}
           </div>
-
-          <p className="mt-3 text-center text-xs font-medium text-slate-400">
-            Klik salah satu tanggal untuk membuka tabel Management Highlight Report bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear} ({stats.total} action item)
-          </p>
         </div>
       ) : (
         /* ===== TABLE VIEW (Format INLHO/REP-F/-021) ===== */
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <button onClick={() => setView('calendar')} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
-              <ArrowLeft size={15} /> Kembali ke Kalender
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Cari item, PIC, deskripsi..."
-                  className="w-56 rounded-lg border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                />
-              </div>
-              <button onClick={openAddModal} className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
-                <Plus size={15} /> Tambah Highlight
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {userRole === 'ADMIN' && (
+              <button onClick={() => setView('cards')} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+                <ArrowLeft size={15} /> Pilih Bulan Lain
               </button>
+            )}
+            <select
+              value={selectedMonth}
+              onChange={e => setSelectedMonth(Number(e.target.value))}
+              className="rounded-lg border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+            >
+              {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className="rounded-lg border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+            >
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <div className="relative min-w-0 flex-1">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari item, PIC, deskripsi..."
+                className="w-full rounded-lg border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+              />
             </div>
+            <button onClick={() => openAddModal()} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
+              <Plus size={15} /> Tambah Highlight
+            </button>
           </div>
 
           <div className="overflow-x-auto print:overflow-visible">
@@ -359,7 +377,7 @@ export default function MonthlyActivitiesPage() {
                       <p className="mt-2 text-sm font-semibold text-slate-500">
                         Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                       </p>
-                      <button onClick={openAddModal} className="mt-3 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
+                      <button onClick={() => openAddModal()} className="mt-3 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
                         Tambah Highlight Pertama
                       </button>
                     </td>
@@ -409,107 +427,107 @@ export default function MonthlyActivitiesPage() {
       {/* ===== MODAL FORM ===== */}
       {showModal && (
         <ModalPortal>
-          <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-black text-slate-800">
-                {editingId ? 'Edit Highlight' : 'Tambah Highlight'} — {MONTH_NAMES[form.bulan - 1]} {form.tahun}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
-                <X size={18} />
-              </button>
-            </div>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl my-auto">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-black text-slate-800">
+                  {editingId ? 'Edit Highlight' : 'Tambah Highlight'} — {MONTH_NAMES[form.bulan - 1]} {form.tahun}
+                </h3>
+                <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+                  <X size={18} />
+                </button>
+              </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div className="md:col-span-1">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Bulan</span>
-                  <select
-                    value={form.bulan}
-                    onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  >
-                    {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                  </select>
-                </label>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="md:col-span-1">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Bulan</span>
+                    <select
+                      value={form.bulan}
+                      onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    >
+                      {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="md:col-span-1">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Tahun</span>
+                    <select
+                      value={form.tahun}
+                      onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    >
+                      {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="md:col-span-2">{formInput('Item *', 'item')}</div>
+                <div className="md:col-span-2">{formInput('Name PIC', 'namePic')}</div>
+                <div className="md:col-span-1">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Status</span>
+                    <select
+                      value={form.status}
+                      onChange={e => setForm({ ...form, status: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    >
+                      {['Open', 'On Progress', 'Closed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="md:col-span-1">{formInput('Target Date', 'targetDate', 'date')}</div>
+                {form.status === 'Closed' && (
+                  <div className="md:col-span-1">{formInput('Closed Date', 'closedDate', 'date')}</div>
+                )}
+                <div className="md:col-span-4">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Description</span>
+                    <textarea
+                      value={form.description}
+                      onChange={e => setForm({ ...form, description: e.target.value })}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    />
+                  </label>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Action To Be Taken</span>
+                    <textarea
+                      value={form.actionToBeTaken}
+                      onChange={e => setForm({ ...form, actionToBeTaken: e.target.value })}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    />
+                  </label>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Remarks</span>
+                    <textarea
+                      value={form.remarks}
+                      onChange={e => setForm({ ...form, remarks: e.target.value })}
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                    />
+                  </label>
+                </div>
               </div>
-              <div className="md:col-span-1">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Tahun</span>
-                  <select
-                    value={form.tahun}
-                    onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  >
-                    {Array.from({ length: 6 }, (_, i) => form.tahun - 2 + i).map(y =>
-                      <option key={y} value={y}>{y}</option>
-                    )}
-                  </select>
-                </label>
-              </div>
-              <div className="md:col-span-2">{formInput('Item *', 'item')}</div>
-              <div className="md:col-span-2">{formInput('Name PIC', 'namePic')}</div>
-              <div className="md:col-span-1">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Status</span>
-                  <select
-                    value={form.status}
-                    onChange={e => setForm({ ...form, status: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  >
-                    {['Open', 'On Progress', 'Closed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </label>
-              </div>
-              <div className="md:col-span-1">{formInput('Target Date', 'targetDate', 'date')}</div>
-              {form.status === 'Closed' && (
-                <div className="md:col-span-1">{formInput('Closed Date', 'closedDate', 'date')}</div>
-              )}
-              <div className="md:col-span-4">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Description</span>
-                  <textarea
-                    value={form.description}
-                    onChange={e => setForm({ ...form, description: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  />
-                </label>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Action To Be Taken</span>
-                  <textarea
-                    value={form.actionToBeTaken}
-                    onChange={e => setForm({ ...form, actionToBeTaken: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  />
-                </label>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Remarks</span>
-                  <textarea
-                    value={form.remarks}
-                    onChange={e => setForm({ ...form, remarks: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                  />
-                </label>
-              </div>
-            </div>
 
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setShowModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
-                Batal
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || !form.item.trim()}
-                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
-              >
-                {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
-              </button>
+              <div className="mt-5 flex justify-end gap-2">
+                <button onClick={() => setShowModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                  Batal
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting || !form.item.trim()}
+                  className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+                >
+                  {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
+                </button>
+              </div>
             </div>
           </div>
         </ModalPortal>

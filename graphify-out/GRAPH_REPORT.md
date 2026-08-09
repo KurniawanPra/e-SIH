@@ -1,16 +1,16 @@
 # Graph Report - e-SIH  (2026-08-09)
 
 ## Corpus Check
-- 384 files · ~354,608 words
+- 384 files · ~354,618 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4707 nodes · 5775 edges · 340 communities (313 shown, 27 thin omitted)
+- 4705 nodes · 5775 edges · 339 communities (312 shown, 27 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.62)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ef641fc6`
+- Built from commit: `69211180`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -28,7 +28,7 @@
 - Upgrade to Prisma ORM 7
 - What You Must Do When Invoked
 - cookie-import-browser.ts
-- program-kerja/page.tsx
+- cdp-bridge.ts
 - scripts
 - Relation Queries
 - Removed Features
@@ -43,7 +43,7 @@
 - Troubleshooting Prisma Compute
 - opencode.json
 - Core QA Patterns
-- meta-commands.ts
+- commands.ts
 - cli.ts
 - domain-skill-commands.ts
 - token-registry.ts
@@ -53,7 +53,7 @@
 - security-classifier.ts
 - security.ts
 - BrowserManager
-- write-commands.ts
+- meta-commands.ts
 - Model Queries
 - Driver Adapters
 - Model Queries
@@ -68,7 +68,7 @@
 - prisma studio
 - Prisma Client API Reference
 - Prisma Config
-- api
+- getCurrentUser
 - Removed Features
 - Relation Queries
 - prisma migrate dev
@@ -90,7 +90,7 @@
 - Client Methods
 - Filter Conditions and Operators
 - Query Options
-- content-security.ts
+- handleCommandInternalImpl
 - prisma db push
 - prisma dev
 - prisma db pull
@@ -186,7 +186,7 @@
 - Prisma Platform CLI App Deploy
 - MySQL Setup
 - management-api
-- start
+- proxy-config.ts
 - stealth.ts
 - prisma migrate diff
 - prisma migrate reset
@@ -215,7 +215,7 @@
 - create-db-cli
 - graphify reference: extra exports and benchmark
 - api-basics
-- terminal-agent-control.ts
+- mkdirSecure
 - security-bunnative.ts
 - prisma format
 - prisma migrate resolve
@@ -245,7 +245,7 @@
 - react
 - tailwindcss
 - AI safety checkpoint for destructive commands
-- monthly/page.tsx
+- validateNavigationUrl
 - graphify reference: add a URL and watch a folder
 - graphify reference: commit hook and native CLAUDE.md integration
 - graphify reference: incremental update and cluster-only
@@ -309,7 +309,7 @@
 - prisma mcp
 - client-api-mapping
 - Service Tokens
-- media-extract.ts
+- socks-bridge.ts
 - prisma debug
 - Prisma Client Setup
 - verify-cutover-checklist
@@ -348,15 +348,15 @@
   .claude/skills/gstack/browse/src/cdp-bridge.ts → .claude/skills/gstack/browse/src/browser-manager.ts
 - `handleSnapshot()` --indirect_call--> `escapeEnvelopeSentinels()`  [INFERRED]
   .claude/skills/gstack/browse/src/snapshot.ts → .claude/skills/gstack/browse/src/content-security.ts
-- `handleMetaCommand()` --references--> `diff`  [EXTRACTED]
-  .claude/skills/gstack/browse/src/meta-commands.ts → .claude/skills/gstack/browse/package.json
-- `handleSnapshot()` --references--> `diff`  [EXTRACTED]
-  .claude/skills/gstack/browse/src/snapshot.ts → .claude/skills/gstack/browse/package.json
+- `DashboardLayout()` --calls--> `getCurrentUser()`  [EXTRACTED]
+  frontend/src/app/dashboard/layout.tsx → frontend/src/lib/api.ts
+- `buildFetchHandler()` --calls--> `emitActivity()`  [EXTRACTED]
+  .claude/skills/gstack/browse/src/server.ts → .claude/skills/gstack/browse/src/activity.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (340 total, 27 thin omitted)
+## Communities (339 total, 27 thin omitted)
 
 ### Community 0 - "dependencies"
 Cohesion: 0.04
@@ -368,15 +368,15 @@ Nodes (27): buildApp(), getLocalIpv4s(), config, env, envSchema, EmployeeGrade, 
 
 ### Community 2 - "browse/src/server.ts"
 Cohesion: 0.04
-Nodes (77): AuditEntry, initAuditLog(), writeAuditEntry(), ALL_COMMANDS, COMMAND_DESCRIPTIONS, Lease, LEASE_TTL_MS, leases (+69 more)
+Nodes (76): AuditEntry, initAuditLog(), writeAuditEntry(), readVersionHash(), Lease, LEASE_TTL_MS, leases, mintLease() (+68 more)
 
 ### Community 4 - "dashboard/page.tsx"
-Cohesion: 0.20
-Nodes (8): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES, cn()
+Cohesion: 0.16
+Nodes (11): ProgramKerjaPage(), DashboardPage(), ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent (+3 more)
 
 ### Community 5 - "dashboard/layout.tsx"
-Cohesion: 0.26
-Nodes (9): Header(), HeaderProps, BADGE_COLORS, MarqueeFooter(), nav, Sidebar(), SidebarProps, openPortal() (+1 more)
+Cohesion: 0.18
+Nodes (13): DashboardLayout(), Header(), HeaderProps, BADGE_COLORS, MarqueeFooter(), nav, Sidebar(), SidebarProps (+5 more)
 
 ### Community 6 - "Model Queries"
 Cohesion: 0.07
@@ -410,9 +410,9 @@ Nodes (24): For /graphify add and --watch, For /graphify query, For the commit h
 Cohesion: 0.07
 Nodes (60): BROWSER_REGISTRY, BrowserInfo, BrowserMatch, BrowserPlatform, CdpCookie, cdpSameSite(), CHROME_PATHS_WIN, chromiumEpochToUnix() (+52 more)
 
-### Community 14 - "program-kerja/page.tsx"
-Cohesion: 0.24
-Nodes (8): ParentPK, ProgramKerjaPage(), SubItem, DashboardPage(), useYear(), YearContext, YearContextType, YearProvider()
+### Community 14 - "cdp-bridge.ts"
+Cohesion: 0.18
+Nodes (13): CDP_ALLOWLIST, CDP_ALLOWLIST_INDEX, CdpAllowEntry, CdpOutput, CdpScope, isCdpMethodAllowed(), lookupCdpMethod(), NOTE: Tracing.start can capture cross-tab data depending on categories. (+5 more)
 
 ### Community 15 - "scripts"
 Cohesion: 0.33
@@ -435,8 +435,8 @@ Cohesion: 0.07
 Nodes (9): browse, BrowseClient, BrowseClientError, BrowseClientOptions, defaultStateFile(), LazyBrowseClient, parseIntegerEnvValue(), resolveBrowseAuth() (+1 more)
 
 ### Community 22 - "browser-skill-commands.ts"
-Cohesion: 0.07
-Nodes (54): BuildEnvOptions, buildSpawnEnv(), CappedRead, formatUsage(), handleList(), handleRm(), handleRun(), handleShow() (+46 more)
+Cohesion: 0.08
+Nodes (47): BuildEnvOptions, buildSpawnEnv(), CappedRead, formatUsage(), handleList(), handleRm(), handleRun(), handleShow() (+39 more)
 
 ### Community 23 - "Quick Rules"
 Cohesion: 0.22
@@ -466,12 +466,12 @@ Nodes (3): plugin, $schema, .opencode/plugins/graphify.js
 Cohesion: 0.04
 Nodes (48): 10. Compare environments, 11. Show screenshots to the user, 12. Render local HTML (no HTTP server needed), 13. Retina screenshots (deviceScaleFactor), 14. Offline render mode (rasterize your own HTML/JSON, zero network), 1. Verify a page loads correctly, 2. Test a user flow, 3. Verify an action worked (+40 more)
 
-### Community 30 - "meta-commands.ts"
-Cohesion: 0.12
-Nodes (31): allCmds, buildUnknownCommandError(), canonicalizeCommand(), COMMAND_ALIASES, descKeys, DOM_CONTENT_COMMANDS, levenshtein(), META_COMMANDS (+23 more)
+### Community 30 - "commands.ts"
+Cohesion: 0.18
+Nodes (13): dispatchCdpCall(), handleCdpCommand(), parseQualified(), ALL_COMMANDS, allCmds, buildUnknownCommandError(), COMMAND_ALIASES, COMMAND_DESCRIPTIONS (+5 more)
 
 ### Community 31 - "cli.ts"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (29): acquireServerLock(), buildRestartEnv(), cleanChromiumProfileLocks(), cleanupLegacyState(), config, ensureServer(), extractTabId(), generateInstructionBlock() (+21 more)
 
 ### Community 32 - "domain-skill-commands.ts"
@@ -479,8 +479,8 @@ Cohesion: 0.11
 Nodes (43): formatSavedOk(), formatSkillListing(), handleDomainSkillCommand(), handleEdit(), handleList(), handlePromoteToGlobal(), handleRm(), handleRollback() (+35 more)
 
 ### Community 33 - "token-registry.ts"
-Cohesion: 0.08
-Nodes (24): checkDomain(), checkRate(), checkRateLimit(), connectAttempts, createSetupKey(), createToken(), CreateTokenOptions, exchangeSetupKey() (+16 more)
+Cohesion: 0.07
+Nodes (35): MetaCommandOpts, DEFAULT_SKILL_SCOPES, mintSkillToken(), MintSkillTokenOptions, revokeSkillToken(), skillClientId(), checkConnectRateLimit(), checkDomain() (+27 more)
 
 ### Community 34 - "Client Methods"
 Cohesion: 0.10
@@ -502,9 +502,9 @@ Nodes (34): ClaudeCommand, parseOverrideArgs(), resolveClaudeBinary(), resolveCl
 Cohesion: 0.07
 Nodes (33): AttemptRecord, ATTEMPTS_LOG, buildTelemetrySpawnCommand(), classifyTranscript(), clearDecision(), combineVerdict(), CombineVerdictOpts, decisionFileForTab() (+25 more)
 
-### Community 41 - "write-commands.ts"
-Cohesion: 0.08
-Nodes (31): generatePickerCode(), parsePdfFromFile(), SAFE_DIRECTORIES, TEMP_ONLY, validateOutputPath(), validateReadPath(), validateTempPath(), IS_WINDOWS (+23 more)
+### Community 41 - "meta-commands.ts"
+Cohesion: 0.07
+Nodes (40): diff, canonicalizeCommand(), META_COMMANDS, PAGE_CONTENT_COMMANDS, READ_COMMANDS, generatePickerCode(), buildPdfOptions(), handleMetaCommand() (+32 more)
 
 ### Community 42 - "Model Queries"
 Cohesion: 0.07
@@ -532,7 +532,7 @@ Nodes (25): 1. Update package.json for ESM-first projects, 2. Update tsconfig.js
 
 ### Community 48 - "terminal-agent.ts"
 Cohesion: 0.10
-Nodes (31): safeUnlink(), mkdirSecure(), writeSecureFile(), writeDecision(), writeSessionState(), appendToRingBuffer(), BROWSE_SERVER_PORT, buildServer() (+23 more)
+Nodes (22): appendToRingBuffer(), BROWSE_SERVER_PORT, buildServer(), buildTabAwarenessHint(), checkInternalAuth(), CURRENT_GEN, DETACH_WINDOW_MS, findClaude() (+14 more)
 
 ### Community 49 - "Relation Queries"
 Cohesion: 0.08
@@ -562,9 +562,9 @@ Nodes (19): Client Instantiation, Client Methods, Create records, Delete records
 Cohesion: 0.10
 Nodes (19): After (v7) - prisma.config.ts, Basic Configuration, Before (v6) - schema.prisma, Configuration Options, Custom Config Path, datasource.directUrl, datasource.shadowDatabaseUrl, datasource.url (+11 more)
 
-### Community 56 - "api"
-Cohesion: 0.19
-Nodes (9): DashboardLayout(), MyActivitiesPage(), MONTH_NAMES, WeeklyActivitiesPage(), DemoLoginPage(), ModalPortal(), ModalPortalProps, api (+1 more)
+### Community 56 - "getCurrentUser"
+Cohesion: 0.14
+Nodes (14): ParentPK, SubItem, emptyForm, MONTH_NAMES, MonthlyActivitiesPage(), STATUS_COLORS, MyActivitiesPage(), MONTH_NAMES (+6 more)
 
 ### Community 57 - "Removed Features"
 Cohesion: 0.08
@@ -583,12 +583,12 @@ Cohesion: 0.08
 Nodes (23): Alternatives, Auto-generate after migrate, Auto-seed after migrate, Automatic Behaviors Removed, CLI Flags Removed, Client Middleware, Common Middleware Patterns, Custom counter with extensions (+15 more)
 
 ### Community 61 - "cdp-inspector.ts"
-Cohesion: 0.08
-Nodes (35): CDP_ALLOWLIST, CDP_ALLOWLIST_INDEX, CdpAllowEntry, CdpOutput, CdpScope, isCdpMethodAllowed(), lookupCdpMethod(), NOTE: Tracing.start can capture cross-tab data depending on categories. (+27 more)
+Cohesion: 0.15
+Nodes (19): getCdpSession(), getOrCreateCdpSession(), cdpSessions, compareSpecificity(), computeSpecificity(), detachSession(), getOrCreateSession(), initializedPages (+11 more)
 
 ### Community 62 - "read-commands.ts"
-Cohesion: 0.16
-Nodes (21): formatInspectorResult(), getModificationHistory(), assertJsOriginAllowed(), getCleanText(), handleReadCommand(), hasAwait(), needsBlockWrapper(), OutArgs (+13 more)
+Cohesion: 0.10
+Nodes (27): formatInspectorResult(), getModificationHistory(), AudioInfo, BackgroundImageInfo, ImageInfo, MediaResult, VideoInfo, VideoSource (+19 more)
 
 ### Community 63 - "Prisma CLI Reference"
 Cohesion: 0.09
@@ -650,9 +650,9 @@ Nodes (20): AND (explicit), AND (implicit), Array Field Filters, Combined, Compa
 Cohesion: 0.10
 Nodes (20): cursor, distinct, Filtered include, include, Include relation count, Multiple distinct fields, Negative take (reverse), Nested include (+12 more)
 
-### Community 78 - "content-security.ts"
-Cohesion: 0.11
-Nodes (16): ARIA_INJECTION_PATTERNS, BLOCKLIST_DOMAINS, cleanupHiddenMarkers(), ContentFilter, ContentFilterResult, datamarkContent(), ensureMarker(), escapeEnvelopeSentinels() (+8 more)
+### Community 78 - "handleCommandInternalImpl"
+Cohesion: 0.10
+Nodes (23): WRITE_COMMANDS, ARIA_INJECTION_PATTERNS, BLOCKLIST_DOMAINS, cleanupHiddenMarkers(), ContentFilter, ContentFilterResult, datamarkContent(), ensureMarker() (+15 more)
 
 ### Community 79 - "prisma db push"
 Cohesion: 0.10
@@ -963,12 +963,12 @@ Cohesion: 0.14
 Nodes (13): 1. Console-first workflow, 2. Quick provisioning with create-db, 2b. Persistent databases with the Platform CLI, 3. Link an existing local project, 4. Programmatic provisioning with Management API, 5. Type-safe integration with Management API SDK, Core Workflows, How to Use (+5 more)
 
 ### Community 157 - "xvfb.ts"
-Cohesion: 0.31
-Nodes (9): isDisplayFree(), isOurXvfb(), pickFreeDisplay(), readPidCmdline(), readPidStartTime(), ShouldSpawnDecision, shouldSpawnXvfb(), spawnXvfb() (+1 more)
+Cohesion: 0.42
+Nodes (8): cleanupXvfb(), isDisplayFree(), isOurXvfb(), pickFreeDisplay(), readPidCmdline(), readPidStartTime(), ShouldSpawnDecision, spawnXvfb()
 
 ### Community 158 - "config.ts"
-Cohesion: 0.36
-Nodes (8): BrowseConfig, cleanSingletonLocks(), getGitRoot(), getRemoteSlug(), resolveChromiumProfile(), resolveGstackHome(), safeUnlinkQuiet(), emergencyCleanup()
+Cohesion: 0.31
+Nodes (9): BrowseConfig, cleanSingletonLocks(), getGitRoot(), getRemoteSlug(), resolveChromiumProfile(), resolveConfig(), resolveGstackHome(), safeUnlinkQuiet() (+1 more)
 
 ### Community 159 - "prisma db execute"
 Cohesion: 0.15
@@ -1030,9 +1030,9 @@ Nodes (12): 1. Schema Configuration, 2. Config Configuration, 3. Environment Var
 Cohesion: 0.15
 Nodes (12): API exploration, Authentication methods, Base URL, Current resource inventory, management-api, Notes, OAuth flow summary, Priority (+4 more)
 
-### Community 174 - "start"
-Cohesion: 0.12
-Nodes (19): extractGlobalFlags(), readVersionHash(), canonicalizeProxyUrl(), computeConfigHash(), ParsedProxyConfig, parseProxyConfig(), ProxyConfigError, toUpstreamConfig() (+11 more)
+### Community 174 - "proxy-config.ts"
+Cohesion: 0.18
+Nodes (9): extractGlobalFlags(), canonicalizeProxyUrl(), computeConfigHash(), ParsedProxyConfig, parseProxyConfig(), ProxyConfigError, toUpstreamConfig(), redactProxyUrl() (+1 more)
 
 ### Community 175 - "stealth.ts"
 Cohesion: 0.21
@@ -1079,8 +1079,8 @@ Cohesion: 0.17
 Nodes (11): 1. Schema Configuration, 2. Config Configuration, 3. Environment Variable, Common Issues, Connection String Format, "Database file not found", Driver Adapter, Limitations (+3 more)
 
 ### Community 186 - "browse/package.json"
-Cohesion: 0.17
-Nodes (11): dependencies, diff, playwright, socks, name, private, type, version (+3 more)
+Cohesion: 0.20
+Nodes (9): dependencies, playwright, socks, name, private, type, version, playwright (+1 more)
 
 ### Community 187 - "pty-session-cookie.ts"
 Cohesion: 0.20
@@ -1146,9 +1146,9 @@ Nodes (8): graphify reference: extra exports and benchmark, Step 6b - Wiki (only
 Cohesion: 0.18
 Nodes (10): api-basics, Base URL, Collection, Error codes by HTTP status, Error Responses, Pagination, Resource ID Prefixes, Response Envelope (+2 more)
 
-### Community 203 - "terminal-agent-control.ts"
-Cohesion: 0.46
-Nodes (7): AgentRecord, agentRecordPath(), clearAgentRecord(), killAgentByRecord(), readAgentRecord(), resolveTerminalAgentScript(), spawnTerminalAgent()
+### Community 203 - "mkdirSecure"
+Cohesion: 0.29
+Nodes (15): safeUnlink(), mkdirSecure(), writeSecureFile(), writeDecision(), writeSessionState(), AgentRecord, agentRecordPath(), clearAgentRecord() (+7 more)
 
 ### Community 204 - "security-bunnative.ts"
 Cohesion: 0.27
@@ -1262,9 +1262,9 @@ Nodes (3): react, useChart(), react
 Cohesion: 0.50
 Nodes (3): AI safety checkpoint for destructive commands, Reference, Required workflow
 
-### Community 235 - "monthly/page.tsx"
-Cohesion: 0.29
-Nodes (5): DAY_NAMES, emptyForm, MONTH_NAMES, MONTH_SHORT, STATUS_COLORS
+### Community 235 - "validateNavigationUrl"
+Cohesion: 0.44
+Nodes (9): BLOCKED_IPV6_PREFIXES, BLOCKED_METADATA_HOSTS, isBlockedIpv6(), isMetadataIp(), normalizeFileUrl(), normalizeHostname(), resolvesToBlockedIp(), RFC-3986 (+1 more)
 
 ### Community 236 - "graphify reference: add a URL and watch a folder"
 Cohesion: 0.50
@@ -1454,9 +1454,9 @@ Nodes (7): Bad, client-api-mapping, Good, Priority, References, The mapping, Why
 Cohesion: 0.25
 Nodes (7): auth, Creating a service token, OAuth 2.0 (for user-scoped access), Security practices, Service Tokens, Token scope, Using a service token
 
-### Community 318 - "media-extract.ts"
-Cohesion: 0.25
-Nodes (6): AudioInfo, BackgroundImageInfo, ImageInfo, MediaResult, VideoInfo, VideoSource
+### Community 318 - "socks-bridge.ts"
+Cohesion: 0.48
+Nodes (6): buildUpstream(), parseConnectRequest(), startSocksBridge(), testUpstream(), UpstreamTestOpts, writeReply()
 
 ### Community 319 - "prisma debug"
 Cohesion: 0.29
@@ -1503,23 +1503,23 @@ Cohesion: 0.50
 Nodes (3): AI safety checkpoint for destructive commands, Reference, Required workflow
 
 ## Knowledge Gaps
-- **2889 isolated node(s):** `name`, `version`, `private`, `type`, `diff` (+2884 more)
+- **2887 isolated node(s):** `name`, `version`, `private`, `type`, `diff` (+2882 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **27 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `TabSession` connect `write-commands.ts` to `.launchHeaded`, `BrowserManager`, `.getActiveSession`, `browser-manager.ts`, `read-commands.ts`?**
+- **Why does `TabSession` connect `meta-commands.ts` to `browser-manager.ts`, `.getActiveSession`, `BrowserManager`, `read-commands.ts`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `BrowserManager` connect `BrowserManager` to `domain-skill-commands.ts`, `browse/src/server.ts`, `.launchHeaded`, `.getActiveSession`, `write-commands.ts`, `.getPage`, `cookie-import-browser.ts`, `browser-manager.ts`, `read-commands.ts`, `cdp-inspector.ts`, `meta-commands.ts`?**
+- **Why does `BrowserManager` connect `BrowserManager` to `domain-skill-commands.ts`, `browse/src/server.ts`, `.launchHeaded`, `.getActiveSession`, `meta-commands.ts`, `cookie-import-browser.ts`, `cdp-bridge.ts`, `browser-manager.ts`, `read-commands.ts`, `commands.ts`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `mkdirSecure()` connect `terminal-agent.ts` to `browse/src/server.ts`, `.launchHeaded`, `security-classifier.ts`, `security.ts`, `file-permissions.ts`, `terminal-agent-control.ts`, `browser-skill-commands.ts`, `meta-commands.ts`, `browser-manager.ts`, `config.ts`, `cli.ts`?**
+- **Why does `mkdirSecure()` connect `mkdirSecure` to `browse/src/server.ts`, `.launchHeaded`, `security-classifier.ts`, `security.ts`, `meta-commands.ts`, `file-permissions.ts`, `terminal-agent.ts`, `browser-skill-commands.ts`, `browser-manager.ts`, `config.ts`, `cli.ts`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `buildFetchHandler()` (e.g. with `subscribe()` and `sanitizeReplacer()`) actually correct?**
   _`buildFetchHandler()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `name`, `version`, `private` to the rest of the system?**
-  _2889 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2887 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.044444444444444446 - nodes in this community are weakly interconnected._
 - **Should `plugins/auth.ts` be split into smaller, more focused modules?**

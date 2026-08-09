@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/activities/page.tsx": {
-    "mtime": 1786277533.335036,
-    "ast_hash": "857e30c2fbe156d9132b0366999a35a3",
+    "mtime": 1786302697.908729,
+    "ast_hash": "97a208e30d020e76b5847dba195d5d2f",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/layout.tsx": {
@@ -165,13 +165,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/monthly/page.tsx": {
-    "mtime": 1786301017.3927186,
-    "ast_hash": "24e8d795678ac0eb2424f31e5b9bcd38",
+    "mtime": 1786302737.5237055,
+    "ast_hash": "57ede8cb772becb43a48df9b683b946f",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/page.tsx": {
-    "mtime": 1786279551.5407941,
-    "ast_hash": "0b9e25f4a31c775605d51ac7f03ec5fd",
+    "mtime": 1786302685.1567361,
+    "ast_hash": "d3d1a03dd79123d61530791626397d69",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/weekly/page.tsx": {

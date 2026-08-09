@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { api } from '@/lib/api'
 import {
   ListFilter,
@@ -744,15 +745,18 @@ export default function AllActivitiesPage() {
       )}
 
       {/* Back to Top Floating Circular Button */}
-      {showBackToTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-brand-700 text-white hover:bg-brand-800 shadow-2xl flex items-center justify-center border-2 border-white cursor-pointer transition-all hover:scale-110 animate-zoom-in"
-          title="Kembali ke Atas"
-        >
-          <ArrowUp size={22} strokeWidth={3} />
-        </button>
-      )}
+      {showBackToTop &&
+        typeof window !== 'undefined' &&
+        createPortal(
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-20 right-5 z-[99999] w-12 h-12 rounded-full bg-brand-700 text-white hover:bg-brand-800 shadow-2xl flex items-center justify-center border-2 border-white cursor-pointer transition-all hover:scale-110 animate-zoom-in"
+            title="Kembali ke Atas"
+          >
+            <ArrowUp size={22} strokeWidth={3} />
+          </button>,
+          document.body,
+        )}
     </div>
   )
 }
