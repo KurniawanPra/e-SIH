@@ -1,22 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: esih-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: esih
-      POSTGRES_PASSWORD: esih
-      POSTGRES_DB: esih
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U esih -d esih"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build: ./backend
     container_name: esih-backend
@@ -25,7 +7,7 @@ services:
       NODE_ENV: development
       HOST: 0.0.0.0
       PORT: 4101
-      DATABASE_URL: postgresql://esih:esih@postgres:5432/esih?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/esih?schema=public
       PORTAL_API_URL: http://portal:3001
       SSO_INTERNAL_TOKEN: ${SSO_INTERNAL_TOKEN:?SSO_INTERNAL_TOKEN wajib diatur di .env}
       TARGET_APP_ID: 77777777-7777-4777-8777-777777777777
@@ -34,11 +16,11 @@ services:
       SESSION_SECRET_HEX: ${SESSION_SECRET_HEX:?SESSION_SECRET_HEX wajib diatur di .env}
       COOKIE_NAME: target_session
       COOKIE_MAX_AGE_SECONDS: 1800
-    depends_on:
-      postgres:
-        condition: service_healthy
     ports:
       - "4101:4101"
+    networks:
+      - default
+      - esih
 
   frontend:
     build:
@@ -56,10 +38,10 @@ services:
         NEXT_PUBLIC_BACKEND_DRIVER: fastify
     container_name: esih-frontend
     restart: unless-stopped
-    depends_on:
-      - backend
     ports:
       - "4100:4100"
 
-volumes:
-  pgdata:
+networks:
+  esih:
+    name: e-sih_default
+    external: true
