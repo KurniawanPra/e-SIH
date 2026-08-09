@@ -1,10 +1,9 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -14,6 +13,7 @@ model ProgramKerja {
   kode        String   // e.g., "A", "B", "C"
   namaProgram String   // e.g., "ENABLING DIGITAL AND RELIABLE OPERATION"
   deskripsi   String?
+  tahun       Int      @default(2026)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
@@ -28,6 +28,7 @@ model MasterProgram {
   namaItem       String   // e.g., "IT Development"
   status         String   @default("On Progress") // "On Progress", "Closed", "Open"
   progress       Int      @default(0)
+  tahun          Int      @default(2026)
   keterangan     String?
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())

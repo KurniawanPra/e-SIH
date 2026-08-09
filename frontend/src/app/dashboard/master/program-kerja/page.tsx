@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
 
+import { useYear } from '@/context/YearContext'
+
 interface SubItem {
   id?: string
   kode: string
@@ -40,6 +42,7 @@ interface ParentPK {
 }
 
 export default function ProgramKerjaPage() {
+  const { selectedYear } = useYear()
   const [parents, setParents] = useState<ParentPK[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -59,7 +62,8 @@ export default function ProgramKerjaPage() {
 
   const fetchData = async () => {
     try {
-      const res = await api.get('/api/esih/program-kerja')
+      setLoading(true)
+      const res = await api.get(`/api/esih/program-kerja?year=${selectedYear}`)
       const data: ParentPK[] = res.data.data || []
       setParents(data)
       setLoading(false)
@@ -71,7 +75,7 @@ export default function ProgramKerjaPage() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [selectedYear])
 
   // Program Modal Handlers
   const openAddProgram = () => {
@@ -91,9 +95,9 @@ export default function ProgramKerjaPage() {
     setSubmitting(true)
     try {
       if (editProgram) {
-        await api.put(`/api/esih/program-kerja/${editProgram.id}`, programForm)
+        await api.put(`/api/esih/program-kerja/${editProgram.id}`, { ...programForm, tahun: selectedYear })
       } else {
-        await api.post('/api/esih/program-kerja', programForm)
+        await api.post('/api/esih/program-kerja', { ...programForm, tahun: selectedYear })
       }
       setShowProgramModal(false)
       fetchData()
@@ -148,11 +152,13 @@ export default function ProgramKerjaPage() {
       if (editSubItemObj && editSubItemObj.id) {
         await api.put(`/api/esih/programs/${editSubItemObj.id}`, {
           programKerjaId: selectedParentForSub.id,
+          tahun: selectedYear,
           ...subForm
         })
       } else {
         await api.post('/api/esih/programs', {
           programKerjaId: selectedParentForSub.id,
+          tahun: selectedYear,
           ...subForm
         })
       }

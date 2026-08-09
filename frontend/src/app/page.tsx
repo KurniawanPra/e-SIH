@@ -69,7 +69,7 @@ export default function DemoLoginPage() {
               </div>
               <div className="text-left">
                 <p className="font-extrabold leading-tight">Login sbg Admin e-SIH</p>
-                <p className="text-[10px] text-emerald-200 font-medium">Kurniawan P. (Pimpinan IT &amp; Akses Penuh)</p>
+                <p className="text-[10px] text-emerald-200 font-medium">Kurniawan P. (Kepala Unit Organisasi Sub Bagian Sistem &amp; IT)</p>
               </div>
             </div>
             {loadingRole === 'ADMIN' ? <span className="spinner" /> : <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />}

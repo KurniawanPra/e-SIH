@@ -149,7 +149,8 @@ function CustomStatusDropdown({
     { value: 'ALL', label: 'Semua Status', color: 'bg-slate-100 text-slate-700 border-slate-300' },
     { value: 'Closed', label: 'Closed (Selesai)', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
     { value: 'On Progress', label: 'On Progress (Berjalan)', color: 'bg-amber-100 text-amber-800 border-amber-300' },
-    { value: 'Open', label: 'Open (Belum Dimulai)', color: 'bg-red-100 text-red-800 border-red-300' }
+    { value: 'Open', label: 'Open (Belum Dimulai)', color: 'bg-red-100 text-red-800 border-red-300' },
+    { value: 'Cancelled', label: 'Cancelled (Dibatalkan)', color: 'bg-slate-100 text-slate-600 border-slate-300' }
   ]
 
   const currentStatus = statuses.find((s) => s.value === value) || statuses[0]
@@ -203,11 +204,6 @@ export default function AllActivitiesPage() {
   const [parentPrograms, setParentPrograms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
-
-  // Table Scroll States & Ref
-  const tableScrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
 
   // Selected Program Kerja Tab ('ALL' or parent.id / parent.kode)
@@ -245,28 +241,6 @@ export default function AllActivitiesPage() {
     window.addEventListener('scroll', handleWindowScroll)
     return () => window.removeEventListener('scroll', handleWindowScroll)
   }, [])
-
-  // Check Table Scroll Boundaries
-  const checkScroll = () => {
-    if (tableScrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = tableScrollRef.current
-      setCanScrollLeft(scrollLeft > 5)
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5)
-    }
-  }
-
-  useEffect(() => {
-    checkScroll()
-    window.addEventListener('resize', checkScroll)
-    return () => window.removeEventListener('resize', checkScroll)
-  }, [activities, activeTab, subItemFilter, search])
-
-  const scrollTable = (direction: 'left' | 'right') => {
-    if (tableScrollRef.current) {
-      const amount = direction === 'left' ? -300 : 300
-      tableScrollRef.current.scrollBy({ left: amount, behavior: 'smooth' })
-    }
-  }
 
   // Sub-items available based on active tab
   const availableSubItems = useMemo(() => {
@@ -548,36 +522,10 @@ export default function AllActivitiesPage() {
         </div>
       )}
 
-      {/* Horizontal Scrollable Table Container with Floating Side Scroll Buttons */}
-      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative group overflow-hidden">
-        {/* Floating Left Scroll Button (Appears only when table can scroll left) */}
-        {canScrollLeft && (
-          <button
-            onClick={() => scrollTable('left')}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-slate-900/90 text-white hover:bg-black shadow-xl flex items-center justify-center border-2 border-white cursor-pointer transition-all hover:scale-110 animate-zoom-in"
-            title="Geser ke Kiri"
-          >
-            <ChevronLeft size={20} strokeWidth={3} />
-          </button>
-        )}
-
-        {/* Floating Right Scroll Button (Appears only when table can scroll right) */}
-        {canScrollRight && (
-          <button
-            onClick={() => scrollTable('right')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-slate-900/90 text-white hover:bg-black shadow-xl flex items-center justify-center border-2 border-white cursor-pointer transition-all hover:scale-110 animate-zoom-in"
-            title="Geser ke Kanan"
-          >
-            <ChevronRight size={20} strokeWidth={3} />
-          </button>
-        )}
-
+      {/* Horizontal Scrollable Table Container */}
+      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm relative overflow-hidden">
         {/* Scrollable Container */}
-        <div
-          ref={tableScrollRef}
-          onScroll={checkScroll}
-          className="overflow-x-auto scrollbar-thin relative min-w-full"
-        >
+        <div className="overflow-x-auto relative min-w-full">
           <table className="w-full text-left border-collapse min-w-[1350px]">
             <thead>
               <tr className="bg-slate-50 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">

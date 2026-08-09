@@ -8,8 +8,15 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // GET all Parent Program Kerja with average progress & items
   // GET all Parent Program Kerja with average progress & items
-  fastify.get('/program-kerja', async (request, reply) => {
+  fastify.get('/program-kerja', async (request: any, reply) => {
+    const { year } = request.query || {}
+    const where: any = {}
+    if (year) {
+      where.tahun = Number(year)
+    }
+
     const parentPrograms = await prisma.programKerja.findMany({
+      where,
       orderBy: { kode: 'asc' },
       include: {
         items: {
@@ -59,18 +66,19 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // POST create Parent Program Kerja
   fastify.post('/program-kerja', async (request: any, reply) => {
-    const { kode, namaProgram, deskripsi } = request.body || {}
+    const { kode, namaProgram, deskripsi, tahun } = request.body || {}
     if (!kode || !namaProgram) {
       return reply.code(400).send({ success: false, error: 'Kode dan Nama Program Induk wajib diisi' })
     }
 
-    const newId = `PK-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`
+    const newId = `PK-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-${tahun || 2026}`
     const created = await prisma.programKerja.create({
       data: {
         id: newId,
         kode,
         namaProgram,
         deskripsi,
+        tahun: tahun ? Number(tahun) : 2026,
       }
     })
     return reply.code(201).send({ success: true, data: created })
@@ -79,7 +87,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PUT edit Parent Program Kerja
   fastify.put('/program-kerja/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { kode, namaProgram, deskripsi } = request.body || {}
+    const { kode, namaProgram, deskripsi, tahun } = request.body || {}
 
     const updated = await prisma.programKerja.update({
       where: { id },
@@ -87,6 +95,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         kode,
         namaProgram,
         deskripsi,
+        ...(tahun ? { tahun: Number(tahun) } : {}),
       }
     })
     return { success: true, data: updated }
@@ -110,8 +119,15 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // ==========================================
 
   // GET all Sub-Programs (MasterProgram)
-  fastify.get('/programs', async (request, reply) => {
+  fastify.get('/programs', async (request: any, reply) => {
+    const { year } = request.query || {}
+    const where: any = {}
+    if (year) {
+      where.tahun = Number(year)
+    }
+
     const programs = await prisma.masterProgram.findMany({
+      where,
       orderBy: { kode: 'asc' },
       include: {
         programKerja: true
@@ -122,7 +138,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // POST create Sub-Program
   fastify.post('/programs', async (request: any, reply) => {
-    const { programKerjaId, kode, namaItem, status, progress, keterangan } = request.body || {}
+    const { programKerjaId, kode, namaItem, status, progress, keterangan, tahun } = request.body || {}
     if (!programKerjaId || !kode || !namaItem) {
       return reply.code(400).send({ success: false, error: 'Program Induk, Kode, dan Nama Sub-Program wajib diisi' })
     }
@@ -131,13 +147,21 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       ? Number(progress)
       : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
 
-    const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`
+    const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-${tahun || 2026}`
     const created = await prisma.masterProgram.create({
       data: {
         id: newId,
         programKerjaId,
         kode,
         namaItem,
+        status: status || 'On Progress',
+        progress: calcProgress,
+        tahun: tahun ? Number(tahun) : 2026,
+        keterangan,
+      }
+    })
+    return reply.code(201).send({ success: true, data: created })
+  })
         status: status || 'On Progress',
         progress: calcProgress,
         keterangan,
@@ -307,7 +331,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // ==========================================
 
   fastify.get('/dashboard', async (request, reply) => {
-    const [totalParents, totalChildPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities] = await Promise.all([
+    const [totalParents, totalChildPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities, cancelledActivities] = await Promise.all([
       prisma.programKerja.count({ where: { isActive: true } }),
       prisma.masterProgram.count({ where: { isActive: true } }),
       prisma.masterProgram.count({ where: { isActive: true, status: 'On Progress' } }),
@@ -315,8 +339,11 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       prisma.activity.count({ where: { isActive: true } }),
       prisma.activity.count({ where: { isActive: true, status: 'Open' } }),
       prisma.activity.count({ where: { isActive: true, status: 'On Progress' } }),
-      prisma.activity.count({ where: { isActive: true, status: 'Closed' } })
+      prisma.activity.count({ where: { isActive: true, status: 'Closed' } }),
+      prisma.activity.count({ where: { isActive: true, status: 'Cancelled' } })
     ])
+
+    const closureRate = totalActivities > 0 ? Math.round((closedActivities / totalActivities) * 100) : 0
 
     return {
       kpi: {
@@ -327,7 +354,9 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         totalActivities,
         openActivities,
         onProgressActivities,
-        closedActivities
+        closedActivities,
+        cancelledActivities,
+        closureRate
       }
     }
   })

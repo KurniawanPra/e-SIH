@@ -159,17 +159,15 @@ export default function MonthlyActivitiesPage() {
     return itemPrograms.find(s => s.id === form.idProgram) || itemPrograms[0]
   }, [itemPrograms, form.idProgram])
 
-  // Calculate Overall System Stats
-  const totalCount = activities.length
-  const openCount = activities.filter((a: any) => a.status === 'Open').length
-  const progressCount = activities.filter((a: any) => a.status === 'On Progress').length
-  const closedCount = activities.filter((a: any) => a.status === 'Closed').length
-  const closureRate = totalCount > 0 ? Math.round((closedCount / totalCount) * 100) : 0
-  const slaRate = (() => {
-    const closed = activities.filter((a: any) => a.status === 'Closed' && a.closedDate && a.dueDate)
-    const onTime = closed.filter((a: any) => a.closedDate <= a.dueDate).length
-    return closed.length > 0 ? Math.round((onTime / closed.length) * 100) : 0
-  })()
+  // Calculate Monthly Summary Stats matching referensi 2.jpeg
+  const summaryStats = useMemo(() => {
+    const total = monthActivities.length
+    const open = monthActivities.filter((a: any) => a.status === 'Open' || a.status === 'On Progress').length
+    const closed = monthActivities.filter((a: any) => a.status === 'Closed').length
+    const cancelled = monthActivities.filter((a: any) => a.status === 'Cancelled').length
+    const closure = total > 0 ? Math.round((closed / total) * 100) : 0
+    return { total, open, closed, cancelled, closure }
+  }, [monthActivities])
 
   const handleExportExcel = () => {
     if (filteredActivities.length === 0) {
@@ -270,32 +268,72 @@ export default function MonthlyActivitiesPage() {
         </div>
       </div>
 
-      {/* 3 Clean Border Pill Badges */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Badge 1: Total Action */}
-        <div className="bg-white rounded-full border-2 border-slate-300 shadow-2xs px-4 py-2 flex items-center justify-between">
-          <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Action</span>
-          <span className="text-base font-black text-slate-900 bg-slate-100 px-3 py-0.5 rounded-full border border-slate-300">
-            {totalCount} Laporan
-          </span>
+      {/* Management Highlight Summary Card (Format Referensi 2.jpeg) */}
+      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row items-stretch justify-between gap-5">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <FileSpreadsheet className="text-brand-700" size={16} /> Management Highlight Report Summary ({MONTH_NAMES[selectedMonth - 1]} {selectedYear})
+            </span>
+            <span className="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+              Dokumen: INLHO/REP-F/-021
+            </span>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-slate-300 text-xs font-bold">
+            <div className="grid grid-cols-2 bg-slate-100 border-b border-slate-300 py-2 px-3.5 text-slate-700 font-black">
+              <span>Metrik Aktivitas</span>
+              <span className="text-right">Jumlah / Nilai</span>
+            </div>
+            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-red-50/50">
+              <span className="text-slate-800 font-extrabold">No. of Action Item</span>
+              <span className="text-right font-black text-slate-900">{summaryStats.total}</span>
+            </div>
+            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-amber-50/50">
+              <span className="text-slate-800 font-extrabold">Open (Aktif / On Progress)</span>
+              <span className="text-right font-black text-amber-700">{summaryStats.open}</span>
+            </div>
+            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-emerald-50/50">
+              <span className="text-slate-800 font-extrabold">Closed (Selesai)</span>
+              <span className="text-right font-black text-emerald-700">{summaryStats.closed}</span>
+            </div>
+            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-slate-50">
+              <span className="text-slate-800 font-extrabold">Cancelled (Dibatalkan)</span>
+              <span className="text-right font-black text-slate-500">{summaryStats.cancelled}</span>
+            </div>
+            <div className="grid grid-cols-2 py-2 px-3.5 bg-brand-50 text-brand-900 font-black border-t border-brand-200">
+              <span>Closure (%)</span>
+              <span className="text-right text-sm">{summaryStats.closure}%</span>
+            </div>
+          </div>
         </div>
 
-        {/* Badge 2: Open Tasks */}
-        <div className="bg-white rounded-full border-2 border-red-200 shadow-2xs px-4 py-2 flex items-center justify-between">
-          <span className="text-[11px] font-black uppercase text-red-600 tracking-wider">Open Tasks</span>
-          <span className="text-base font-black text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-200">
-            {openCount} Tasks
-          </span>
-        </div>
+        <div className="w-full md:w-64 bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shrink-0">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider block">Tingkat Penutupan (Closure)</span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-black text-brand-800">{summaryStats.closure}%</span>
+              <span className="text-xs font-bold text-slate-600">{summaryStats.closed} / {summaryStats.total} Ditutup</span>
+            </div>
+            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-0.5 shadow-inner border border-slate-300">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  summaryStats.closure >= 80 ? 'bg-emerald-600' : summaryStats.closure >= 50 ? 'bg-amber-500' : 'bg-brand-600'
+                }`}
+                style={{ width: `${summaryStats.closure}%` }}
+              />
+            </div>
+          </div>
 
-        {/* Badge 3: On Progress */}
-        <div className="bg-white rounded-full border-2 border-amber-200 shadow-2xs px-4 py-2 flex items-center justify-between">
-          <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider">On Progress</span>
-          <span className="text-base font-black text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full border border-amber-200">
-            {progressCount} Tasks
-          </span>
+          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-600">
+            <span>Status Terbanyak</span>
+            <span className="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 font-black">
+              {summaryStats.open >= summaryStats.closed ? `${summaryStats.open} Open` : `${summaryStats.closed} Closed`}
+            </span>
+          </div>
         </div>
       </div>
+
       {/* Month Filter Selector Bar */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 min-w-0">
@@ -351,6 +389,7 @@ export default function MonthlyActivitiesPage() {
           <option value="Closed">Closed (Selesai)</option>
           <option value="On Progress">On Progress (Berjalan)</option>
           <option value="Open">Open (Belum Dimulai)</option>
+          <option value="Cancelled">Cancelled (Dibatalkan)</option>
         </select>
       </div>
 

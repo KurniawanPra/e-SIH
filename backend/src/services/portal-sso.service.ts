@@ -47,11 +47,11 @@ export async function exchangePortalToken(
         name: 'Administrator (Dev Bypass)',
         isActive: true,
         employeeId: 'emp-001',
-        jabatan: 'Pimpinan / Admin IT',
+        jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
         employee: {
           id: 'emp-001',
           namaLengkap: 'Kurniawan (Dev Admin)',
-          jabatan: 'Pimpinan / Admin IT',
+          jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
         }
       } as unknown as SessionUser
     }

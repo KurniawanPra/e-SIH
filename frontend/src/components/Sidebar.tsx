@@ -29,6 +29,7 @@ interface SidebarProps {
 
 const nav = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'My Activities', path: '/dashboard/my-activities', icon: ListChecks },
   { name: 'Aktivitas Mingguan', path: '/dashboard/weekly', icon: CalendarDays },
   { name: 'Laporan Bulanan', path: '/dashboard/monthly', icon: CalendarRange },
   { name: 'Semua Aktivitas', path: '/dashboard/activities', icon: ListFilter },
@@ -77,7 +78,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Menu Utama</p>
             <ul className="space-y-2">
               {nav.map(item => {
-                const active = pathname === item.path
+                const active = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(item.path))
                 return (
                   <li key={item.path}>
                     <Link
@@ -85,12 +86,12 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                       onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                       className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${
                         active
-                          ? 'neu-active-green font-black border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
+                          ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
                           : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
                       }`}
                     >
-                      <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-emerald-300' : ''} />
-                      {item.name}
+                      <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-white' : 'text-slate-600'} />
+                      <span className={active ? 'text-white font-black' : 'text-slate-700 font-bold'}>{item.name}</span>
                     </Link>
                   </li>
                 )
@@ -105,12 +106,15 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               onClick={() => setMasterOpen(!masterOpen)}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 pathname.includes('/master')
-                  ? 'neu-active-green font-extrabold border-2 border-emerald-300'
+                  ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
                   : 'neu-btn text-slate-700 hover:text-slate-900'
               }`}
             >
-              <span className="flex items-center gap-3"><FolderKanban size={18} strokeWidth={1.8} /> Kelola Data</span>
-              {masterOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              <span className="flex items-center gap-3">
+                <FolderKanban size={18} strokeWidth={pathname.includes('/master') ? 2.5 : 1.8} className={pathname.includes('/master') ? 'text-white' : 'text-slate-600'} />
+                <span className={pathname.includes('/master') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Data</span>
+              </span>
+              {masterOpen ? <ChevronDown size={14} className={pathname.includes('/master') ? 'text-white' : ''} /> : <ChevronRight size={14} className={pathname.includes('/master') ? 'text-white' : ''} />}
             </button>
 
             {masterOpen && (
@@ -121,11 +125,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/program-kerja')
-                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
+                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
-                    <span className="flex items-center gap-2"><FolderKanban size={15} /> Program Kerja</span>
+                    <span className="flex items-center gap-2">
+                      <FolderKanban size={15} className={pathname.includes('/master/program-kerja') ? 'text-white' : ''} />
+                      <span className={pathname.includes('/master/program-kerja') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Program Kerja</span>
+                    </span>
                   </Link>
                 </li>
                 <li>
@@ -134,11 +141,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/users')
-                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
+                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
-                    <span className="flex items-center gap-2"><Users size={15} /> Kelola Users</span>
+                    <span className="flex items-center gap-2">
+                      <Users size={15} className={pathname.includes('/master/users') ? 'text-white' : ''} />
+                      <span className={pathname.includes('/master/users') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Users</span>
+                    </span>
                   </Link>
                 </li>
                 <li>
@@ -147,11 +157,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                     className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
                       pathname.includes('/master/roles')
-                        ? 'neu-active-green font-extrabold border-2 border-emerald-300'
+                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                         : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                     }`}
                   >
-                    <span className="flex items-center gap-2"><ShieldCheck size={15} /> Hak Akses</span>
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck size={15} className={pathname.includes('/master/roles') ? 'text-white' : ''} />
+                      <span className={pathname.includes('/master/roles') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Hak Akses</span>
+                    </span>
                   </Link>
                 </li>
               </ul>
@@ -164,7 +177,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           <div className="flex items-center justify-between">
             <div className="min-w-0 pr-2">
               <p className="text-[11px] font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
-              <p className="text-[10px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Pimpinan IT & Sistem'}</p>
+              <p className="text-[10px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
             </div>
             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
               isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
