@@ -334,7 +334,7 @@ export default function MyActivitiesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300">No</th>
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300">No</th>
                 <th className="py-3.5 px-4 w-60">Program Kerja</th>
                 <th className="py-3.5 px-4">Laporan Kegiatan &amp; Action</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>

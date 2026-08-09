@@ -530,7 +530,7 @@ export default function AllActivitiesPage() {
           <table className="w-full text-left border-collapse min-w-[1350px]">
             <thead>
               <tr className="bg-slate-50 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
                 <th className="py-3.5 px-4 min-w-[400px]">Laporan Kegiatan &amp; Detail Uraian</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
                 <th className="py-3.5 px-4 w-32">Target Selesai</th>

@@ -39,7 +39,7 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
               <img src="/esih-logo.png" alt="e-SIH Logo" className="w-6 h-6 rounded-md object-cover sm:hidden" />
               <span>e-SIH Operation</span>
             </h1>
-            <p className="text-[10px] text-slate-500 font-semibold mt-0.5 hidden sm:block">Highlight &amp; Activity Report — PT INL</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5 hidden sm:block">Highlight &amp; Activity Report — PT INL</p>
           </div>
 
           {/* Global Year Dropdown */}
@@ -80,13 +80,13 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
           <div className="hidden md:block leading-tight">
             <div className="flex items-center gap-1.5">
               <p className="text-xs font-extrabold text-slate-900 truncate max-w-[130px]">{user?.name || 'Kurniawan Pralambang'}</p>
-              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
                 user?.role === 'ADMIN' || !user?.role ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
               }`}>
                 {user?.role === 'ADMIN' || !user?.role ? 'ADMIN' : 'USER'}
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 font-medium truncate max-w-[150px]">{user?.employee?.jabatan || user?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
+            <p className="text-[11px] text-slate-500 font-medium truncate max-w-[150px]">{user?.employee?.jabatan || user?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
           </div>
         </div>
       </div>

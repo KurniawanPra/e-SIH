@@ -199,7 +199,7 @@ export default function MonthlyActivitiesPage() {
 
   const StatCard = ({ label, value, color, icon }: any) => (
     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm min-w-0">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${color}`}>{icon}</div>
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${color}`}>{icon}</div>
       <div className="min-w-0">
         <div className="truncate text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{label}</div>
         <div className="text-xl font-black text-slate-800 leading-tight">{value}</div>
@@ -214,7 +214,7 @@ export default function MonthlyActivitiesPage() {
         type={type}
         value={form[field] as string}
         onChange={e => setForm({ ...form, [field]: e.target.value })}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
       />
     </label>
   )
@@ -240,10 +240,10 @@ export default function MonthlyActivitiesPage() {
           <p className="text-xs font-medium text-slate-500">No. Dokumen: INLHO/REP-F/-021 · {periodLabel}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCsv} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+          <button onClick={exportCsv} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
             <FileSpreadsheet size={15} /> Export CSV
           </button>
-          <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+          <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
             <Printer size={15} /> Print
           </button>
         </div>
@@ -269,7 +269,7 @@ export default function MonthlyActivitiesPage() {
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -293,7 +293,7 @@ export default function MonthlyActivitiesPage() {
                   }`}
                 >
                   {isCurrent && (
-                    <span className="absolute right-2 top-2 rounded-full bg-brand-600 px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                    <span className="absolute right-2 top-2 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-black text-white uppercase">
                       Sekarang
                     </span>
                   )}
@@ -308,7 +308,7 @@ export default function MonthlyActivitiesPage() {
                       <span className="text-emerald-600">{stats.bulanan?.[month]?.closure ?? 0}%</span>
                     </div>
                   </div>
-                  <span className="mt-1 text-[10px] font-semibold text-brand-600 opacity-0 transition group-hover:opacity-100">
+                  <span className="mt-1 text-[10px] font-semibold text-brand-600 opacity-40 transition group-hover:opacity-100">
                     Buka tabel →
                   </span>
                 </button>
@@ -321,21 +321,21 @@ export default function MonthlyActivitiesPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {userRole === 'ADMIN' && (
-              <button onClick={() => setView('cards')} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+              <button onClick={() => setView('cards')} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
                 <ArrowLeft size={15} /> Pilih Bulan Lain
               </button>
             )}
             <select
               value={selectedMonth}
               onChange={e => setSelectedMonth(Number(e.target.value))}
-              className="rounded-lg border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
             >
               {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
             </select>
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="rounded-lg border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -345,10 +345,10 @@ export default function MonthlyActivitiesPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Cari item, PIC, deskripsi..."
-                className="w-full rounded-lg border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                className="w-full rounded-xl border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
               />
             </div>
-            <button onClick={() => openAddModal()} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
+            <button onClick={() => openAddModal()} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
               <Plus size={15} /> Tambah Highlight
             </button>
           </div>
@@ -356,7 +356,7 @@ export default function MonthlyActivitiesPage() {
           <div className="overflow-x-auto print:overflow-visible">
             <table className="w-full min-w-max text-left text-sm">
               <thead>
-                <tr className="border-b-2 border-slate-800 bg-slate-100 text-[11px] font-black uppercase tracking-wide text-slate-600">
+                <tr className="border-b-2 border-slate-300 bg-slate-100 text-[11px] font-black uppercase tracking-wide text-slate-600">
                   <th className="px-2 py-2.5 text-center w-10">No</th>
                   <th className="px-2 py-2.5 min-w-36">Item</th>
                   <th className="px-2 py-2.5 min-w-64">Description</th>
@@ -377,7 +377,7 @@ export default function MonthlyActivitiesPage() {
                       <p className="mt-2 text-sm font-semibold text-slate-500">
                         Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                       </p>
-                      <button onClick={() => openAddModal()} className="mt-3 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
+                      <button onClick={() => openAddModal()} className="mt-3 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
                         Tambah Highlight Pertama
                       </button>
                     </td>
@@ -400,10 +400,10 @@ export default function MonthlyActivitiesPage() {
                       <td className="px-2 py-2.5 text-slate-500 whitespace-pre-wrap">{h.remarks || '-'}</td>
                       <td className="px-2 py-2.5 print:hidden">
                         <div className="flex justify-center gap-1">
-                          <button onClick={() => openEditModal(h)} title="Edit" className="rounded-lg p-1.5 text-sky-600 hover:bg-sky-50">
+                          <button onClick={() => openEditModal(h)} title="Edit" className="rounded-xl p-1.5 text-sky-600 hover:bg-sky-50">
                             <Pencil size={15} />
                           </button>
-                          <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+                          <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-xl p-1.5 text-red-600 hover:bg-red-50">
                             <Trash2 size={15} />
                           </button>
                         </div>
@@ -417,7 +417,7 @@ export default function MonthlyActivitiesPage() {
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-500">
             <span>Menampilkan {filteredHighlights.length} dari {highlights.length} action item</span>
-            <span className="rounded-lg bg-slate-100 px-3 py-1.5">
+            <span className="rounded-xl bg-slate-100 px-3 py-1.5">
               Closure Rate : <b className="text-brand-700">{stats.closure}%</b>
             </span>
           </div>
@@ -433,7 +433,7 @@ export default function MonthlyActivitiesPage() {
                 <h3 className="text-lg font-black text-slate-800">
                   {editingId ? 'Edit Highlight' : 'Tambah Highlight'} — {MONTH_NAMES[form.bulan - 1]} {form.tahun}
                 </h3>
-                <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+                <button onClick={() => setShowModal(false)} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100">
                   <X size={18} />
                 </button>
               </div>
@@ -445,7 +445,7 @@ export default function MonthlyActivitiesPage() {
                     <select
                       value={form.bulan}
                       onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     >
                       {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                     </select>
@@ -457,7 +457,7 @@ export default function MonthlyActivitiesPage() {
                     <select
                       value={form.tahun}
                       onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     >
                       {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
@@ -471,7 +471,7 @@ export default function MonthlyActivitiesPage() {
                     <select
                       value={form.status}
                       onChange={e => setForm({ ...form, status: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     >
                       {['Open', 'On Progress', 'Closed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -488,7 +488,7 @@ export default function MonthlyActivitiesPage() {
                       value={form.description}
                       onChange={e => setForm({ ...form, description: e.target.value })}
                       rows={3}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     />
                   </label>
                 </div>
@@ -499,7 +499,7 @@ export default function MonthlyActivitiesPage() {
                       value={form.actionToBeTaken}
                       onChange={e => setForm({ ...form, actionToBeTaken: e.target.value })}
                       rows={3}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     />
                   </label>
                 </div>
@@ -510,20 +510,20 @@ export default function MonthlyActivitiesPage() {
                       value={form.remarks}
                       onChange={e => setForm({ ...form, remarks: e.target.value })}
                       rows={3}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                     />
                   </label>
                 </div>
               </div>
 
               <div className="mt-5 flex justify-end gap-2">
-                <button onClick={() => setShowModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                <button onClick={() => setShowModal(false)} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
                   Batal
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || !form.item.trim()}
-                  className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+                  className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
                   {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
                 </button>

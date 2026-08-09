@@ -429,11 +429,13 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PUT edit highlight
   fastify.put('/highlights/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
+    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
 
     const updated = await prisma.highlight.update({
       where: { id },
       data: {
+        bulan: bulan !== undefined && bulan !== null ? Number(bulan) : undefined,
+        tahun: tahun !== undefined && tahun !== null ? Number(tahun) : undefined,
         no: no !== undefined && no !== null ? Number(no) : undefined,
         item,
         description,

@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
                 <div key={task.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border shrink-0 ${
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shrink-0 ${
                       task.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
                     }`}>
                       {task.status}

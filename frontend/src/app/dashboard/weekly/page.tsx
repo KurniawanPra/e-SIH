@@ -714,7 +714,7 @@ export default function WeeklyActivitiesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
                 <th className="py-3.5 px-4 w-64">Program &amp; Item Kerja</th>
                 <th className="py-3.5 px-4">Laporan Kegiatan</th>
                 <th className="py-3.5 px-4">Tindak Lanjut</th>

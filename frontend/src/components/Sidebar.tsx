@@ -63,7 +63,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             <img src="/esih-logo.png" alt="e-SIH Logo" className="w-9 h-9 rounded-xl object-cover shadow-2xs neu-inset p-0.5" />
             <div className="leading-tight">
               <span className="font-black text-slate-900 text-sm block">e-SIH</span>
-              <span className="text-[10px] text-slate-500 font-bold tracking-wide">INL Operation</span>
+              <span className="text-[11px] text-slate-500 font-bold tracking-wide">INL Operation</span>
             </div>
           </Link>
           {/* Close button on mobile only */}
@@ -75,7 +75,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {/* Navigation Area */}
         <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin">
           <div>
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Menu Utama</p>
+            <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Menu Utama</p>
             <ul className="space-y-2">
               {nav.map(item => {
                 const active = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(item.path))
@@ -101,7 +101,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
           {/* Master Data Section (Admin & System Config) */}
           <div>
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
+            <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
             <button
               onClick={() => setMasterOpen(!masterOpen)}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -176,10 +176,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         <div className="p-3.5 border-t border-slate-300 neu-inset space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="min-w-0 pr-2">
-              <p className="text-[11px] font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
-              <p className="text-[10px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
+              <p className="text-xs font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
+              <p className="text-[11px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
             </div>
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
               isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
             }`}>
               {isAdmin ? 'ADMIN' : 'USER'}
