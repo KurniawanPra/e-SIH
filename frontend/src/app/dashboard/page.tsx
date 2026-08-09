@@ -202,7 +202,7 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
 }
 
 export default function DashboardPage() {
-  const { selectedYear, availableYears } = useYear()
+  const { selectedYear, setSelectedYear, availableYears } = useYear()
   const [user, setUser] = useState<SessionUser | null>(null)
   const [kpi, setKpi] = useState<any>(null)
   const [parents, setParents] = useState<any[]>([])

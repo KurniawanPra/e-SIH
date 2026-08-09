@@ -162,13 +162,6 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     })
     return reply.code(201).send({ success: true, data: created })
   })
-        status: status || 'On Progress',
-        progress: calcProgress,
-        keterangan,
-      }
-    })
-    return reply.code(201).send({ success: true, data: created })
-  })
 
   // PUT edit Sub-Program (termasuk IT Development, dll)
   fastify.put('/programs/:id', async (request: any, reply) => {
