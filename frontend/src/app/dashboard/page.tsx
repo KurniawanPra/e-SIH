@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { api, getCurrentUser, hasSessionCookie } from '@/lib/api'
+import { api, getCurrentUser } from '@/lib/api'
 import {
   TrendingUp,
   BarChart3,
@@ -214,7 +214,7 @@ export default function DashboardPage() {
   const yearOptions = availableYears
 
   useEffect(() => {
-    if (hasSessionCookie()) getCurrentUser().then(setUser).catch(() => undefined)
+    getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => undefined)
   }, [])
 
   useEffect(() => {

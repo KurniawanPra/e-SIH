@@ -87,6 +87,7 @@ export default function WeeklyActivitiesPage() {
     picNama: '',
     picEmail: '',
     tindakLanjut: '',
+    kendala: '',
     remarks: ''
   })
 
@@ -95,6 +96,7 @@ export default function WeeklyActivitiesPage() {
     id: '',
     status: 'Closed',
     tindakLanjut: '',
+    kendala: '',
     closedDate: ''
   })
 
@@ -195,14 +197,13 @@ export default function WeeklyActivitiesPage() {
     })
   }, [activities, selectedMonth, selectedYear, selectedWeek, startDateFilter, endDateFilter, userFilter, statusFilter, search])
 
-  // Calculate Weekly Sprint Summary Stats matching referensi 2.jpeg
+  // Summary Stats for the filtered period
   const summaryStats = useMemo(() => {
     const total = filteredActivities.length
-    const open = filteredActivities.filter((a: any) => a.status === 'Open' || a.status === 'On Progress').length
     const closed = filteredActivities.filter((a: any) => a.status === 'Closed').length
-    const cancelled = filteredActivities.filter((a: any) => a.status === 'Cancelled').length
-    const closure = total > 0 ? Math.round((closed / total) * 100) : 0
-    return { total, open, closed, cancelled, closure }
+    const progress = filteredActivities.filter((a: any) => a.status === 'On Progress').length
+    const open = filteredActivities.filter((a: any) => a.status === 'Open').length
+    return { total, closed, progress, open }
   }, [filteredActivities])
 
   // Unique PICs who actually uploaded activities in the filtered period
@@ -256,7 +257,8 @@ export default function WeeklyActivitiesPage() {
       'Due Date',
       'Status Aktivitas',
       'Penanggung Jawab (PIC)',
-      'Tindak Lanjut / Catatan'
+      'Tindak Lanjut / Catatan',
+      'Kendala / Hambatan'
     ]
 
     const rows = filteredActivities.map((a, idx) => [
@@ -269,7 +271,8 @@ export default function WeeklyActivitiesPage() {
       a.dueDate || '',
       a.status || '',
       `"${(a.picNama || '').replace(/"/g, '""')}"`,
-      `"${(a.tindakLanjut || '').replace(/"/g, '""')}"`
+      `"${(a.tindakLanjut || '').replace(/"/g, '""')}"`,
+      `"${(a.kendala || '').replace(/"/g, '""')}"`
     ])
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
@@ -301,6 +304,7 @@ export default function WeeklyActivitiesPage() {
       picNama: user?.name || 'Herbina',
       picEmail: user?.email || 'herbina@inl.co.id',
       tindakLanjut: '',
+      kendala: '',
       remarks: ''
     })
     setSubSearchQuery('')
@@ -324,6 +328,7 @@ export default function WeeklyActivitiesPage() {
       picNama: a.picNama,
       picEmail: a.picEmail || '',
       tindakLanjut: a.tindakLanjut || '',
+      kendala: a.kendala || '',
       remarks: a.remarks || ''
     })
     setSubSearchQuery('')
@@ -336,6 +341,7 @@ export default function WeeklyActivitiesPage() {
       id: a.id,
       status: a.status === 'Closed' ? 'On Progress' : 'Closed',
       tindakLanjut: a.tindakLanjut || '',
+      kendala: a.kendala || '',
       closedDate: a.status === 'Closed' ? '' : today
     })
     setShowStatusModal(true)
@@ -374,6 +380,7 @@ export default function WeeklyActivitiesPage() {
       await api.put(`/api/esih/activities/${statusForm.id}`, {
         status: statusForm.status,
         tindakLanjut: statusForm.tindakLanjut,
+        kendala: statusForm.kendala,
         closedDate: statusForm.status === 'Closed' ? (statusForm.closedDate || today) : ''
       })
       setShowStatusModal(false)
@@ -426,102 +433,8 @@ export default function WeeklyActivitiesPage() {
         </div>
       </div>
 
-      {/* Management Highlight Summary Card (Format Referensi 2.jpeg) */}
-      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row items-stretch justify-between gap-5">
-        <div className="flex-1 space-y-2.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-              <CalendarDays className="text-brand-700" size={16} /> Management Highlight Report Summary ({selectedWeek === 'ALL' ? 'W1 - W5' : selectedWeek} - {MONTH_NAMES[selectedMonth - 1]} {selectedYear})
-            </span>
-            <span className="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200 self-start sm:self-auto">
-              Dokumen: INLHO/REP-F/-021
-            </span>
-          </div>
-
-          {/* Sprint Selection Pills inside Management Highlight Card */}
-          <div className="flex flex-wrap items-center gap-1.5 py-0.5">
-            <span className="text-xs font-black text-slate-700 mr-1">Sprint:</span>
-            {[
-              { id: 'ALL', label: 'Semua Minggu' },
-              { id: 'W1', label: 'W1 (Tgl 1-7)' },
-              { id: 'W2', label: 'W2 (Tgl 8-14)' },
-              { id: 'W3', label: 'W3 (Tgl 15-21)' },
-              { id: 'W4', label: 'W4 (Tgl 22-28)' },
-              { id: 'W5', label: 'W5 (Tgl 29-31)' },
-            ].map(week => {
-              const active = selectedWeek === week.id
-              return (
-                <button
-                  key={week.id}
-                  onClick={() => setSelectedWeek(week.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
-                    active
-                      ? 'neu-active-green font-black shadow-2xs'
-                      : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
-                  }`}
-                >
-                  {week.label}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="overflow-hidden rounded-xl border border-slate-300 text-xs font-bold">
-            <div className="grid grid-cols-2 bg-slate-100 border-b border-slate-300 py-2 px-3.5 text-slate-700 font-black">
-              <span>Metrik Aktivitas</span>
-              <span className="text-right">Jumlah / Nilai</span>
-            </div>
-            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-red-50/50">
-              <span className="text-slate-800 font-extrabold">No. of Action Item</span>
-              <span className="text-right font-black text-slate-900">{summaryStats.total}</span>
-            </div>
-            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-amber-50/50">
-              <span className="text-slate-800 font-extrabold">Open (Aktif / On Progress)</span>
-              <span className="text-right font-black text-amber-700">{summaryStats.open}</span>
-            </div>
-            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-emerald-50/50">
-              <span className="text-slate-800 font-extrabold">Closed (Selesai)</span>
-              <span className="text-right font-black text-emerald-700">{summaryStats.closed}</span>
-            </div>
-            <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-slate-50">
-              <span className="text-slate-800 font-extrabold">Cancelled (Dibatalkan)</span>
-              <span className="text-right font-black text-slate-500">{summaryStats.cancelled}</span>
-            </div>
-            <div className="grid grid-cols-2 py-2 px-3.5 bg-brand-50 text-brand-900 font-black border-t border-brand-200">
-              <span>Closure (%)</span>
-              <span className="text-right text-sm">{summaryStats.closure}%</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full md:w-64 bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shrink-0">
-          <div className="space-y-1.5">
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider block">Tingkat Penutupan Sprint</span>
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-black text-brand-800">{summaryStats.closure}%</span>
-              <span className="text-xs font-bold text-slate-600">{summaryStats.closed} / {summaryStats.total} Selesai</span>
-            </div>
-            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-0.5 shadow-inner border border-slate-300">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  summaryStats.closure >= 80 ? 'bg-emerald-600' : summaryStats.closure >= 50 ? 'bg-amber-500' : 'bg-brand-600'
-                }`}
-                style={{ width: `${summaryStats.closure}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-600">
-            <span>Status Sprint</span>
-            <span className="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 font-black">
-              {summaryStats.open >= summaryStats.closed ? `${summaryStats.open} Open` : `${summaryStats.closed} Closed`}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Primary Always-Visible Control Bar (Bulan, Year & Quick Search) */}
-      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm">
+      {/* Primary Always-Visible Control Bar (Bulan, Year, Sprint Pills & Quick Search) */}
+      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Month & Year Selection */}
           <div className="flex flex-wrap items-center gap-2 min-w-0">
@@ -566,6 +479,62 @@ export default function WeeklyActivitiesPage() {
               className="w-full pl-9 pr-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
             />
           </div>
+        </div>
+
+        {/* Sprint Week Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-200">
+          <span className="text-xs font-black text-slate-700 mr-1">Sprint:</span>
+          {[
+            { id: 'ALL', label: 'Semua Minggu' },
+            { id: 'W1', label: 'Minggu 1 (Tgl 1-7)' },
+            { id: 'W2', label: 'Minggu 2 (Tgl 8-14)' },
+            { id: 'W3', label: 'Minggu 3 (Tgl 15-21)' },
+            { id: 'W4', label: 'Minggu 4 (Tgl 22-28)' },
+            { id: 'W5', label: 'Minggu 5 (Tgl 29-31)' },
+          ].map(week => {
+            const active = selectedWeek === week.id
+            return (
+              <button
+                key={week.id}
+                onClick={() => setSelectedWeek(week.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer ${
+                  active
+                    ? 'neu-active-green font-black shadow-xs'
+                    : 'neu-btn font-extrabold text-slate-700 hover:text-slate-900'
+                }`}
+              >
+                {week.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Summary Status Badges */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-2xs px-4 py-3 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider">Total Aktivitas</span>
+          <span className="text-base font-black text-slate-900 bg-slate-100 px-3 py-0.5 rounded-full border border-slate-300">
+            {summaryStats.total}
+          </span>
+        </div>
+        <div className="bg-white rounded-2xl border-2 border-emerald-200 shadow-2xs px-4 py-3 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-emerald-600 tracking-wider">Closed (Selesai)</span>
+          <span className="text-base font-black text-emerald-600 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-200">
+            {summaryStats.closed}
+          </span>
+        </div>
+        <div className="bg-white rounded-2xl border-2 border-amber-200 shadow-2xs px-4 py-3 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-amber-600 tracking-wider">On Progress</span>
+          <span className="text-base font-black text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full border border-amber-200">
+            {summaryStats.progress}
+          </span>
+        </div>
+        <div className="bg-white rounded-2xl border-2 border-red-200 shadow-2xs px-4 py-3 flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase text-red-600 tracking-wider">Open (Belum Mulai)</span>
+          <span className="text-base font-black text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-200">
+            {summaryStats.open}
+          </span>
         </div>
       </div>
 
@@ -680,7 +649,7 @@ export default function WeeklyActivitiesPage() {
                     {a.program?.programKerja?.kode} - {a.program?.programKerja?.namaProgram}
                   </span>
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
-                    a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                    a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
                   }`}>
                     {a.status === 'Closed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                     {a.status}
@@ -693,6 +662,16 @@ export default function WeeklyActivitiesPage() {
               <div className="min-w-0">
                 <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
                 {a.descriptionAction && <p className="text-xs text-slate-600 font-medium mt-1">{a.descriptionAction}</p>}
+                {a.tindakLanjut && (
+                  <p className="text-[11px] text-slate-700 font-semibold mt-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
+                    Tindak Lanjut: {a.tindakLanjut}
+                  </p>
+                )}
+                {a.kendala && (
+                  <p className="text-[11px] text-red-700 font-semibold mt-1.5 bg-red-50 border border-red-200 rounded-lg px-2 py-1">
+                    Kendala: {a.kendala}
+                  </p>
+                )}
               </div>
 
               {/* Footer Row: PIC, Date & Action Buttons */}
@@ -738,6 +717,8 @@ export default function WeeklyActivitiesPage() {
                 <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
                 <th className="py-3.5 px-4 w-64">Program &amp; Item Kerja</th>
                 <th className="py-3.5 px-4">Laporan Kegiatan</th>
+                <th className="py-3.5 px-4">Tindak Lanjut</th>
+                <th className="py-3.5 px-4">Kendala</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
                 <th className="py-3.5 px-4 w-36 text-center">Status</th>
                 <th className="py-3.5 px-4 w-40">Penanggung Jawab (PIC)</th>
@@ -747,7 +728,7 @@ export default function WeeklyActivitiesPage() {
             <tbody className="divide-y divide-slate-200 text-xs">
               {paginatedActivities.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 font-bold">
+                  <td colSpan={9} className="text-center py-12 text-slate-400 font-bold">
                     Tidak ada data laporan aktivitas pada rentang tanggal/filter terpilih.
                   </td>
                 </tr>
@@ -774,6 +755,24 @@ export default function WeeklyActivitiesPage() {
                       )}
                     </td>
 
+                    {/* Tindak Lanjut Column */}
+                    <td className="py-4 px-4">
+                      {a.tindakLanjut ? (
+                        <p className="text-[11px] text-slate-700 font-semibold leading-snug">{a.tindakLanjut}</p>
+                      ) : (
+                        <span className="text-[11px] text-slate-300 font-medium">—</span>
+                      )}
+                    </td>
+
+                    {/* Kendala Column */}
+                    <td className="py-4 px-4">
+                      {a.kendala ? (
+                        <p className="text-[11px] text-red-600 font-semibold leading-snug">{a.kendala}</p>
+                      ) : (
+                        <span className="text-[11px] text-slate-300 font-medium">—</span>
+                      )}
+                    </td>
+
                     {/* Start Date */}
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">
                       {a.startDate}
@@ -782,7 +781,7 @@ export default function WeeklyActivitiesPage() {
                     {/* Status */}
                     <td className="py-4 px-4 text-center">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black border ${
-                        a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                        a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
                       }`}>
                         {a.status === 'Closed' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         {a.status}
@@ -998,6 +997,7 @@ export default function WeeklyActivitiesPage() {
                         <option value="On Progress">On Progress (Berjalan)</option>
                         <option value="Open">Open (Belum Dimulai)</option>
                         <option value="Closed">Closed (Selesai)</option>
+                        <option value="Cancelled">Cancelled (Dibatalkan)</option>
                       </select>
                     </div>
                   </div>
@@ -1006,6 +1006,29 @@ export default function WeeklyActivitiesPage() {
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
                     <span className="font-medium">Penanggung Jawab (PIC):</span>
                     <span className="font-extrabold text-slate-900">{form.picNama}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Tindak Lanjut / Catatan</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Opsional: catatan tindak lanjut..."
+                        value={form.tindakLanjut}
+                        onChange={e => setForm({ ...form, tindakLanjut: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Kendala / Hambatan</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Opsional: kendala yang dihadapi..."
+                        value={form.kendala}
+                        onChange={e => setForm({ ...form, kendala: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1058,6 +1081,7 @@ export default function WeeklyActivitiesPage() {
                       <option value="Closed">Closed (Selesai)</option>
                       <option value="On Progress">On Progress (Berjalan)</option>
                       <option value="Open">Open (Belum Dimulai)</option>
+                      <option value="Cancelled">Cancelled (Dibatalkan)</option>
                     </select>
                   </div>
 
@@ -1068,6 +1092,17 @@ export default function WeeklyActivitiesPage() {
                       placeholder="Opsional: catatan penyelesaian..."
                       value={statusForm.tindakLanjut}
                       onChange={e => setStatusForm({ ...statusForm, tindakLanjut: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Kendala / Hambatan</label>
+                    <input
+                      type="text"
+                      placeholder="Opsional: kendala yang dihadapi..."
+                      value={statusForm.kendala}
+                      onChange={e => setStatusForm({ ...statusForm, kendala: e.target.value })}
                       className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                     />
                   </div>

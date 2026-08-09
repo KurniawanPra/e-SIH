@@ -230,7 +230,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // POST create Activity
   fastify.post('/activities', async (request: any, reply) => {
-    const { idProgram, kegiatan, descriptionAction, startDate, dueDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
+    const { idProgram, kegiatan, descriptionAction, startDate, dueDate, closedDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
     if (!idProgram || !kegiatan || !picNama) {
       return reply.code(400).send({ success: false, error: 'Sub-Program, Kegiatan, dan Nama PIC wajib diisi' })
     }
@@ -258,6 +258,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         status: status || 'On Progress',
         picNama,
         picEmail: picEmail || `${picNama.toLowerCase().replace(/\s+/g, '')}@inl.co.id`,
+        closedDate: status === 'Closed' && closedDate ? closedDate : null,
         tindakLanjut,
         kendala,
         remarks,
