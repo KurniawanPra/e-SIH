@@ -41,7 +41,7 @@ model MasterProgram {
 model Activity {
   id                String   @id
   no                Int      @unique
-  idProgram         String   // Relasi ke Sub-Program (Child)
+  idProgram         String?  // Opsional (kegiatan personal tidak terkait program)
   kategoriProgram   String
   itemName          String
   kegiatan          String
@@ -58,7 +58,7 @@ model Activity {
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
 
-  program MasterProgram @relation(fields: [idProgram], references: [id])
+  program       MasterProgram?  @relation(fields: [idProgram], references: [id])
 }
 
 model User {

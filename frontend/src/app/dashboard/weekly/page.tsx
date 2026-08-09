@@ -32,8 +32,6 @@ const MONTH_NAMES = [
 export default function WeeklyActivitiesPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
-  const [parentPrograms, setParentPrograms] = useState<any[]>([])
-  const [itemPrograms, setItemPrograms] = useState<any[]>([])
   const [usersList, setUsersList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<SessionUser | null>(null)
@@ -71,11 +69,7 @@ export default function WeeklyActivitiesPage() {
   const [editItem, setEditItem] = useState<any>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const [subSearchQuery, setSubSearchQuery] = useState('')
-  const [subDropdownOpen, setSubDropdownOpen] = useState(false)
-
   // Form State for Add / Edit
-  const [selectedParentId, setSelectedParentId] = useState('')
   const [form, setForm] = useState({
     idProgram: '',
     kegiatan: '',
@@ -102,15 +96,11 @@ export default function WeeklyActivitiesPage() {
 
   const fetchAll = async () => {
     try {
-      const [r1, r2, r3, r4] = await Promise.all([
+      const [r1, r4] = await Promise.all([
         api.get('/api/esih/activities'),
-        api.get('/api/esih/programs'),
-        api.get('/api/esih/program-kerja'),
         api.get('/api/esih/users')
       ])
       setActivities(r1.data.data || [])
-      setItemPrograms(r2.data.data || [])
-      setParentPrograms(r3.data.data || [])
       setUsersList(r4.data.data || [])
       setLoading(false)
     } catch (err) {
@@ -123,26 +113,6 @@ export default function WeeklyActivitiesPage() {
     getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => undefined)
     fetchAll()
   }, [])
-
-  // Filtered Item Programs based on selected Program Kerja Induk
-  const filteredItemOpts = useMemo(() => {
-    if (!selectedParentId) return itemPrograms
-    return itemPrograms.filter((i: any) => i.programKerjaId === selectedParentId)
-  }, [itemPrograms, selectedParentId])
-
-  // Searchable sub-item program options
-  const filteredItemOptsSearch = useMemo(() => {
-    if (!subSearchQuery.trim()) return filteredItemOpts
-    const q = subSearchQuery.toLowerCase()
-    return filteredItemOpts.filter((i: any) =>
-      i.namaItem?.toLowerCase().includes(q) ||
-      i.kode?.toLowerCase().includes(q)
-    )
-  }, [filteredItemOpts, subSearchQuery])
-
-  const selectedItemObj = useMemo(() => {
-    return itemPrograms.find((i: any) => i.id === form.idProgram) || filteredItemOpts[0]
-  }, [itemPrograms, filteredItemOpts, form.idProgram])
 
   // Filtered activities based on Month, Week, Date Range, Search, User Filter, and Status Filter
   const filteredActivities = useMemo(() => {
@@ -263,8 +233,8 @@ export default function WeeklyActivitiesPage() {
 
     const rows = filteredActivities.map((a, idx) => [
       idx + 1,
-      `"${(a.program?.programKerja?.kode || '')} - ${(a.program?.programKerja?.namaProgram || '').replace(/"/g, '""')}"`,
-      `"${(a.program?.kode || '')} - ${(a.itemName || '').replace(/"/g, '""')}"`,
+      `"${(a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')).replace(/"/g, '""')}"`,
+      `"${(a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')).replace(/"/g, '""')}"`,
       `"${(a.kegiatan || '').replace(/"/g, '""')}"`,
       `"${(a.descriptionAction || '').replace(/"/g, '""')}"`,
       a.startDate || '',
@@ -289,12 +259,9 @@ export default function WeeklyActivitiesPage() {
 
   const openAdd = () => {
     setEditItem(null)
-    const firstParent = parentPrograms[0]?.id || ''
-    setSelectedParentId(firstParent)
-    const availableItems = itemPrograms.filter((i: any) => i.programKerjaId === firstParent)
 
     setForm({
-      idProgram: availableItems[0]?.id || itemPrograms[0]?.id || '',
+      idProgram: '',
       kegiatan: '',
       descriptionAction: '',
       startDate: today,
@@ -307,18 +274,14 @@ export default function WeeklyActivitiesPage() {
       kendala: '',
       remarks: ''
     })
-    setSubSearchQuery('')
-    setSubDropdownOpen(false)
     setShowModal(true)
   }
 
   const openEdit = (a: any) => {
     setEditItem(a)
-    const parentId = a.program?.programKerjaId || parentPrograms[0]?.id || ''
-    setSelectedParentId(parentId)
 
     setForm({
-      idProgram: a.idProgram,
+      idProgram: a.idProgram || '',
       kegiatan: a.kegiatan,
       descriptionAction: a.descriptionAction || '',
       startDate: a.startDate,
@@ -331,8 +294,6 @@ export default function WeeklyActivitiesPage() {
       kendala: a.kendala || '',
       remarks: a.remarks || ''
     })
-    setSubSearchQuery('')
-    setSubDropdownOpen(false)
     setShowModal(true)
   }
 
@@ -345,14 +306,6 @@ export default function WeeklyActivitiesPage() {
       closedDate: a.status === 'Closed' ? '' : today
     })
     setShowStatusModal(true)
-  }
-
-  const handleParentChange = (parentId: string) => {
-    setSelectedParentId(parentId)
-    const matchingItems = itemPrograms.filter((i: any) => i.programKerjaId === parentId)
-    if (matchingItems.length > 0) {
-      setForm(prev => ({ ...prev, idProgram: matchingItems[0].id }))
-    }
   }
 
   const submitForm = async (e: React.FormEvent) => {
@@ -648,7 +601,7 @@ export default function WeeklyActivitiesPage() {
               <div className="space-y-1.5 border-b border-slate-200 pb-2.5 min-w-0">
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
-                    {a.program?.programKerja?.kode} - {a.program?.programKerja?.namaProgram}
+                    {a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')}
                   </span>
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
                     a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
@@ -657,7 +610,7 @@ export default function WeeklyActivitiesPage() {
                     {a.status}
                   </span>
                 </div>
-                <p className="font-black text-slate-900 text-xs truncate min-w-0">{a.program?.kode} - {a.itemName}</p>
+                <p className="font-black text-slate-900 text-xs truncate min-w-0">{a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')}</p>
               </div>
 
               {/* Activity Details */}
@@ -742,10 +695,10 @@ export default function WeeklyActivitiesPage() {
                     {/* Program Column - Clean Responsive Formatting */}
                     <td className="py-4 px-4 space-y-1">
                       <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
-                        {a.program?.programKerja?.kode} - {a.program?.programKerja?.namaProgram}
+                        {a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')}
                       </span>
                       <p className="font-extrabold text-slate-900 text-xs leading-snug">
-                        {a.program?.kode} - {a.itemName}
+                        {a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')}
                       </p>
                     </td>
 
@@ -885,88 +838,17 @@ export default function WeeklyActivitiesPage() {
             <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
                 <h3 className="font-black text-slate-900 text-base">
-                  {editItem ? 'Edit Laporan Aktivitas' : 'Tambah Laporan Aktivitas Baru'}
+                  {editItem ? 'Edit Weekly Activities Report' : 'Tambah Weekly Activities Report'}
                 </h3>
                 <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
                   <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {/* Streamlined Form Fields */}
+              <form onSubmit={submitForm} className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto px-5 pt-5 pb-2 space-y-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">1. Program Kerja Induk *</label>
-                    <select
-                      value={selectedParentId}
-                      onChange={e => handleParentChange(e.target.value)}
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 outline-none cursor-pointer"
-                    >
-                      {parentPrograms.map(p => (
-                        <option key={p.id} value={p.id}>
-                          Program {p.kode}: {p.namaProgram}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Field 2: Searchable Select Dropdown for Sub-Item Program */}
-                  <div className="space-y-1 relative">
-                    <label className="text-xs font-bold text-slate-700">2. Sub-Item Program Kerja *</label>
-                    
-                    <div
-                      onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
-                    >
-                      <span className="truncate">
-                        {selectedItemObj ? `Item ${selectedItemObj.kode} — ${selectedItemObj.namaItem}` : 'Pilih Sub-Item Program Kerja...'}
-                      </span>
-                      <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
-                    </div>
-
-                    {subDropdownOpen && (
-                      <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
-                        <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
-                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="text"
-                            placeholder="Ketik untuk mencari item program..."
-                            value={subSearchQuery}
-                            onChange={e => setSubSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
-                            autoFocus
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          {filteredItemOptsSearch.length === 0 ? (
-                            <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
-                          ) : (
-                            filteredItemOptsSearch.map((i: any) => (
-                              <div
-                                key={i.id}
-                                onClick={() => {
-                                  setForm({ ...form, idProgram: i.id })
-                                  setSubDropdownOpen(false)
-                                  setSubSearchQuery('')
-                                }}
-                                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                                  form.idProgram === i.id
-                                    ? 'neu-active-green'
-                                    : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
-                                }`}
-                              >
-                                Item {i.kode} — {i.namaItem}
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">3. Kegiatan / Detail Laporan *</label>
+                    <label className="text-xs font-bold text-slate-700">1. Kegiatan / Detail Laporan *</label>
                     <textarea
                       rows={3}
                       required
@@ -979,7 +861,7 @@ export default function WeeklyActivitiesPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">4. Tanggal Start *</label>
+                      <label className="text-xs font-bold text-slate-700">2. Tanggal Start *</label>
                       <input
                         type="date"
                         required
@@ -1034,8 +916,8 @@ export default function WeeklyActivitiesPage() {
                   </div>
                 </div>
 
-                {/* Sticky Footer */}
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                {/* Footer — rapat ke dasar modal */}
+                <div className="px-5 py-3.5 border-t border-slate-200 bg-white shrink-0 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
@@ -1048,7 +930,7 @@ export default function WeeklyActivitiesPage() {
                     disabled={submitting}
                     className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
                   >
-                    {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Tambah Aktivitas'}
+                    {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Simpan Aktivitas'}
                   </button>
                 </div>
               </form>

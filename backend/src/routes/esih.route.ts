@@ -233,26 +233,26 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // POST create Activity
   fastify.post('/activities', async (request: any, reply) => {
     const { idProgram, kegiatan, descriptionAction, startDate, dueDate, closedDate, status, picNama, picEmail, tindakLanjut, kendala, remarks } = request.body || {}
-    if (!idProgram || !kegiatan || !picNama) {
-      return reply.code(400).send({ success: false, error: 'Sub-Program, Kegiatan, dan Nama PIC wajib diisi' })
+    if (!kegiatan || !picNama) {
+      return reply.code(400).send({ success: false, error: 'Kegiatan dan Nama PIC wajib diisi' })
     }
 
     const count = await prisma.activity.aggregate({ _max: { no: true } })
     const newNo = (count._max.no ?? 0) + 1
     const newId = `ACT-${String(newNo).padStart(3, '0')}`
 
-    const programItem = await prisma.masterProgram.findUnique({
+    const programItem = idProgram ? await prisma.masterProgram.findUnique({
       where: { id: idProgram },
       include: { programKerja: true }
-    })
+    }) : null
 
     const created = await prisma.activity.create({
       data: {
         id: newId,
         no: newNo,
-        idProgram,
-        kategoriProgram: programItem?.programKerja ? `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` : 'Program',
-        itemName: programItem?.namaItem || 'Item',
+        idProgram: idProgram || null,
+        kategoriProgram: programItem?.programKerja ? `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` : 'Kegiatan Personal',
+        itemName: programItem?.namaItem || 'Weekly Activity',
         kegiatan,
         descriptionAction,
         startDate: startDate || new Date().toISOString().split('T')[0],
