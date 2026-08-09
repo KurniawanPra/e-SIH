@@ -27,11 +27,11 @@ services:
       PORT: 4101
       DATABASE_URL: postgresql://esih:esih@postgres:5432/esih?schema=public
       PORTAL_API_URL: http://portal:3001
-      SSO_INTERNAL_TOKEN: 4fc937e29cf4bf2ca3c0e1813cd7685e
+      SSO_INTERNAL_TOKEN: ${SSO_INTERNAL_TOKEN:?SSO_INTERNAL_TOKEN wajib diatur di .env}
       TARGET_APP_ID: 77777777-7777-4777-8777-777777777777
       TARGET_FRONTEND_ORIGIN: http://localhost:4100
       ALLOWED_ORIGINS: ""
-      SESSION_SECRET_HEX: 9e4f9b209d89550b03607cd9fd9b28764f69e82c1218e6911d5cf622b4b0ab47
+      SESSION_SECRET_HEX: ${SESSION_SECRET_HEX:?SESSION_SECRET_HEX wajib diatur di .env}
       COOKIE_NAME: target_session
       COOKIE_MAX_AGE_SECONDS: 1800
     depends_on:

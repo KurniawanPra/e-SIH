@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prisma from '../plugins/prisma'
 
 const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  fastify.addHook('onRequest', fastify.authenticate)
+
   // ==========================================
   // 1. PARENT PROGRAM KERJA ROUTES
   // ==========================================

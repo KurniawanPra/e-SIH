@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { exchangePortalToken, SsoExchangeError } from '../services/portal-sso.service'
+import { config } from '../config/env'
 import type { SessionUser } from '../plugins/auth'
 
 const loginSchema = z.object({
@@ -15,7 +16,14 @@ export default async function authRoutes(app: FastifyInstance) {
   }))
 
   app.post('/demo-login', async (request, reply) => {
+    if (config.isProduction) {
+      return reply.code(404).send({ success: false, error: 'Not found' })
+    }
+
     const { role } = (request.body as { role?: string }) || {}
+    if (role !== 'ADMIN' && role !== 'USER') {
+      return reply.code(400).send({ success: false, error: 'Role harus ADMIN atau USER' })
+    }
     const isAdmin = role === 'ADMIN'
 
     const user: SessionUser = {

@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1786277580.7230108,
-    "ast_hash": "8998f59225709b4246f324ce928e39c4",
+    "mtime": 1786278950.5641668,
+    "ast_hash": "d36fe73f509658f8f1d011266128fd25",
     "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/monthly/page.tsx": {
-    "mtime": 1786277783.1688893,
-    "ast_hash": "8b82d31a990685903138e27f9faa987b",
+    "mtime": 1786279321.1489353,
+    "ast_hash": "cccd755980ae4149cc6aef086aefe5c4",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/page.tsx": {
@@ -1987,11 +1987,6 @@
   ".claude/skills/gstack/browse/src/xvfb.ts": {
     "mtime": 1786277580.7220109,
     "ast_hash": "ae5ed1066c97d9335f07f4920b57d092",
-    "semantic_hash": ""
-  },
-  "frontend/src/components/EChart.tsx": {
-    "mtime": 1786277580.7240107,
-    "ast_hash": "dc96db8b82b758f09b2277fcb65345a2",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/SKILL.md": {
