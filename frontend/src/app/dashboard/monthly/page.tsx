@@ -17,7 +17,8 @@ import {
   Pencil,
   Trash2,
   FileText,
-  FolderOpen
+  FolderOpen,
+  TrendingUp
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
 
@@ -199,7 +200,7 @@ export default function MonthlyActivitiesPage() {
 
   const StatCard = ({ label, value, color, icon }: any) => (
     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm min-w-0">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${color}`}>{icon}</div>
+      <div className={`shrink-0 ${color}`}>{icon}</div>
       <div className="min-w-0">
         <div className="truncate text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{label}</div>
         <div className="text-xl font-black text-slate-800 leading-tight">{value}</div>
@@ -251,12 +252,12 @@ export default function MonthlyActivitiesPage() {
 
       {/* ===== STATS ===== */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <StatCard label="Action Item" value={stats.total} color="bg-brand-100 text-brand-700" icon={<FileText size={16} />} />
-        <StatCard label="Open" value={stats.open} color="bg-sky-100 text-sky-600" icon={<AlertCircle size={16} />} />
-        <StatCard label="On Progress" value={stats.progress} color="bg-amber-100 text-amber-600" icon={<Clock size={16} />} />
-        <StatCard label="Closed" value={stats.closed} color="bg-emerald-100 text-emerald-600" icon={<CheckCircle2 size={16} />} />
-        <StatCard label="Cancelled" value={stats.cancelled} color="bg-slate-100 text-slate-500" icon={<XCircle size={16} />} />
-        <StatCard label="Closure (%)" value={`${stats.closure}%`} color="bg-indigo-100 text-indigo-600" icon={<CheckCircle2 size={16} />} />
+        <StatCard label="Action Item" value={stats.total} color="text-brand-600" icon={<FileText size={17} />} />
+        <StatCard label="Open" value={stats.open} color="text-sky-600" icon={<AlertCircle size={17} />} />
+        <StatCard label="On Progress" value={stats.progress} color="text-amber-600" icon={<Clock size={17} />} />
+        <StatCard label="Closed" value={stats.closed} color="text-emerald-600" icon={<CheckCircle2 size={17} />} />
+        <StatCard label="Cancelled" value={stats.cancelled} color="text-slate-400" icon={<XCircle size={17} />} />
+        <StatCard label="Closure (%)" value={`${stats.closure}%`} color="text-indigo-600" icon={<TrendingUp size={17} />} />
       </div>
 
       {view === 'cards' ? (
@@ -319,27 +320,27 @@ export default function MonthlyActivitiesPage() {
       ) : (
         /* ===== TABLE VIEW (Format INLHO/REP-F/-021) ===== */
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="mb-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-stretch">
             {userRole === 'ADMIN' && (
-              <button onClick={() => setView('cards')} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+              <button onClick={() => setView('cards')} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 sm:w-auto">
                 <ArrowLeft size={15} /> Pilih Bulan Lain
               </button>
             )}
             <select
               value={selectedMonth}
               onChange={e => setSelectedMonth(Number(e.target.value))}
-              className="rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+              className="w-full rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700 sm:flex-1 sm:min-w-0"
             >
               {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
             </select>
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700"
+              className="w-full rounded-xl border border-slate-300 px-2 py-2 text-sm font-semibold text-slate-700 sm:flex-1 sm:min-w-0"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
-            <div className="relative min-w-0 flex-1">
+            <div className="relative col-span-3 sm:col-span-auto sm:flex-1 sm:min-w-0">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={search}
@@ -348,7 +349,7 @@ export default function MonthlyActivitiesPage() {
                 className="w-full rounded-xl border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
               />
             </div>
-            <button onClick={() => openAddModal()} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
+            <button onClick={() => openAddModal()} className="flex col-span-3 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700 sm:w-auto">
               <Plus size={15} /> Tambah Highlight
             </button>
           </div>

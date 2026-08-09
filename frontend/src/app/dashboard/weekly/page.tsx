@@ -407,10 +407,10 @@ export default function WeeklyActivitiesPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center justify-center gap-2 font-extrabold text-xs px-3.5 py-2.5 rounded-xl cursor-pointer transition-all ${
+            className={`inline-flex w-full items-center justify-center gap-2 font-extrabold text-xs px-3.5 py-2.5 rounded-xl cursor-pointer transition-all sm:w-auto ${
               showFilters || (userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter)
                 ? 'bg-brand-50 text-brand-800 border-2 border-brand-300 shadow-xs'
                 : 'neu-btn text-slate-700 hover:text-slate-900'
@@ -426,7 +426,7 @@ export default function WeeklyActivitiesPage() {
 
           <button
             onClick={openAdd}
-            className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+            className="inline-flex w-full items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer sm:w-auto"
           >
             <Plus size={16} /> Tambah Aktivitas
           </button>
@@ -481,32 +481,34 @@ export default function WeeklyActivitiesPage() {
           </div>
         </div>
 
-        {/* Sprint Week Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-200">
-          <span className="text-xs font-black text-slate-700 mr-1">Sprint:</span>
-          {[
-            { id: 'ALL', label: 'Semua Minggu' },
-            { id: 'W1', label: 'Minggu 1 (Tgl 1-7)' },
-            { id: 'W2', label: 'Minggu 2 (Tgl 8-14)' },
-            { id: 'W3', label: 'Minggu 3 (Tgl 15-21)' },
-            { id: 'W4', label: 'Minggu 4 (Tgl 22-28)' },
-            { id: 'W5', label: 'Minggu 5 (Tgl 29-31)' },
-          ].map(week => {
-            const active = selectedWeek === week.id
-            return (
-              <button
-                key={week.id}
-                onClick={() => setSelectedWeek(week.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer ${
-                  active
-                    ? 'neu-active-green font-black shadow-xs'
-                    : 'neu-btn font-extrabold text-slate-700 hover:text-slate-900'
-                }`}
-              >
-                {week.label}
-              </button>
-            )
-          })}
+        {/* Sprint Week Pills — baris terpisah, lebar menyesuaikan layar */}
+        <div className="pt-2.5 border-t border-slate-200">
+          <span className="block text-xs font-black text-slate-700 mb-2">Sprint Minggu:</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
+            {[
+              { id: 'ALL', label: 'Semua Minggu' },
+              { id: 'W1', label: 'Minggu 1 (Tgl 1-7)' },
+              { id: 'W2', label: 'Minggu 2 (Tgl 8-14)' },
+              { id: 'W3', label: 'Minggu 3 (Tgl 15-21)' },
+              { id: 'W4', label: 'Minggu 4 (Tgl 22-28)' },
+              { id: 'W5', label: 'Minggu 5 (Tgl 29-31)' },
+            ].map(week => {
+              const active = selectedWeek === week.id
+              return (
+                <button
+                  key={week.id}
+                  onClick={() => setSelectedWeek(week.id)}
+                  className={`px-3 py-2 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap overflow-hidden ${
+                    active
+                      ? 'neu-active-green font-black shadow-xs'
+                      : 'neu-btn font-extrabold text-slate-700 hover:text-slate-900'
+                  }`}
+                >
+                  {week.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -566,20 +568,20 @@ export default function WeeklyActivitiesPage() {
               <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                 Range Tanggal Export
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch gap-2">
                 <input
                   type="date"
                   value={startDateFilter}
                   onChange={e => setStartDateFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  className="w-full sm:flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                   title="Tanggal Awal"
                 />
-                <span className="text-xs font-bold text-slate-400">s/d</span>
+                <span className="text-xs font-bold text-slate-400 text-center sm:self-center">s/d</span>
                 <input
                   type="date"
                   value={endDateFilter}
                   onChange={e => setEndDateFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                  className="w-full sm:flex-1 px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
                   title="Tanggal Akhir"
                 />
               </div>
@@ -607,11 +609,11 @@ export default function WeeklyActivitiesPage() {
               <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                 Status &amp; Ekspor
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-stretch gap-2">
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
                 >
                   <option value="ALL">Semua Status</option>
                   <option value="Closed">Closed</option>
