@@ -55,13 +55,13 @@
     "semantic_hash": ""
   },
   "backend/src/routes/auth.route.ts": {
-    "mtime": 1786277580.7220109,
-    "ast_hash": "4737757e4ceef1dcb2ffb80572150eba",
+    "mtime": 1786280755.039059,
+    "ast_hash": "dfbf9511712d35e14bb8c26021d3790a",
     "semantic_hash": ""
   },
   "backend/src/routes/esih.route.ts": {
-    "mtime": 1786277682.1049461,
-    "ast_hash": "a2d61670f24e7b5892576929c8ed2abe",
+    "mtime": 1786280733.1240723,
+    "ast_hash": "95a1a67c1f3200c2bea3b4edc9d18acd",
     "semantic_hash": ""
   },
   "backend/src/routes/portal-data.route.ts": {
@@ -110,7 +110,7 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1786278950.5641668,
+    "mtime": 1786279551.539794,
     "ast_hash": "d36fe73f509658f8f1d011266128fd25",
     "semantic_hash": ""
   },
@@ -125,7 +125,7 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/layout.tsx": {
-    "mtime": 1786277580.7230108,
+    "mtime": 1786279551.493794,
     "ast_hash": "254859534c4daea5e9b7f298fc492e99",
     "semantic_hash": ""
   },
@@ -140,12 +140,12 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/master/program-kerja/page.tsx": {
-    "mtime": 1786277580.7230108,
+    "mtime": 1786279551.4947941,
     "ast_hash": "efd0324a2db62555eac9f4406497375c",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/master/programs/page.tsx": {
-    "mtime": 1786277533.394036,
+    "mtime": 1786279551.4247942,
     "ast_hash": "89f0c21d6753601effd2d36ed4f1041b",
     "semantic_hash": ""
   },
@@ -165,17 +165,17 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/monthly/page.tsx": {
-    "mtime": 1786279321.1489353,
+    "mtime": 1786279551.5407941,
     "ast_hash": "cccd755980ae4149cc6aef086aefe5c4",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/page.tsx": {
-    "mtime": 1786277999.839752,
+    "mtime": 1786279551.5407941,
     "ast_hash": "0b9e25f4a31c775605d51ac7f03ec5fd",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/weekly/page.tsx": {
-    "mtime": 1786277783.1688893,
+    "mtime": 1786279551.541794,
     "ast_hash": "a36f6545fcaf4cdb77f042546a3c917c",
     "semantic_hash": ""
   },
@@ -185,7 +185,7 @@
     "semantic_hash": ""
   },
   "frontend/src/app/page.tsx": {
-    "mtime": 1786277580.7240107,
+    "mtime": 1786279551.4947941,
     "ast_hash": "49c44fcabcbaa1131f9e312c8b6bf7b8",
     "semantic_hash": ""
   },
@@ -205,12 +205,12 @@
     "semantic_hash": ""
   },
   "frontend/src/components/Sidebar.tsx": {
-    "mtime": 1786277533.394036,
+    "mtime": 1786279551.4257941,
     "ast_hash": "affa4fed649ee2119d1bc276af7ab42b",
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1786277580.7240107,
+    "mtime": 1786279551.495794,
     "ast_hash": "e0a32b40ae6d854bba57f710201316b1",
     "semantic_hash": ""
   },
@@ -1365,8 +1365,8 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1786183842.366943,
-    "ast_hash": "e09c14284c9b83fe09aa0a88660f2d93",
+    "mtime": 1786280783.2250416,
+    "ast_hash": "9ef546bdc1714fdb3d22f4e665492c1a",
     "semantic_hash": ""
   },
   "frontend/README.md": {
@@ -1645,357 +1645,357 @@
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/bin/find-browse": {
-    "mtime": 1786277580.7130108,
+    "mtime": 1786279551.462794,
     "ast_hash": "bb148ebf11055830600b71fa43a30c1a",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/bin/remote-slug": {
-    "mtime": 1786277580.7136083,
+    "mtime": 1786279551.4639654,
     "ast_hash": "1ac90cc966bd745adae3da8ee3711572",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/package.json": {
-    "mtime": 1786277580.7136083,
+    "mtime": 1786279551.4639654,
     "ast_hash": "746400c0f8d61a0ae5058e4f5bbf9c59",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/scripts/build-node-server.sh": {
-    "mtime": 1786277580.7136083,
+    "mtime": 1786279551.4639654,
     "ast_hash": "108157a822b7bf79e6ba5fae5c7b1485",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/setup": {
-    "mtime": 1786277580.7136083,
+    "mtime": 1786279551.4639654,
     "ast_hash": "d75d316e70c2f6ece8d6aab3a783e848",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/activity.ts": {
-    "mtime": 1786277580.7136083,
+    "mtime": 1786279551.4639654,
     "ast_hash": "61e6067613a9eeb57e9e049b6185c375",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/audit.ts": {
-    "mtime": 1786277580.7139096,
+    "mtime": 1786279551.4646602,
     "ast_hash": "05fe2342f16435e80612d7fdbbc15863",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/browse-client.ts": {
-    "mtime": 1786277580.7139096,
+    "mtime": 1786279551.4647942,
     "ast_hash": "37955bba6f5afefb01f6ec3c474b7c32",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/browser-manager.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.4647942,
     "ast_hash": "cda53bb6126ae1b8e73649780b9cc457",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/browser-skill-commands.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.465794,
     "ast_hash": "46636ebc5b987305ae659ed0e219ccc8",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/browser-skill-write.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.465794,
     "ast_hash": "7513754c45fb5776f4469650bf64e1b3",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/browser-skills.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "58b8e73d5ff05fda443ebdda1e21e729",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/buffers.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "3447e41b535b98b386c3e6e2da71f3df",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/bun-polyfill.cjs": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "a82b30d9643848a6405536accd02bec8",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cdp-allowlist.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "bc45dde4a0dd704b812627b2e7b10171",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cdp-bridge.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "2235df08e023cf8fae19e431ebc29c2c",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cdp-commands.ts": {
-    "mtime": 1786277580.7140107,
+    "mtime": 1786279551.466794,
     "ast_hash": "ff957569639245457a715131ec908212",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cdp-inspector.ts": {
-    "mtime": 1786277580.7150106,
+    "mtime": 1786279551.4677942,
     "ast_hash": "bf6b612c81bd9dbd829151c5bc6c045d",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/claude-bin.ts": {
-    "mtime": 1786277580.7150106,
+    "mtime": 1786279551.4677942,
     "ast_hash": "9c7dd51bd1bb4e75deaaa08d6df0cc43",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cli.ts": {
-    "mtime": 1786277580.7150106,
+    "mtime": 1786279551.468794,
     "ast_hash": "0e949f40d7be5eb2f6c6d5dfd0629718",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/commands.ts": {
-    "mtime": 1786277580.7150106,
+    "mtime": 1786279551.469794,
     "ast_hash": "12a16d8364fe119b743231dd24c2d8e2",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/config.ts": {
-    "mtime": 1786277580.7150106,
+    "mtime": 1786279551.469794,
     "ast_hash": "e9d800f43d8e4ac8129bfcff276e5108",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/content-security.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.470794,
     "ast_hash": "65d36cbcf733f889f08f94a7964fea72",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cookie-import-browser.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.470794,
     "ast_hash": "abd94e279d965c290461f2dad4dfca6a",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cookie-picker-routes.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.473794,
     "ast_hash": "4cfb4b58e4dd08c4d6c5a5e3c8cf6d0c",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/cookie-picker-ui.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.4747941,
     "ast_hash": "27c00e8ff4d4a638b1dc12c47de08ab1",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/domain-skill-commands.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.4747941,
     "ast_hash": "e5730a0d8b47976f2d0417fb3515ed6e",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/domain-skills.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "20a70236bd9397c54d18f7effb3f60c8",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/error-handling.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "dd01d2e98a4d9526088f64907a2842e6",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/file-permissions.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "3a90b8cd03f633df191f0f2db6406345",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/find-browse.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "365c6f4feb4b9012a625a7007d9e1df3",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/find-security-sidecar.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "9fcedbe14aa09ca0fe68801f6ed72e45",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/media-extract.ts": {
-    "mtime": 1786277580.7160108,
+    "mtime": 1786279551.475794,
     "ast_hash": "7a5e88260e76b0dfe69ddfde9aa54613",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/memory-command.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.476794,
     "ast_hash": "b056be819a5730fa08cd3a49cd1e9ea8",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/memory-snapshot.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.476794,
     "ast_hash": "43937c93f3e81254cecdd418e93d942d",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/meta-commands.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "6eb7903ec6f49608b78c8d41cca3bf76",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/network-capture.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "e0682c2e90a3610ea9b4cfee92dfb02e",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/path-security.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "ddef3cc8bb8137b37596f323b2b722e7",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/platform.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "1edfc05a8ce4212cc87ff4b79d55f4c4",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/project-slug.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "07c86f4e5e2c2da1661bad10b3870bc4",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/proxy-config.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "69673d44b5957876f59ced9d8f96b8fd",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/proxy-redact.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "a7d212f14ff400b0766535c663f839d1",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/pty-session-cookie.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "e03681b8331e727ce3e3e97b9dce459b",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/pty-session-lease.ts": {
-    "mtime": 1786277580.7170107,
+    "mtime": 1786279551.478794,
     "ast_hash": "1a9941aedbf748b48d7af8bb38aef69f",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/read-commands.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.479794,
     "ast_hash": "7a5f26448f99da8a7b4b1cbe0c70c3db",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/sanitize.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.479794,
     "ast_hash": "4524adab3c07713e319f497a9c890f19",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/screenshot-size-guard.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.479794,
     "ast_hash": "16ea829b6b2f1c7c9fd7308d98c42442",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/security-bunnative.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.480794,
     "ast_hash": "629a26e2f7d8c7854ee9a71f9e65ccb8",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/security-classifier.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.481794,
     "ast_hash": "8de1587dbf533d6bcdb726b70a7a8d06",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/security-sidecar-client.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.481794,
     "ast_hash": "c2f0df700e4541029fb762fb75a788dd",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/security-sidecar-entry.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.481794,
     "ast_hash": "e8f4352310315a7e6e234c258d418105",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/security.ts": {
-    "mtime": 1786277580.7180107,
+    "mtime": 1786279551.482794,
     "ast_hash": "1b88b125460811689c2f58cea02869a7",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/server.ts": {
-    "mtime": 1786277580.7190108,
+    "mtime": 1786279551.483794,
     "ast_hash": "316ffa092fda549f32ab46ff67123982",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/sidebar-utils.ts": {
-    "mtime": 1786277580.7190108,
+    "mtime": 1786279551.483794,
     "ast_hash": "68d7bec0ca2995d21cb908f67bbd72e5",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/skill-token.ts": {
-    "mtime": 1786277580.7190108,
+    "mtime": 1786279551.483794,
     "ast_hash": "e1ba4d15b9cb56b510fe337bcd62ede7",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/snapshot.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.4847941,
     "ast_hash": "831c2053ca7062395f21c0a09ceb4a0f",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/socks-bridge.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.4847941,
     "ast_hash": "9efc39e5285320524bbf4f174230f7dd",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/sse-helpers.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.4847941,
     "ast_hash": "2120fdedd5b9a9da5f86ea2cc8857662",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/sse-session-cookie.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.4847941,
     "ast_hash": "6b022bf8a039d45aa4284bf83a946835",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/stealth.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.485794,
     "ast_hash": "7a882b41a01f5c25218600f5a358c81a",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/tab-session.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.486794,
     "ast_hash": "aca1f12acc0a60626768f621c8c36735",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/telemetry.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.486794,
     "ast_hash": "d9e9fd80365f15c9292a9a0657e35b83",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/terminal-agent-control.ts": {
-    "mtime": 1786277580.7200108,
+    "mtime": 1786279551.486794,
     "ast_hash": "e54bb06f84a35acfdc17fe660321f4ae",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/terminal-agent.ts": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.4877942,
     "ast_hash": "702b1f3e0c2d068fabc9e720f9538f80",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/token-registry.ts": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.489794,
     "ast_hash": "c4b7e7f0eb10e4778cdb2a3b988cb619",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/tunnel-denial-log.ts": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.489794,
     "ast_hash": "4bbf17079876eff1cb9e0810c5d62b82",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/url-validation.ts": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.490794,
     "ast_hash": "cf631245c5964ba95b789bd690c8a381",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/write-commands.ts": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.491794,
     "ast_hash": "2138cb7fcdb5a7901b584507fcc135fb",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/xvfb.ts": {
-    "mtime": 1786277580.7220109,
+    "mtime": 1786279551.492794,
     "ast_hash": "ae5ed1066c97d9335f07f4920b57d092",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/SKILL.md": {
-    "mtime": 1786277580.7130108,
+    "mtime": 1786279551.4617941,
     "ast_hash": "d2a34ba78c508d8765e18a97c6d29d7c",
     "semantic_hash": ""
   },
   ".claude/skills/gstack/browse/src/welcome.html": {
-    "mtime": 1786277580.7210107,
+    "mtime": 1786279551.490794,
     "ast_hash": "d3186a67d3a38890974b85c1131019e0",
     "semantic_hash": ""
   }

@@ -358,7 +358,108 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   })
 
   // ==========================================
-  // 5. USER SDM MANAGEMENT ROUTES
+  // 5. MONTHLY HIGHLIGHT REPORT ROUTES
+  // ==========================================
+
+  // GET all highlights, filter by month & year
+  fastify.get('/highlights', async (request: any, reply) => {
+    const { month, year } = request.query || {}
+    const where: any = {}
+    if (month) where.bulan = Number(month)
+    if (year) where.tahun = Number(year)
+
+    const highlights = await prisma.highlight.findMany({
+      where,
+      orderBy: [{ no: 'asc' }, { createdAt: 'asc' }],
+      include: { author: { select: { id: true, nama: true, email: true } } },
+    })
+    return { data: highlights }
+  })
+
+  // GET monthly highlight summary
+  fastify.get('/highlights/summary', async (request: any, reply) => {
+    const { year } = request.query || {}
+    const where: any = {}
+    if (year) where.tahun = Number(year)
+
+    const groups = await prisma.highlight.groupBy({
+      by: ['bulan', 'tahun'],
+      where,
+      _count: { _all: true },
+    })
+    return { data: groups }
+  })
+
+  // POST create highlight
+  fastify.post('/highlights', async (request: any, reply) => {
+    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
+    if (!bulan || !tahun || !item) {
+      return reply.code(400).send({ success: false, error: 'Bulan, Tahun, dan Item wajib diisi' })
+    }
+
+    const sessionUser = request.session.get('user')
+    let authorId: string | null = null
+    if (sessionUser?.email) {
+      const user = await prisma.user.findUnique({ where: { email: sessionUser.email } })
+      if (user) authorId = user.id
+    }
+    const count = await prisma.highlight.count({
+      where: { bulan: Number(bulan), tahun: Number(tahun) },
+    })
+
+    const created = await prisma.highlight.create({
+      data: {
+        bulan: Number(bulan),
+        tahun: Number(tahun),
+        no: no !== undefined && no !== null ? Number(no) : count + 1,
+        item,
+        description,
+        actionToBeTaken,
+        namePic,
+        targetDate,
+        closedDate: status === 'Closed' && closedDate ? closedDate : null,
+        status: status || 'Open',
+        remarks,
+        authorId,
+      },
+    })
+    return reply.code(201).send({ success: true, data: created })
+  })
+
+  // PUT edit highlight
+  fastify.put('/highlights/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const { no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
+
+    const updated = await prisma.highlight.update({
+      where: { id },
+      data: {
+        no: no !== undefined && no !== null ? Number(no) : undefined,
+        item,
+        description,
+        actionToBeTaken,
+        namePic,
+        targetDate,
+        closedDate: status !== 'Closed' ? null : closedDate ?? undefined,
+        status,
+        remarks,
+      },
+    })
+    return { success: true, data: updated }
+  })
+
+  // DELETE highlight
+  fastify.delete('/highlights/:id', async (request: any, reply) => {
+    const { id } = request.params
+    const current = await prisma.highlight.findUnique({ where: { id } })
+    if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
+
+    await prisma.highlight.delete({ where: { id } })
+    return { success: true, data: { id } }
+  })
+
+  // ==========================================
+  // 6. USER SDM MANAGEMENT ROUTES
   // ==========================================
 
   // GET all users

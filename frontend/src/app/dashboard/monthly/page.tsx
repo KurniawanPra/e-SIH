@@ -1,21 +1,24 @@
 'use client'
 
-import { useEffect, useState, useMemo, Fragment } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { api } from '@/lib/api'
 import {
   CalendarRange,
   CheckCircle2,
   Clock,
   AlertCircle,
+  XCircle,
   Search,
-  User,
   Plus,
   X,
   FileSpreadsheet,
   Printer,
-  ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft,
+  Pencil,
+  Trash2,
+  FileText
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
 
@@ -23,867 +26,490 @@ const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ]
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+const STATUS_COLORS: Record<string, string> = {
+  Open: 'bg-sky-100 text-sky-700 border-sky-200',
+  'On Progress': 'bg-amber-100 text-amber-700 border-amber-200',
+  Closed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Cancelled: 'bg-slate-200 text-slate-600 border-slate-300',
+}
+
+const emptyForm = {
+  bulan: new Date().getMonth() + 1,
+  tahun: new Date().getFullYear(),
+  item: '',
+  description: '',
+  actionToBeTaken: '',
+  namePic: '',
+  targetDate: '',
+  closedDate: '',
+  status: 'On Progress',
+  remarks: '',
+}
 
 export default function MonthlyActivitiesPage() {
-  const [activities, setActivities] = useState<any[]>([])
-  const [itemPrograms, setItemPrograms] = useState<any[]>([])
-  const [parentPrograms, setParentPrograms] = useState<any[]>([])
+  const [highlights, setHighlights] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Selected Month & Year
-  const currentMonthIdx = new Date().getMonth() + 1
-  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthIdx)
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
-
-  // Filters
+  const today = new Date()
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
+  const [view, setView] = useState<'calendar' | 'table'>('calendar')
   const [search, setSearch] = useState('')
-  const [userFilter, setUserFilter] = useState('ALL')
-  const [statusFilter, setStatusFilter] = useState('ALL')
 
-  // Modal State
   const [showModal, setShowModal] = useState(false)
-  const [subSearchQuery, setSubSearchQuery] = useState('')
-  const [subDropdownOpen, setSubDropdownOpen] = useState(false)
-
-  const [form, setForm] = useState({
-    idProgram: '',
-    kegiatan: '',
-    descriptionAction: '',
-    startDate: '',
-    dueDate: '',
-    closedDate: '',
-    status: 'On Progress',
-    picNama: '',
-    picEmail: '',
-    remarks: ''
-  })
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({ ...emptyForm })
   const [submitting, setSubmitting] = useState(false)
 
-  const fetchAll = async () => {
+  const fetchHighlights = async (month: number, year: number) => {
     try {
-      const [r1, r2, r3] = await Promise.all([
-        api.get('/api/esih/activities'),
-        api.get('/api/esih/programs'),
-        api.get('/api/esih/program-kerja')
-      ])
-      setActivities(r1.data.data || [])
-      setItemPrograms(r2.data.data || [])
-      setParentPrograms(r3.data.data || [])
-      setLoading(false)
+      const r = await api.get('/api/esih/highlights', { params: { month, year } })
+      setHighlights(r.data.data || [])
     } catch (err) {
       console.error(err)
+    } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchAll()
-  }, [])
+    fetchHighlights(selectedMonth, selectedYear)
+  }, [selectedMonth, selectedYear])
 
-  // Filtered by selected year and month
-  const monthActivities = useMemo(() => {
-    return activities.filter((a: any) => {
-      if (!a.startDate) return false
-      const d = new Date(a.startDate)
-      const m = d.getMonth() + 1
-      const y = d.getFullYear()
-      return m === selectedMonth && y === selectedYear
-    })
-  }, [activities, selectedMonth, selectedYear])
+  // ---- Calendar grid ----
+  const calendarDays = useMemo(() => {
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
+    const firstDay = new Date(selectedYear, selectedMonth - 1, 1).getDay()
+    const cells: (number | null)[] = Array(firstDay).fill(null)
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+    while (cells.length % 7 !== 0) cells.push(null)
+    return cells
+  }, [selectedMonth, selectedYear])
 
-  // Unique PICs who actually uploaded activities in selected month
-  const availablePics = useMemo(() => {
-    const picSet = new Set<string>()
-    monthActivities.forEach((a: any) => {
-      const name = a.picNama?.split('/')[0]?.trim()
-      if (name) picSet.add(name)
-    })
-    return Array.from(picSet).sort()
-  }, [monthActivities])
+  // ---- Stats for selected month ----
+  const stats = useMemo(() => {
+    const total = highlights.length
+    const open = highlights.filter(h => h.status === 'Open').length
+    const progress = highlights.filter(h => h.status === 'On Progress').length
+    const closed = highlights.filter(h => h.status === 'Closed').length
+    const cancelled = highlights.filter(h => h.status === 'Cancelled').length
+    const closure = total > 0 ? Math.round((closed / total) * 100) : 0
+    return { total, open, progress, closed, cancelled, closure }
+  }, [highlights])
 
-  // Filtered activities based on Search, User Filter, and Status Filter
-  const filteredActivities = useMemo(() => {
-    return monthActivities.filter((a: any) => {
-      if (userFilter !== 'ALL') {
-        const picName = a.picNama?.split('/')[0]?.trim() || ''
-        if (picName.toLowerCase() !== userFilter.toLowerCase()) return false
-      }
-
-      if (statusFilter !== 'ALL' && a.status !== statusFilter) return false
-
-      if (search.trim()) {
-        const q = search.toLowerCase()
-        const matchKegiatan = a.kegiatan?.toLowerCase().includes(q)
-        const matchDesc = a.descriptionAction?.toLowerCase().includes(q)
-        const matchPic = a.picNama?.toLowerCase().includes(q)
-        const matchItem = a.itemName?.toLowerCase().includes(q)
-        if (!matchKegiatan && !matchDesc && !matchPic && !matchItem) return false
-      }
-
-      return true
-    })
-  }, [monthActivities, userFilter, statusFilter, search])
-
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1)
-  const [inputPage, setInputPage] = useState('1')
-  const pageSize = 10
-
-  useEffect(() => {
-    setCurrentPage(1)
-    setInputPage('1')
-  }, [selectedMonth, selectedYear, userFilter, statusFilter, search])
-
-  useEffect(() => {
-    setInputPage(String(currentPage))
-  }, [currentPage])
-
-  const totalPages = Math.ceil(filteredActivities.length / pageSize) || 1
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = Math.min(startIndex + pageSize, filteredActivities.length)
-
-  const paginatedActivities = useMemo(() => {
-    return filteredActivities.slice(startIndex, startIndex + pageSize)
-  }, [filteredActivities, startIndex])
-
-  // Searchable Sub-Item Program Options for Modal
-  const filteredSubItems = useMemo(() => {
-    if (!subSearchQuery.trim()) return itemPrograms
-    const q = subSearchQuery.toLowerCase()
-    return itemPrograms.filter(s =>
-      s.namaItem?.toLowerCase().includes(q) ||
-      s.kode?.toLowerCase().includes(q) ||
-      s.programKerja?.kode?.toLowerCase().includes(q)
+  const filteredHighlights = useMemo(() => {
+    if (!search.trim()) return highlights
+    const q = search.toLowerCase()
+    return highlights.filter(h =>
+      h.item?.toLowerCase().includes(q) ||
+      h.description?.toLowerCase().includes(q) ||
+      h.namePic?.toLowerCase().includes(q) ||
+      h.remarks?.toLowerCase().includes(q)
     )
-  }, [itemPrograms, subSearchQuery])
+  }, [highlights, search])
 
-  const selectedSubObj = useMemo(() => {
-    return itemPrograms.find(s => s.id === form.idProgram) || itemPrograms[0]
-  }, [itemPrograms, form.idProgram])
-
-  // Calculate Overall System Stats (based on selected month)
-  const totalCount = monthActivities.length
-  const openCount = monthActivities.filter((a: any) => a.status === 'Open').length
-  const progressCount = monthActivities.filter((a: any) => a.status === 'On Progress').length
-  const closedCount = monthActivities.filter((a: any) => a.status === 'Closed').length
-  const cancelledCount = monthActivities.filter((a: any) => a.status === 'Cancelled').length
-  const closureRate = totalCount > 0 ? Math.round((closedCount / totalCount) * 100) : 0
-
-  // Group filtered activities by Program Kerja Induk (SUBJECT A/B/C)
-  const groupedByProgram = useMemo(() => {
-    const groups = new Map<string, { parent: any; items: any[] }>()
-    filteredActivities.forEach((a: any) => {
-      const pk = a.program?.programKerja
-      const key = pk?.id || a.kategoriProgram || 'Program'
-      if (!groups.has(key)) {
-        groups.set(key, { parent: pk || null, items: [] })
-      }
-      groups.get(key)!.items.push(a)
-    })
-    return Array.from(groups.values())
-      .sort((x, y) => (x.parent?.kode || '').localeCompare(y.parent?.kode || ''))
-  }, [filteredActivities])
-
-  const handleExportExcel = () => {
-    if (filteredActivities.length === 0) {
-      alert('Tidak ada data laporan bulanan untuk di-export.')
-      return
-    }
-
-    const headers = [
-      'No',
-      'Program Kerja Induk',
-      'Sub-Item Program',
-      'Action / Kegiatan Highlight',
-      'Action To Be Taken',
-      'Target Due Date',
-      'Closed Date',
-      'Status Aktivitas',
-      'Penanggung Jawab (PIC IT)',
-      'Remarks'
-    ]
-
-    const rows = filteredActivities.map((a, idx) => [
-      idx + 1,
-      `"${(a.program?.programKerja?.kode || '')} - ${(a.program?.programKerja?.namaProgram || '').replace(/"/g, '""')}"`,
-      `"${(a.program?.kode || '')} - ${(a.itemName || '').replace(/"/g, '""')}"`,
-      `"${(a.kegiatan || '').replace(/"/g, '""')}"`,
-      `"${(a.descriptionAction || '').replace(/"/g, '""')}"`,
-      a.dueDate || '',
-      a.closedDate || '',
-      a.status || '',
-      `"${(a.picNama || '').replace(/"/g, '""')}"`,
-      `"${(a.remarks || '').replace(/"/g, '""')}"`
-    ])
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', `e-SIH_Monthly_Highlight_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const navigateMonth = (dir: number) => {
+    let m = selectedMonth + dir
+    let y = selectedYear
+    if (m < 1) { m = 12; y -= 1 }
+    if (m > 12) { m = 1; y += 1 }
+    setSelectedMonth(m)
+    setSelectedYear(y)
   }
 
-  const handlePrint = () => {
-    const esc = (s: any) => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-    const periodeLabel = `PERIODE : ${MONTH_NAMES[selectedMonth - 1].toUpperCase()} ${selectedYear}`
-
-    let rowsHtml = ''
-    let no = 0
-    groupedByProgram.forEach(({ parent, items }) => {
-      const gTotal = items.length
-      const gClosed = items.filter((i: any) => i.status === 'Closed').length
-      const gClosure = gTotal > 0 ? Math.round((gClosed / gTotal) * 100) : 0
-      rowsHtml += `
-        <tr class="subject-row">
-          <td colspan="11">SUBJECT : ${parent?.kode ? `${parent.kode}. ` : ''}${esc(parent?.namaProgram || items[0]?.kategoriProgram || 'Program')}
-            <span class="subj-stats">Total: ${gTotal} &nbsp;|&nbsp; Closed: ${gClosed} &nbsp;|&nbsp; Closure: ${gClosure}%</span>
-          </td>
-        </tr>`
-      items.forEach((a: any) => {
-        no++
-        rowsHtml += `
-        <tr>
-          <td class="center">${no}</td>
-          <td>${esc(a.program?.kode || '')} - ${esc(a.itemName || '')}</td>
-          <td>${esc(a.kegiatan || '')}</td>
-          <td>${esc(a.descriptionAction || '')}</td>
-          <td>${esc(a.picNama?.split('/')[0] || '')}</td>
-          <td class="center">${esc(a.dueDate || '')}</td>
-          <td class="center">${esc(a.closedDate || '')}</td>
-          <td class="center">${esc(a.status || '')}</td>
-          <td>${esc(a.remarks || '')}</td>
-          <td class="center">${a.status !== 'Closed' ? '1' : ''}</td>
-          <td class="center">${a.status === 'Closed' ? '1' : ''}</td>
-        </tr>`
-      })
-    })
-
-    const win = window.open('', '_blank', 'width=1200,height=800')
-    if (!win) return
-    win.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>SDM &amp; SISTEM PROGRAM HIGHLIGHT REPORT - ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}</title>
-<style>
-  @page { size: A4 landscape; margin: 12mm; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #000; margin: 0; }
-  .header { text-align: center; margin-bottom: 4px; }
-  .title { font-size: 15px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
-  .periode { font-size: 11px; font-weight: 600; margin-top: 2px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-  th, td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; text-align: left; }
-  th { background: #e8e8e8; font-size: 10px; text-align: center; }
-  td.center { text-align: center; }
-  .stats-table td { font-size: 11px; text-align: center; }
-  .stats-table td.left { text-align: left; font-weight: 700; }
-  .subject-row td { background: #f2f2f2; font-weight: 800; font-size: 11px; text-transform: uppercase; }
-  .subj-stats { font-weight: 600; text-transform: none; margin-left: 12px; font-size: 10px; }
-  .footer { margin-top: 14px; display: flex; justify-content: space-between; font-size: 11px; }
-  .sign-area { text-align: center; width: 220px; }
-  .sign-name { margin-top: 56px; font-weight: 700; text-decoration: underline; }
-  .print-hint { color: #666; margin: 6px 0; font-size: 11px; }
-</style>
-</head>
-<body onload="window.print()">
-  <div class="header">
-    <div class="title">SDM &amp; SISTEM PROGRAM HIGHLIGHT REPORT</div>
-    <div class="periode">${periodeLabel}</div>
-  </div>
-
-  <table class="stats-table">
-    <tr>
-      <td class="left">No. of Action Item</td><td>${totalCount}</td>
-      <td class="left">No. Dokumen</td><td>INLHO/REP-F/-021</td>
-      <td class="left">Tgl. Berlaku</td><td>12-Nov-18</td>
-    </tr>
-    <tr>
-      <td class="left">Open</td><td>${openCount}</td>
-      <td class="left">No. Revisi</td><td>00</td>
-      <td class="left">Halaman</td><td>1 dari 1</td>
-    </tr>
-    <tr>
-      <td class="left">On Progress</td><td>${progressCount}</td>
-      <td colspan="4"></td>
-    </tr>
-    <tr>
-      <td class="left">Closed</td><td>${closedCount}</td>
-      <td colspan="4"></td>
-    </tr>
-    <tr>
-      <td class="left">Cancelled</td><td>${cancelledCount}</td>
-      <td colspan="4"></td>
-    </tr>
-    <tr>
-      <td class="left">Closure (%)</td><td>${closureRate}%</td>
-      <td colspan="4"></td>
-    </tr>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th style="width:30px">NO</th>
-        <th style="width:110px">ITEM</th>
-        <th>DESCRIPTION</th>
-        <th>ACTION TO BE TAKEN</th>
-        <th style="width:80px">NAME PIC</th>
-        <th style="width:70px">TARGET DATE</th>
-        <th style="width:70px">CLOSED DATE</th>
-        <th style="width:85px">STATUS</th>
-        <th style="width:120px">REMARKS</th>
-        <th style="width:25px">O</th>
-        <th style="width:25px">C</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rowsHtml || '<tr><td colspan="11" class="center">Tidak ada data pada periode ini.</td></tr>'}
-    </tbody>
-  </table>
-
-  <div class="footer">
-    <div class="sign-area">
-      <div>Dibuat Oleh,</div>
-      <div class="sign-name">Herbina</div>
-      <div>PJ Sub Bagian Sistem &amp; IT</div>
-    </div>
-    <div class="sign-area">
-      <div>Mengetahui,</div>
-      <div class="sign-name">Kepala Bagian SDM &amp; Sistem</div>
-      <div>PT. Industri Nabati Lestari Operation</div>
-    </div>
-  </div>
-
-  <script>
-    window.onafterprint = function () { window.close() }
-  </script>
-</body>
-</html>`)
-    win.document.close()
-  }
-
-  const openAdd = () => {
-    const today = new Date().toISOString().split('T')[0]
-    setForm({
-      idProgram: itemPrograms[0]?.id || '',
-      kegiatan: '',
-      descriptionAction: '',
-      startDate: today,
-      dueDate: today,
-      closedDate: '',
-      status: 'On Progress',
-      picNama: '',
-      picEmail: '',
-      remarks: ''
-    })
-    setSubSearchQuery('')
-    setSubDropdownOpen(false)
+  const openAddModal = () => {
+    setEditingId(null)
+    setForm({ ...emptyForm, bulan: selectedMonth, tahun: selectedYear })
     setShowModal(true)
   }
 
-  const submitForm = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const openEditModal = (h: any) => {
+    setEditingId(h.id)
+    setForm({
+      bulan: h.bulan,
+      tahun: h.tahun,
+      item: h.item || '',
+      description: h.description || '',
+      actionToBeTaken: h.actionToBeTaken || '',
+      namePic: h.namePic || '',
+      targetDate: h.targetDate || '',
+      closedDate: h.closedDate || '',
+      status: h.status || 'On Progress',
+      remarks: h.remarks || '',
+    })
+    setShowModal(true)
+  }
+
+  const handleSubmit = async () => {
+    if (!form.item.trim()) return
     setSubmitting(true)
     try {
-      await api.post('/api/esih/activities', form)
+      const payload = { ...form }
+      if (editingId) {
+        await api.put(`/api/esih/highlights/${editingId}`, payload)
+      } else {
+        await api.post('/api/esih/highlights', payload)
+      }
       setShowModal(false)
-      fetchAll()
-    } catch {
-      alert('Gagal menyimpan laporan bulanan')
+      await fetchHighlights(selectedMonth, selectedYear)
+    } catch (err) {
+      console.error(err)
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
+  const handleDelete = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus item highlight ini?')) return
+    try {
+      await api.delete(`/api/esih/highlights/${id}`)
+      await fetchHighlights(selectedMonth, selectedYear)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const exportCsv = () => {
+    const header = ['No', 'Item', 'Description', 'Action To Be Taken', 'Name PIC', 'Target Date', 'Closed Date', 'Status', 'Remarks']
+    const rows = highlights.map(h => [
+      h.no, h.item, h.description, h.actionToBeTaken, h.namePic, h.targetDate, h.closedDate, h.status, h.remarks
+    ])
+    const csv = [header, ...rows]
+      .map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `Management_Highlight_Report_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  const StatCard = ({ label, value, color, icon }: any) => (
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${color}`}>{icon}</div>
+      <div className="min-w-0">
+        <div className="truncate text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{label}</div>
+        <div className="text-xl font-black text-slate-800 leading-tight">{value}</div>
+      </div>
+    </div>
+  )
+
+  const formInput = (label: string, field: keyof typeof form, type = 'text', props: any = {}) => (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">{label}</span>
+      <input
+        type={type}
+        value={form[field] as string}
+        onChange={e => setForm({ ...form, [field]: type === 'number' ? Number(e.target.value) : e.target.value })}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+        {...props}
+      />
+    </label>
+  )
+
+  if (loading) {
+    return (
+      <div className="flex min-h-64 items-center justify-center">
+        <span className="spinner" />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+    <div className="space-y-5">
+      {/* ===== HEADER ===== */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <CalendarRange className="text-brand-700" size={24} /> Monthly Report (Highlight Digest)
-          </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Rekapitulasi Highlight Kinerja Operasional Sub Bagian Sistem &amp; IT
+          <h1 className="flex items-center gap-2 text-xl font-black text-slate-800">
+            <CalendarRange size={22} className="text-brand-600" /> Management Highlight Report
+          </h1>
+          <p className="text-xs font-medium text-slate-500">
+            No. Dokumen: INLHO/REP-F/-021 · PERIODE : 01 - {new Date(selectedYear, selectedMonth, 0).getDate()} {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
           </p>
         </div>
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center justify-center gap-2 neu-btn font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer text-slate-700"
-            title="Cetak laporan format INLHO/REP-F/-021"
-          >
-            <Printer size={16} /> Cetak / PDF
+        <div className="flex items-center gap-2">
+          <button onClick={exportCsv} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+            <FileSpreadsheet size={15} /> Export CSV
           </button>
-          <button
-            onClick={handleExportExcel}
-            className="inline-flex items-center justify-center gap-2 neu-btn-emerald font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
-          >
-            <FileSpreadsheet size={16} /> Export Excel
-          </button>
-          <button
-            onClick={openAdd}
-            className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
-          >
-            <Plus size={16} /> Tambah Highlight
+          <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+            <Printer size={15} /> Print
           </button>
         </div>
       </div>
 
-      {/* Management Highlight Report Summary (Format Referensi 2.jpeg) */}
-      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="text-brand-700" size={16} />
-            <span className="text-xs font-black uppercase tracking-wider text-slate-900">
-              Management Highlight Report Summary
-            </span>
-          </div>
-          <span className="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
-            {MONTH_NAMES[selectedMonth - 1]} {selectedYear} · Dokumen: INLHO/REP-F/-021
-          </span>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border border-slate-300 text-xs font-bold">
-          <div className="grid grid-cols-2 bg-slate-100 border-b border-slate-300 py-2 px-3.5 text-slate-700 font-black">
-            <span>Metrik Aktivitas</span>
-            <span className="text-right">Jumlah / Nilai</span>
-          </div>
-          <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200">
-            <span className="text-slate-800 font-extrabold">No. of Action Item</span>
-            <span className="text-right font-black text-slate-900">{totalCount}</span>
-          </div>
-          <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-red-50/50">
-            <span className="text-red-700 font-extrabold">Open</span>
-            <span className="text-right font-black text-red-600">{openCount}</span>
-          </div>
-          <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-amber-50/50">
-            <span className="text-amber-700 font-extrabold">On Progress</span>
-            <span className="text-right font-black text-amber-600">{progressCount}</span>
-          </div>
-          <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-emerald-50/50">
-            <span className="text-emerald-700 font-extrabold">Closed</span>
-            <span className="text-right font-black text-emerald-600">{closedCount}</span>
-          </div>
-          <div className="grid grid-cols-2 py-1.5 px-3.5 border-b border-slate-200 bg-slate-50/60">
-            <span className="text-slate-500 font-extrabold">Cancelled</span>
-            <span className="text-right font-black text-slate-400">{cancelledCount}</span>
-          </div>
-          <div className="grid grid-cols-2 py-2 px-3.5 bg-brand-50/50">
-            <span className="text-brand-800 font-black">Closure (%)</span>
-            <span className="text-right font-black text-brand-700 text-sm">{closureRate}%</span>
-          </div>
-        </div>
+      {/* ===== STATS ===== */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+        <StatCard label="Action Item" value={stats.total} color="bg-brand-100 text-brand-700" icon={<FileText size={16} />} />
+        <StatCard label="Open" value={stats.open} color="bg-sky-100 text-sky-600" icon={<AlertCircle size={16} />} />
+        <StatCard label="On Progress" value={stats.progress} color="bg-amber-100 text-amber-600" icon={<Clock size={16} />} />
+        <StatCard label="Closed" value={stats.closed} color="bg-emerald-100 text-emerald-600" icon={<CheckCircle2 size={16} />} />
+        <StatCard label="Cancelled" value={stats.cancelled} color="bg-slate-100 text-slate-500" icon={<XCircle size={16} />} />
+        <StatCard label="Closure (%)" value={`${stats.closure}%`} color="bg-indigo-100 text-indigo-600" icon={<CheckCircle2 size={16} />} />
       </div>
-      {/* Month Filter Selector Bar */}
-      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 min-w-0">
-          <span className="text-xs font-black text-slate-900 uppercase tracking-wider w-full sm:w-auto">Rekapitulasi Bulan:</span>
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(Number(e.target.value))}
-            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer min-w-0 max-w-full"
-          >
-            {MONTH_NAMES.map((name, idx) => (
-              <option key={name} value={idx + 1}>
-                {name} {selectedYear}
-              </option>
+
+      {view === 'calendar' ? (
+        /* ===== CALENDAR VIEW ===== */
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigateMonth(-1)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50">
+                <ChevronLeft size={16} />
+              </button>
+              <h2 className="min-w-44 text-center text-lg font-black text-slate-800">
+                {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
+              </h2>
+              <button onClick={() => navigateMonth(1)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 hover:bg-slate-50">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(Number(e.target.value))}
+                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-semibold text-slate-700"
+              >
+                {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={e => setSelectedYear(Number(e.target.value))}
+                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-semibold text-slate-700"
+              >
+                {Array.from({ length: 6 }, (_, i) => selectedYear - 2 + i).map(y =>
+                  <option key={y} value={y}>{y}</option>
+                )}
+              </select>
+              <button onClick={openAddModal} className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
+                <Plus size={15} /> Tambah Highlight
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5">
+            {DAY_NAMES.map(d => (
+              <div key={d} className="pb-1 text-center text-[11px] font-black text-slate-400 uppercase">{d}</div>
             ))}
-          </select>
-        </div>
-
-        <span className="text-xs font-bold text-slate-500">
-          Highlight Terdaftar: <strong className="text-brand-700">{filteredActivities.length}</strong> Aktivitas
-        </span>
-      </div>
-
-      {/* Search & Secondary Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari kegiatan highlight, PIC..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-          />
-        </div>
-
-        <select
-          value={userFilter}
-          onChange={e => setUserFilter(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-        >
-          <option value="ALL">Filter PIC IT: Semua User ({availablePics.length})</option>
-          {availablePics.map(pic => (
-            <option key={pic} value={pic}>{pic}</option>
-          ))}
-        </select>
-
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-        >
-          <option value="ALL">Filter Status: Semua Status</option>
-          <option value="Closed">Closed (Selesai)</option>
-          <option value="On Progress">On Progress (Berjalan)</option>
-          <option value="Open">Open (Belum Dimulai)</option>
-          <option value="Cancelled">Cancelled (Dibatalkan)</option>
-        </select>
-      </div>
-
-      {/* Desktop & Tablet Table (Grouped by Program Induk A/B/C) */}
-      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-200 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
-                <th className="py-3.5 px-4 w-48">Item</th>
-                <th className="py-3.5 px-4">Description</th>
-                <th className="py-3.5 px-4">Action To Be Taken</th>
-                <th className="py-3.5 px-4 w-32">Name PIC</th>
-                <th className="py-3.5 px-4 w-28">Target Date</th>
-                <th className="py-3.5 px-4 w-28">Closed Date</th>
-                <th className="py-3.5 px-4 w-32 text-center">Status</th>
-                <th className="py-3.5 px-4 w-48">Remarks</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-xs">
-              {groupedByProgram.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-400 font-bold">
-                    Tidak ada data highlight aktivitas pada bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
-                  </td>
-                </tr>
-              ) : (
-                groupedByProgram.map(({ parent, items }) => {
-                  const gTotal = items.length
-                  const gClosed = items.filter((i: any) => i.status === 'Closed').length
-                  const gClosure = gTotal > 0 ? Math.round((gClosed / gTotal) * 100) : 0
-                  return (
-                    <Fragment key={parent?.id || parent?.kode || 'program'}>
-                      {/* SUBJECT Group Header Row */}
-                      <tr className="bg-brand-50/80 border-b border-brand-200">
-                        <td colSpan={9} className="py-2.5 px-4">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-black uppercase tracking-wider text-brand-900">
-                              Subject: {parent?.kode ? `${parent.kode}. ` : ''}{parent?.namaProgram || items[0]?.kategoriProgram || 'Program'}
-                            </span>
-                            <span className="ml-auto flex items-center gap-3 text-[10px] font-bold text-slate-600">
-                              <span>Total: <strong className="text-slate-900">{gTotal}</strong></span>
-                              <span>Closed: <strong className="text-emerald-700">{gClosed}</strong></span>
-                              <span>Closure: <strong className="text-brand-700">{gClosure}%</strong></span>
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                      {items.map((a) => (
-                        <tr key={a.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3.5 px-4 text-center font-mono font-black text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">{a.no}</td>
-                          <td className="py-3.5 px-4 font-extrabold text-slate-900">
-                            <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 mb-1">
-                              {a.program?.kode}
-                            </span>
-                            <p className="leading-snug">{a.itemName}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="font-extrabold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            {a.descriptionAction ? (
-                              <p className="text-[11px] text-slate-600 font-medium leading-snug line-clamp-3">{a.descriptionAction}</p>
-                            ) : (
-                              <span className="text-[11px] text-slate-300">—</span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-slate-700">{a.picNama?.split('/')[0]}</td>
-                          <td className="py-3.5 px-4 font-bold text-slate-700 whitespace-nowrap">{a.dueDate}</td>
-                          <td className="py-3.5 px-4 font-bold text-emerald-700 whitespace-nowrap">{a.closedDate || '—'}</td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black border ${
-                              a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
-                            }`}>
-                              {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'On Progress' ? <Clock size={12} /> : <AlertCircle size={12} />}
-                              {a.status}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            {a.remarks ? (
-                              <p className="text-[11px] text-slate-600 font-medium leading-snug line-clamp-2">{a.remarks}</p>
-                            ) : (
-                              <span className="text-[11px] text-slate-300">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </Fragment>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile View */}
-      <div className="grid grid-cols-1 gap-3 md:hidden">
-        {paginatedActivities.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
-            Tidak ada data highlight aktivitas pada bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
+            {calendarDays.map((day, i) => {
+              const isToday = day === today.getDate() && selectedMonth === today.getMonth() + 1 && selectedYear === today.getFullYear()
+              return (
+                <button
+                  key={i}
+                  onClick={() => setView('table')}
+                  className={`flex aspect-square flex-col items-center justify-center rounded-xl border text-sm font-bold transition hover:bg-brand-50 hover:border-brand-300 ${
+                    isToday ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                  title={`Lihat tabel highlight ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}
+                >
+                  <span className={day === null ? 'opacity-0' : ''}>{day ?? ''}</span>
+                </button>
+              )
+            })}
           </div>
-        ) : (
-          paginatedActivities.map((a) => (
-            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-2.5 w-full min-w-0">
-              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
-                  {a.program?.programKerja?.kode} - {a.program?.kode}
-                </span>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
-                  a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
-                }`}>
-                  {a.status}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <p className="font-extrabold text-slate-900 text-sm leading-snug">{a.kegiatan || a.descriptionAction}</p>
-                {a.descriptionAction && a.kegiatan && (
-                  <p className="text-[11px] text-slate-500 font-medium mt-1 line-clamp-2">{a.descriptionAction}</p>
-                )}
-                {a.remarks && (
-                  <p className="text-[11px] text-slate-600 font-semibold mt-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
-                    Remarks: {a.remarks}
-                  </p>
-                )}
-              </div>
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2 text-xs font-bold text-slate-700 min-w-0">
-                <span className="flex items-center gap-1.5 truncate min-w-0"><User size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{a.picNama?.split('/')[0]}</span></span>
-                <span className="text-slate-500 font-medium shrink-0">
-                  {a.status === 'Closed' && a.closedDate ? `Selesai ${a.closedDate}` : `Due: ${a.dueDate}`}
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
 
-      {/* Pagination Bar */}
-      {filteredActivities.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border-2 border-slate-300 shadow-2xs">
-          <p className="text-xs font-extrabold text-slate-600">
-            Menampilkan <span className="text-brand-700">{startIndex + 1}</span>–<span className="text-brand-700">{endIndex}</span> dari <span className="text-slate-900">{filteredActivities.length}</span> data
+          <p className="mt-3 text-center text-xs font-medium text-slate-400">
+            Klik salah satu tanggal untuk membuka tabel Management Highlight Report bulan {MONTH_NAMES[selectedMonth - 1]} {selectedYear} ({stats.total} action item)
           </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
-            >
-              <ChevronLeft size={15} /> Prev
+        </div>
+      ) : (
+        /* ===== TABLE VIEW (Format INLHO/REP-F/-021) ===== */
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <button onClick={() => setView('calendar')} className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">
+              <ArrowLeft size={15} /> Kembali ke Kalender
             </button>
-
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-              <span>Hal</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                value={inputPage}
-                onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setInputPage(e.target.value)
-                  if (val >= 1 && val <= totalPages) {
-                    setCurrentPage(val)
-                  }
-                }}
-                onBlur={() => {
-                  if (!inputPage || Number(inputPage) < 1 || Number(inputPage) > totalPages) {
-                    setInputPage(String(currentPage))
-                  }
-                }}
-                className="w-12 text-center py-1 rounded-lg neu-input text-xs font-black text-slate-900 outline-none"
-              />
-              <span>dari {totalPages}</span>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Cari item, PIC, deskripsi..."
+                  className="w-56 rounded-lg border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                />
+              </div>
+              <button onClick={openAddModal} className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white hover:bg-brand-700">
+                <Plus size={15} /> Tambah Highlight
+              </button>
             </div>
+          </div>
 
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
-            >
-              Next <ChevronRight size={15} />
-            </button>
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full min-w-max text-left text-sm">
+              <thead>
+                <tr className="border-b-2 border-slate-800 bg-slate-100 text-[11px] font-black uppercase tracking-wide text-slate-600">
+                  <th className="px-2 py-2.5 text-center w-10">No</th>
+                  <th className="px-2 py-2.5 min-w-36">Item</th>
+                  <th className="px-2 py-2.5 min-w-64">Description</th>
+                  <th className="px-2 py-2.5 min-w-64">Action To Be Taken</th>
+                  <th className="px-2 py-2.5 min-w-32">Name PIC</th>
+                  <th className="px-2 py-2.5 w-24">Target Date</th>
+                  <th className="px-2 py-2.5 w-24">Closed Date</th>
+                  <th className="px-2 py-2.5 w-28">Status</th>
+                  <th className="px-2 py-2.5 min-w-40">Remarks</th>
+                  <th className="px-2 py-2.5 w-20 text-center print:hidden">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredHighlights.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-12 text-center">
+                      <div className="text-4xl">📋</div>
+                      <p className="mt-2 text-sm font-semibold text-slate-500">
+                        Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
+                      </p>
+                      <button onClick={openAddModal} className="mt-3 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
+                        Tambah Highlight Pertama
+                      </button>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredHighlights.map(h => (
+                    <tr key={h.id} className="border-b border-slate-100 align-top hover:bg-slate-50">
+                      <td className="px-2 py-2.5 text-center font-black text-slate-500">{h.no}</td>
+                      <td className="px-2 py-2.5 font-bold text-slate-700">{h.item}</td>
+                      <td className="px-2 py-2.5 text-slate-600 whitespace-pre-wrap">{h.description || '-'}</td>
+                      <td className="px-2 py-2.5 text-slate-600 whitespace-pre-wrap">{h.actionToBeTaken || '-'}</td>
+                      <td className="px-2 py-2.5 text-slate-600">{h.namePic || '-'}</td>
+                      <td className="px-2 py-2.5 text-slate-600">{h.targetDate || '-'}</td>
+                      <td className="px-2 py-2.5 text-slate-600">{h.closedDate || '-'}</td>
+                      <td className="px-2 py-2.5">
+                        <span className={`inline-block rounded-full border px-2 py-0.5 text-[11px] font-bold ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
+                          {h.status}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2.5 text-slate-500 whitespace-pre-wrap">{h.remarks || '-'}</td>
+                      <td className="px-2 py-2.5 print:hidden">
+                        <div className="flex justify-center gap-1">
+                          <button onClick={() => openEditModal(h)} title="Edit" className="rounded-lg p-1.5 text-sky-600 hover:bg-sky-50">
+                            <Pencil size={15} />
+                          </button>
+                          <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+            <span>Menampilkan {filteredHighlights.length} dari {highlights.length} action item</span>
+            <span className="rounded-lg bg-slate-100 px-3 py-1.5">
+              Closure Rate : <b className="text-brand-700">{stats.closure}%</b>
+            </span>
           </div>
         </div>
       )}
 
-      {/* Modal Add Highlight with Searchable Dropdown */}
+      {/* ===== MODAL FORM ===== */}
       {showModal && (
         <ModalPortal>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="font-black text-slate-900 text-base">Tambah Laporan Highlight Bulanan</h3>
-                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
-                  <X size={18} />
-                </button>
+          <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-black text-slate-800">
+                {editingId ? 'Edit Highlight' : 'Tambah Highlight'} — {MONTH_NAMES[form.bulan - 1]} {form.tahun}
+              </h3>
+              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="md:col-span-1">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Bulan</span>
+                  <select
+                    value={form.bulan}
+                    onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                  >
+                    {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                  </select>
+                </label>
               </div>
-
-              <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {/* Searchable Select Dropdown for Sub-Item Program */}
-                  <div className="space-y-1 relative">
-                    <label className="text-xs font-bold text-slate-700">Sub-Item Program Kerja *</label>
-                    
-                    <div
-                      onClick={() => setSubDropdownOpen(!subDropdownOpen)}
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-bold text-slate-900 cursor-pointer flex items-center justify-between bg-white border-2 border-slate-300 hover:border-brand-700 transition-colors"
-                    >
-                      <span className="truncate">
-                        {selectedSubObj ? `[${selectedSubObj.programKerja?.kode || 'A'}] ${selectedSubObj.kode || ''} — ${selectedSubObj.namaItem || ''}` : 'Pilih Sub-Item Program Kerja...'}
-                      </span>
-                      <ChevronDown size={14} className="text-slate-500 shrink-0 ml-2" />
-                    </div>
-
-                    {subDropdownOpen && (
-                      <div className="mt-1.5 bg-slate-50 rounded-2xl border-2 border-slate-300 p-2 space-y-2 max-h-52 overflow-y-auto animate-zoom-in">
-                        <div className="relative sticky top-0 bg-slate-50 pb-1 z-10">
-                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="text"
-                            placeholder="Ketik untuk mencari sub-item program..."
-                            value={subSearchQuery}
-                            onChange={e => setSubSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-1.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none bg-white"
-                            autoFocus
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          {filteredSubItems.length === 0 ? (
-                            <p className="text-xs text-slate-400 font-bold text-center py-3">Tidak ditemukan sub-item cocok.</p>
-                          ) : (
-                            filteredSubItems.map(s => (
-                              <div
-                                key={s.id}
-                                onClick={() => {
-                                  setForm({ ...form, idProgram: s.id })
-                                  setSubDropdownOpen(false)
-                                  setSubSearchQuery('')
-                                }}
-                                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                                  form.idProgram === s.id
-                                    ? 'neu-active-green'
-                                    : 'hover:bg-white text-slate-800 border border-transparent hover:border-slate-200'
-                                }`}
-                              >
-                                [{s.programKerja?.kode}] {s.kode} — {s.namaItem}
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
+              <div className="md:col-span-1">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Tahun</span>
+                  <select
+                    value={form.tahun}
+                    onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                  >
+                    {Array.from({ length: 6 }, (_, i) => form.tahun - 2 + i).map(y =>
+                      <option key={y} value={y}>{y}</option>
                     )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Action / Kegiatan Highlight *</label>
-                    <textarea
-                      rows={3}
-                      value={form.kegiatan}
-                      onChange={e => setForm({ ...form, kegiatan: e.target.value })}
-                      required
-                      placeholder="Tuliskan uraian kegiatan highlight..."
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Target Due Date *</label>
-                      <input
-                        type="date"
-                        value={form.dueDate}
-                        onChange={e => setForm({ ...form, dueDate: e.target.value })}
-                        required
-                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Status Aktivitas</label>
-                      <select
-                        value={form.status}
-                        onChange={e => setForm({ ...form, status: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
-                      >
-                        <option value="On Progress">On Progress (Berjalan)</option>
-                        <option value="Open">Open (Belum Dimulai)</option>
-                        <option value="Closed">Closed (Selesai)</option>
-                        <option value="Cancelled">Cancelled (Dibatalkan)</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Closed Date</label>
-                      <input
-                        type="date"
-                        value={form.closedDate}
-                        onChange={e => setForm({ ...form, closedDate: e.target.value })}
-                        disabled={form.status !== 'Closed'}
-                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Penanggung Jawab (PIC)</label>
-                      <input
-                        type="text"
-                        placeholder="Nama PIC"
-                        value={form.picNama}
-                        onChange={e => setForm({ ...form, picNama: e.target.value })}
-                        required
-                        className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Remarks / Catatan</label>
-                    <textarea
-                      rows={2}
-                      placeholder="Opsional: catatan tambahan laporan..."
-                      value={form.remarks}
-                      onChange={e => setForm({ ...form, remarks: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Sticky Footer */}
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  </select>
+                </label>
+              </div>
+              <div className="md:col-span-2">{formInput('Item *', 'item')}</div>
+              <div className="md:col-span-2">{formInput('Name PIC', 'namePic')}</div>
+              <div className="md:col-span-1">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Status</span>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                   >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
-                  >
-                    {submitting ? 'Menyimpan...' : 'Simpan Laporan'}
-                  </button>
-                </div>
-              </form>
+                    {['Open', 'On Progress', 'Closed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </label>
+              </div>
+              <div className="md:col-span-1">{formInput('Target Date', 'targetDate', 'date')}</div>
+              {form.status === 'Closed' && (
+                <div className="md:col-span-1">{formInput('Closed Date', 'closedDate', 'date')}</div>
+              )}
+              <div className="md:col-span-4">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Description</span>
+                  <textarea
+                    value={form.description}
+                    onChange={e => setForm({ ...form, description: e.target.value })}
+                    rows={3}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                  />
+                </label>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Action To Be Taken</span>
+                  <textarea
+                    value={form.actionToBeTaken}
+                    onChange={e => setForm({ ...form, actionToBeTaken: e.target.value })}
+                    rows={3}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                  />
+                </label>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Remarks</span>
+                  <textarea
+                    value={form.remarks}
+                    onChange={e => setForm({ ...form, remarks: e.target.value })}
+                    rows={3}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setShowModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                Batal
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !form.item.trim()}
+                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+              >
+                {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
+              </button>
             </div>
           </div>
         </ModalPortal>

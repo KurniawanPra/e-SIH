@@ -5,6 +5,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   console.log('Clearing old data...')
+  await prisma.highlight.deleteMany()
   await prisma.activity.deleteMany()
   await prisma.masterProgram.deleteMany()
   await prisma.programKerja.deleteMany()
@@ -351,6 +352,78 @@ async function main() {
     5: { closed: 14 }, 6: { closed: 15 }, 7: { closed: 12 }, 8: { closed: 16 },
     9: { closed: 14 }, 10: { closed: 18 }, 11: { closed: 15 }, 12: { closed: 20 }
   })
+
+  // --- Seed Monthly Highlight Reports (2026) ---
+  console.log('Seeding monthly highlight reports (2026)...')
+  const highlightSamples: Array<{ bulan: number; item: string; description: string; actionToBeTaken: string; namePic: string; targetDate: string; status: string; remarks: string; closedDate?: string }> = [
+    {
+      bulan: 8,
+      item: 'Final testing & Go Live SmartWB dengan teknologi RFID & AI CCTV',
+      description: 'Final Testing SmartWB (RFID):\n1. Ceklis Form sebelum Testing\n2. Live Test dengan Kabag SDM & Sistem',
+      actionToBeTaken: 'Go Live SmartWB (RFID):\n1. Pengadaan 70 Kartu RFID\n2. Aplikasi baru dan lama jalan paralel\n3. Full menggunakan aplikasi baru',
+      namePic: 'Tomy / Salman',
+      targetDate: '2026-08-31',
+      status: 'On Progress',
+      remarks: 'Pembelian 70 kartu RFID dibuatkan Justifikasi dan FR',
+    },
+    {
+      bulan: 8,
+      item: 'Integrasi SAP dengan SmartWB',
+      description: 'Pengumpulan Data:\n1. Pengadaan Laptop Developer yang dapat mengakomodasi pengembangan AI\n2. TCode yang digunakan pada SAP\n3. Data yang dibutuhkan\n4. Data yang diupdate setelah timbang',
+      actionToBeTaken: 'Desain Database, ERD, FlowChart & Use Case:\n1. Desain Database, alur proses, dan use case diagram',
+      namePic: 'Kurniawan Pralambang',
+      targetDate: '2026-09-30',
+      status: 'Open',
+      remarks: 'Menunggu persetujuan anggaran laptop developer',
+    },
+    {
+      bulan: 8,
+      item: 'Sertifikasi ISCC SBE',
+      description: 'Meeting internal HSSE mengenai peluang Sertifikasi ISCC SBE, penurunan harga SBE sekarang Rp.380/kg turun menjadi Rp.250/kg sekitar Rp.150. Namun masih butuh studi.',
+      actionToBeTaken: 'Meeting dengan Mega grand terkait tindaklanjut ISCC SBE, menetapkan kerjasama tgl. 11 serta akhir Juli ada kunjungan ke Dumai.',
+      namePic: 'Oka / HSSE',
+      targetDate: '2026-08-20',
+      status: 'Closed',
+      closedDate: '2026-08-15',
+      remarks: 'Pemenang sudah ditetapkan, seleksi personil selesai.',
+    },
+    {
+      bulan: 8,
+      item: 'Kegiatan Jumat Bersih',
+      description: 'Jumat ini akan dilakukan Jumat bersih area sekitar Pump House dan Refinery.',
+      actionToBeTaken: 'Koordinasi pelaksanaan Jumat Bersih dengan seluruh bagian.',
+      namePic: 'Oka',
+      targetDate: '2026-08-14',
+      status: 'Closed',
+      closedDate: '2026-08-14',
+      remarks: 'Memo akan di share',
+    },
+    {
+      bulan: 8,
+      item: 'Review proses bisnis project Management',
+      description: 'Review proses bisnis project Management sudah dibahas secara internal dengan Pak Ipan dan Tim Andika. Ada penambahan terkait pengawasan dan Monitoring setiap Project.',
+      actionToBeTaken: 'Sosialisasi hasil review ke seluruh tim project.',
+      namePic: 'Tim Andika',
+      targetDate: '2026-08-28',
+      status: 'On Progress',
+      remarks: 'On Progress. Sosialisasi akan dilakukan minggu depan',
+    },
+    {
+      bulan: 8,
+      item: 'Rencana Pindah ke KPBN',
+      description: 'Sudah konfirmasi ke bagian Asset KPBN rencana Kamis mau bertemu dengan Pak Erwin Kasubag Optimalisasi Asset Jam 10 di KPBN Medan.',
+      actionToBeTaken: 'Koordinasi prosedur proses pelepasan Mess Gedung Medan dengan Buk Rizky di kandir N3 bagian Pertahanan.',
+      namePic: 'Oka / SDM / Sekper',
+      targetDate: '2026-08-21',
+      status: 'On Progress',
+      remarks: 'Hasil analisa sudah selesai, Memo sudah diserahkan ke bagian Sekper agar direview.',
+    },
+  ]
+  for (const [i, h] of highlightSamples.entries()) {
+    await prisma.highlight.create({
+      data: { ...h, tahun: 2026, no: i + 1 },
+    })
+  }
 
   console.log('✅ Seeding Completed Successfully!')
 }
