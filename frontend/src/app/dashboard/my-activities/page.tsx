@@ -329,18 +329,18 @@ export default function MyActivitiesPage() {
       </div>
 
       {/* Table View */}
-      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300">No</th>
-                <th className="py-3.5 px-4 w-60">Program Kerja</th>
-                <th className="py-3.5 px-4">Laporan Kegiatan &amp; Action</th>
+                <th className="py-3.5 px-4 w-48">Program Kerja</th>
+                <th className="py-3.5 px-4 min-w-[380px]">Kegiatan</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
                 <th className="py-3.5 px-4 w-32">Due Date</th>
                 <th className="py-3.5 px-4 w-36 text-center">Status</th>
-                <th className="py-3.5 px-4 w-36 text-right">Aksi</th>
+                <th className="py-3.5 px-4 w-40">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -362,7 +362,7 @@ export default function MyActivitiesPage() {
                     </td>
                     <td className="py-4 px-4">
                       <p className="font-extrabold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
-                      {a.descriptionAction && <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-2">{a.descriptionAction}</p>}
+                      {a.descriptionAction && <p className="text-[11px] text-slate-500 font-medium mt-0.5">{a.descriptionAction}</p>}
                     </td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.startDate}</td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.dueDate}</td>
@@ -374,8 +374,8 @@ export default function MyActivitiesPage() {
                         {a.status}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                    <td className="py-4 px-4">
+                      <div className="inline-flex items-center justify-start gap-1.5">
                         <button
                           onClick={() => openQuickStatus(a)}
                           className="px-2.5 py-1.5 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
@@ -398,6 +398,58 @@ export default function MyActivitiesPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card List View */}
+      <div className="grid grid-cols-1 gap-3.5 md:hidden">
+        {paginatedActivities.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-500 font-semibold text-xs">
+            Tidak ada tugas aktivitas pada filter terpilih.
+          </div>
+        ) : (
+          paginatedActivities.map((a, idx) => (
+            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border shrink-0 ${
+                  a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                }`}>
+                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                  {a.status}
+                </span>
+                <span className="text-[11px] font-mono font-black text-slate-400">{startIndex + idx + 1}</span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
+                  {a.program?.programKerja?.kode} - {a.program?.kode}
+                </span>
+                <p className="font-extrabold text-slate-900 text-sm">{a.itemName}</p>
+                <p className="font-bold text-slate-800 text-sm leading-snug">{a.kegiatan}</p>
+                {a.descriptionAction && <p className="text-xs text-slate-500 font-medium">{a.descriptionAction}</p>}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-bold text-slate-600">
+                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Start: {a.startDate}</span>
+                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Due: {a.dueDate}</span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                <button
+                  onClick={() => openQuickStatus(a)}
+                  className="px-3 py-2 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer flex-1 justify-center"
+                >
+                  <RefreshCw size={13} /> Status
+                </button>
+                <button
+                  onClick={() => openEdit(a)}
+                  className="px-3 py-2 rounded-xl neu-btn text-slate-700 hover:bg-slate-100 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer flex-1 justify-center"
+                >
+                  <Pencil size={13} /> Edit
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Pagination Bar */}
@@ -425,6 +477,223 @@ export default function MyActivitiesPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Add / Edit Tugas Modal */}
+      {showModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <h3 className="font-black text-slate-900 text-base">
+                  {editItem ? 'Edit Tugas Saya' : 'Tambah Tugas Saya'}
+                </h3>
+                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={submitForm} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">1. Program Kerja *</label>
+                  <select
+                    value={selectedParentId}
+                    onChange={e => {
+                      setSelectedParentId(e.target.value)
+                      const firstItem = itemPrograms.find((i: any) => i.programKerjaId === e.target.value)
+                      setForm({ ...form, idProgram: firstItem?.id || '' })
+                    }}
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                  >
+                    {parentPrograms.map((p: any) => (
+                      <option key={p.id} value={p.id}>{p.kode} - {p.namaProgram}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={form.idProgram}
+                    onChange={e => setForm({ ...form, idProgram: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer mt-2"
+                  >
+                    {itemPrograms.filter((i: any) => i.programKerjaId === selectedParentId).map((i: any) => (
+                      <option key={i.id} value={i.id}>{i.kode} - {i.namaItem}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">2. Kegiatan *</label>
+                  <input
+                    value={form.kegiatan}
+                    onChange={e => setForm({ ...form, kegiatan: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    placeholder="Nama kegiatan yang dikerjakan"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">3. Deskripsi / Action</label>
+                  <textarea
+                    value={form.descriptionAction}
+                    onChange={e => setForm({ ...form, descriptionAction: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    placeholder="Penjelasan detail kegiatan &amp; tindakan"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Tanggal Start *</label>
+                    <input
+                      type="date"
+                      value={form.startDate}
+                      onChange={e => setForm({ ...form, startDate: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Due Date *</label>
+                    <input
+                      type="date"
+                      value={form.dueDate}
+                      onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Status</label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                  >
+                    <option value="Open">Open (Belum Dimulai)</option>
+                    <option value="On Progress">On Progress (Berjalan)</option>
+                    <option value="Closed">Closed (Selesai)</option>
+                  </select>
+                </div>
+
+                {form.status === 'Closed' && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Tanggal Closed</label>
+                    <input
+                      type="date"
+                      value={form.closedDate}
+                      onChange={e => setForm({ ...form, closedDate: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Tindak Lanjut</label>
+                  <textarea
+                    value={form.tindakLanjut}
+                    onChange={e => setForm({ ...form, tindakLanjut: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    placeholder="Tindak lanjut / catatan"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 rounded-xl neu-btn text-xs font-extrabold text-slate-600 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Tambah Tugas'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Quick Update Status Modal */}
+      {showStatusModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                  <RefreshCw size={16} className="text-brand-700" /> Update Status Tugas
+                </h3>
+                <button onClick={() => setShowStatusModal(false)} className="p-1 rounded-lg neu-btn text-slate-500 cursor-pointer">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={submitQuickStatus} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Status Baru *</label>
+                  <select
+                    value={statusForm.status}
+                    onChange={e => setStatusForm({ ...statusForm, status: e.target.value, closedDate: e.target.value === 'Closed' ? statusForm.closedDate || today : '' })}
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                  >
+                    <option value="Open">Open (Belum Dimulai)</option>
+                    <option value="On Progress">On Progress (Berjalan)</option>
+                    <option value="Closed">Closed (Selesai)</option>
+                  </select>
+                </div>
+
+                {statusForm.status === 'Closed' && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Tanggal Closed</label>
+                    <input
+                      type="date"
+                      value={statusForm.closedDate}
+                      onChange={e => setStatusForm({ ...statusForm, closedDate: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Tindak Lanjut</label>
+                  <textarea
+                    value={statusForm.tindakLanjut}
+                    onChange={e => setStatusForm({ ...statusForm, tindakLanjut: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
+                    placeholder="Tindak lanjut / catatan"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowStatusModal(false)}
+                    className="px-4 py-2 rounded-xl neu-btn text-xs font-extrabold text-slate-600 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Memperbarui...' : 'Perbarui Status'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   )
