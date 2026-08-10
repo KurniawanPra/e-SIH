@@ -6,7 +6,6 @@ import { useState } from 'react'
 import {
   LayoutDashboard,
   CalendarDays,
-  CalendarRange,
   FolderKanban,
   ListChecks,
   ChevronDown,
@@ -27,20 +26,23 @@ interface SidebarProps {
   onToggle: () => void
 }
 
-const nav = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'My Activities', path: '/dashboard/my-activities', icon: ListChecks },
-  { name: 'Aktivitas Mingguan', path: '/dashboard/weekly', icon: CalendarDays },
-  { name: 'Laporan Bulanan', path: '/dashboard/monthly', icon: CalendarRange },
-  { name: 'Semua Aktivitas', path: '/dashboard/activities', icon: ListFilter },
-]
-
 export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
   const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const isAdmin = user?.role === 'ADMIN' || !user?.role // default Kurniawan is admin
+  const programKerjaLabel = isAdmin ? 'Daftar Program Kerja' : 'Program Kerja Ku'
+  const proyekLabel = isAdmin ? 'Proyek Staff' : 'Proyek Ku'
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: programKerjaLabel, path: '/dashboard/master/programs', icon: FolderKanban },
+    { name: 'My Activities', path: '/dashboard/my-activities', icon: ListChecks },
+    { name: 'Weekly Activities Report', path: '/dashboard/weekly', icon: CalendarDays },
+    { name: proyekLabel, path: '/dashboard/monthly', icon: FolderKanban },
+    { name: 'Semua Aktivitas', path: '/dashboard/activities', icon: ListFilter },
+  ]
 
   return (
     <>
@@ -77,8 +79,11 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           <div>
             <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Menu Utama</p>
             <ul className="space-y-2">
-              {nav.map(item => {
-                const active = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(item.path))
+              {navItems.map(item => {
+                const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
+                const active = item.path === '/dashboard'
+                  ? normalizedPath === '/dashboard'
+                  : normalizedPath.startsWith(item.path)
                 return (
                   <li key={item.path}>
                     <Link
@@ -102,73 +107,81 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
           {/* Master Data Section (Admin & System Config) */}
           <div>
             <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
-            <button
-              onClick={() => setMasterOpen(!masterOpen)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                pathname.includes('/master')
-                  ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
-                  : 'neu-btn text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <FolderKanban size={18} strokeWidth={pathname.includes('/master') ? 2.5 : 1.8} className={pathname.includes('/master') ? 'text-white' : 'text-slate-600'} />
-                <span className={pathname.includes('/master') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Data</span>
-              </span>
-              {masterOpen ? <ChevronDown size={14} className={pathname.includes('/master') ? 'text-white' : ''} /> : <ChevronRight size={14} className={pathname.includes('/master') ? 'text-white' : ''} />}
-            </button>
+            {(() => {
+              const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
+              const isMasterActive = normalizedPath.includes('/master') && !normalizedPath.includes('/master/programs')
+              return (
+                <>
+                  <button
+                    onClick={() => setMasterOpen(!masterOpen)}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isMasterActive
+                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
+                        : 'neu-btn text-slate-700 hover:text-slate-900'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <FolderKanban size={18} strokeWidth={isMasterActive ? 2.5 : 1.8} className={isMasterActive ? 'text-white' : 'text-slate-600'} />
+                      <span className={isMasterActive ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Data</span>
+                    </span>
+                    {masterOpen ? <ChevronDown size={14} className={isMasterActive ? 'text-white' : ''} /> : <ChevronRight size={14} className={isMasterActive ? 'text-white' : ''} />}
+                  </button>
 
-            {masterOpen && (
-              <ul className="ml-4 mt-2 space-y-1.5 border-l-2 border-slate-300 pl-2 animate-dropdown-in">
-                <li>
-                  <Link
-                    href="/dashboard/master/program-kerja"
-                    onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                    className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                      pathname.includes('/master/program-kerja')
-                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
-                        : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <FolderKanban size={15} className={pathname.includes('/master/program-kerja') ? 'text-white' : ''} />
-                      <span className={pathname.includes('/master/program-kerja') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Program Kerja</span>
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/dashboard/master/users"
-                    onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                    className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                      pathname.includes('/master/users')
-                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
-                        : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Users size={15} className={pathname.includes('/master/users') ? 'text-white' : ''} />
-                      <span className={pathname.includes('/master/users') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Users</span>
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/dashboard/master/roles"
-                    onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                    className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                      pathname.includes('/master/roles')
-                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
-                        : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <ShieldCheck size={15} className={pathname.includes('/master/roles') ? 'text-white' : ''} />
-                      <span className={pathname.includes('/master/roles') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Hak Akses</span>
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            )}
+                  {masterOpen && (
+                    <ul className="ml-4 mt-2 space-y-1.5 border-l-2 border-slate-300 pl-2 animate-dropdown-in">
+                      <li>
+                        <Link
+                          href="/dashboard/master/program-kerja"
+                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
+                            normalizedPath.includes('/master/program-kerja')
+                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <FolderKanban size={15} className={normalizedPath.includes('/master/program-kerja') ? 'text-white' : ''} />
+                            <span className={normalizedPath.includes('/master/program-kerja') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Program Kerja</span>
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/dashboard/master/users"
+                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
+                            normalizedPath.includes('/master/users')
+                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Users size={15} className={normalizedPath.includes('/master/users') ? 'text-white' : ''} />
+                            <span className={normalizedPath.includes('/master/users') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Users</span>
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/dashboard/master/roles"
+                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
+                            normalizedPath.includes('/master/roles')
+                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <ShieldCheck size={15} className={normalizedPath.includes('/master/roles') ? 'text-white' : ''} />
+                            <span className={normalizedPath.includes('/master/roles') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Hak Akses</span>
+                          </span>
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </nav>
 

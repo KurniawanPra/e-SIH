@@ -95,7 +95,26 @@ export default fp(async function authPlugin(app) {
   })
 
   app.decorate('authenticate', async function authenticate(request, reply) {
-    const user = request.session.get('user') as SessionUser | undefined
+    let user = request.session.get('user') as SessionUser | undefined
+    if (!user && !config.isProduction) {
+      user = {
+        sub: 'demo-admin-id',
+        email: 'kurniawan@inl.co.id',
+        employeeId: 'emp-admin',
+        name: 'Kurniawan Pralambang',
+        jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+        role: 'ADMIN',
+        employee: {
+          id: 'emp-admin',
+          namaLengkap: 'Kurniawan Pralambang',
+          jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+        },
+        grade: { id: 'g-1', kode: 'M1', label: 'Manager 1', level: 1 },
+        unit: { id: 'u-1', kode: 'IT', nama: 'IT & Sistem Operational' },
+        penempatanArea: { id: 'p-1', kode: 'HO', nama: 'Head Office' },
+      }
+      request.session.set('user', user)
+    }
     if (!user) {
       const error = new Error('Unauthorized') as Error & { statusCode: number }
       error.statusCode = 401

@@ -12,16 +12,12 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // GET all Parent Program Kerja with average progress & items
   fastify.get('/program-kerja', async (request: any, reply) => {
     const { year } = request.query || {}
-    const where: any = {}
-    if (year) {
-      where.tahun = Number(year)
-    }
 
-    const parentPrograms = await prisma.programKerja.findMany({
-      where,
+    const parentPrograms = await prisma.ref_ProgramKerja.findMany({
       orderBy: { kode: 'asc' },
       include: {
         items: {
+          where: year ? { tahun: Number(year) } : {},
           orderBy: { kode: 'asc' },
           include: {
             activities: {
@@ -33,13 +29,13 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     })
 
     // Calculate total progress percentage from sub-items for each parent
-    const result = parentPrograms.map(parent => {
-      const activeItems = parent.items.filter(i => i.isActive)
-      const itemsWithProgress = activeItems.map(item => {
+    const result = parentPrograms.map((parent: any) => {
+      const activeItems = parent.items.filter((i: any) => i.isActive)
+      const itemsWithProgress = activeItems.map((item: any) => {
         let itemProgress = item.progress
         const activeActivities = item.activities || []
         if (activeActivities.length > 0) {
-          const closedCount = activeActivities.filter(a => a.status === 'Closed').length
+          const closedCount = activeActivities.filter((a: any) => a.status === 'Closed').length
           itemProgress = Math.round((closedCount / activeActivities.length) * 100)
         } else {
           if (item.status === 'Closed') itemProgress = 100
@@ -53,7 +49,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       })
 
       const totalProgress = itemsWithProgress.length > 0
-        ? Math.round(itemsWithProgress.reduce((acc, curr) => acc + curr.progress, 0) / itemsWithProgress.length)
+        ? Math.round(itemsWithProgress.reduce((acc: number, curr: any) => acc + curr.progress, 0) / itemsWithProgress.length)
         : 0
 
       return {
@@ -74,7 +70,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     }
 
     const newId = `PK-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-${tahun || 2026}`
-    const created = await prisma.programKerja.create({
+    const created = await prisma.ref_ProgramKerja.create({
       data: {
         id: newId,
         kode,
@@ -91,7 +87,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const { id } = request.params
     const { kode, namaProgram, deskripsi, tahun } = request.body || {}
 
-    const updated = await prisma.programKerja.update({
+    const updated = await prisma.ref_ProgramKerja.update({
       where: { id },
       data: {
         kode,
@@ -106,10 +102,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PATCH toggle active/inactive (Soft Delete) Parent Program Kerja
   fastify.patch('/program-kerja/:id/toggle', async (request: any, reply) => {
     const { id } = request.params
-    const current = await prisma.programKerja.findUnique({ where: { id } })
+    const current = await prisma.ref_ProgramKerja.findUnique({ where: { id } })
     if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
 
-    const updated = await prisma.programKerja.update({
+    const updated = await prisma.ref_ProgramKerja.update({
       where: { id },
       data: { isActive: !current.isActive }
     })
@@ -128,7 +124,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       where.tahun = Number(year)
     }
 
-    const programs = await prisma.masterProgram.findMany({
+    const programs = await prisma.ref_Item_ProgramKerja.findMany({
       where,
       orderBy: { kode: 'asc' },
       include: {
@@ -150,7 +146,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
 
     const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-${tahun || 2026}`
-    const created = await prisma.masterProgram.create({
+    const created = await prisma.ref_Item_ProgramKerja.create({
       data: {
         id: newId,
         programKerjaId,
@@ -174,7 +170,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       ? Number(progress)
       : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
 
-    const updated = await prisma.masterProgram.update({
+    const updated = await prisma.ref_Item_ProgramKerja.update({
       where: { id },
       data: {
         programKerjaId,
@@ -191,10 +187,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PATCH toggle active/inactive Sub-Program
   fastify.patch('/programs/:id/toggle', async (request: any, reply) => {
     const { id } = request.params
-    const current = await prisma.masterProgram.findUnique({ where: { id } })
+    const current = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id } })
     if (!current) return reply.code(404).send({ success: false, error: 'Data tidak ditemukan' })
 
-    const updated = await prisma.masterProgram.update({
+    const updated = await prisma.ref_Item_ProgramKerja.update({
       where: { id },
       data: { isActive: !current.isActive }
     })
@@ -241,7 +237,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const newNo = (count._max.no ?? 0) + 1
     const newId = `ACT-${String(newNo).padStart(3, '0')}`
 
-    const programItem = idProgram ? await prisma.masterProgram.findUnique({
+    const programItem = idProgram ? await prisma.ref_Item_ProgramKerja.findUnique({
       where: { id: idProgram },
       include: { programKerja: true }
     }) : null
@@ -277,7 +273,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     let programItem = null
     if (idProgram) {
-      programItem = await prisma.masterProgram.findUnique({
+      programItem = await prisma.ref_Item_ProgramKerja.findUnique({
         where: { id: idProgram },
         include: { programKerja: true }
       })
@@ -328,10 +324,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   fastify.get('/dashboard', async (request, reply) => {
     const [totalParents, totalChildPrograms, onProgressPrograms, closedPrograms, totalActivities, openActivities, onProgressActivities, closedActivities, cancelledActivities] = await Promise.all([
-      prisma.programKerja.count({ where: { isActive: true } }),
-      prisma.masterProgram.count({ where: { isActive: true } }),
-      prisma.masterProgram.count({ where: { isActive: true, status: 'On Progress' } }),
-      prisma.masterProgram.count({ where: { isActive: true, status: 'Closed' } }),
+      prisma.ref_ProgramKerja.count({ where: { isActive: true } }),
+      prisma.ref_Item_ProgramKerja.count({ where: { isActive: true } }),
+      prisma.ref_Item_ProgramKerja.count({ where: { isActive: true, status: 'On Progress' } }),
+      prisma.ref_Item_ProgramKerja.count({ where: { isActive: true, status: 'Closed' } }),
       prisma.activity.count({ where: { isActive: true } }),
       prisma.activity.count({ where: { isActive: true, status: 'Open' } }),
       prisma.activity.count({ where: { isActive: true, status: 'On Progress' } }),
@@ -371,7 +367,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const highlights = await prisma.highlight.findMany({
       where,
       orderBy: [{ no: 'asc' }, { createdAt: 'asc' }],
-      include: { author: { select: { id: true, nama: true, email: true } } },
+      include: {
+        author: { select: { id: true, nama: true, email: true } },
+        program: { include: { programKerja: true } },
+      },
     })
     return { data: highlights }
   })
@@ -392,9 +391,16 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // POST create highlight
   fastify.post('/highlights', async (request: any, reply) => {
-    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
+    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks, programId, pics } = request.body || {}
     if (!bulan || !tahun || !item) {
       return reply.code(400).send({ success: false, error: 'Bulan, Tahun, dan Item wajib diisi' })
+    }
+
+    if (programId) {
+      const progItem = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
+      if (!progItem) {
+        return reply.code(400).send({ success: false, error: 'Sub-Program tidak ditemukan' })
+      }
     }
 
     const sessionUser = request.session.get('user')
@@ -407,6 +413,11 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       where: { bulan: Number(bulan), tahun: Number(tahun) },
     })
 
+    const picList = Array.isArray(pics) ? pics.filter((p: any) => p && (p.name || p.email || p.nama)) : null
+    const namePicResult = picList && picList.length > 0
+      ? picList.map((p: any) => p.name || p.nama).filter(Boolean).join(' / ')
+      : (namePic ?? null)
+
     const created = await prisma.highlight.create({
       data: {
         bulan: Number(bulan),
@@ -415,12 +426,14 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         item,
         description,
         actionToBeTaken,
-        namePic,
+        namePic: namePicResult,
         targetDate,
         closedDate: status === 'Closed' && closedDate ? closedDate : null,
         status: status || 'Open',
         remarks,
         authorId,
+        programId: programId || null,
+        pics: picList && picList.length > 0 ? picList : undefined,
       },
     })
     return reply.code(201).send({ success: true, data: created })
@@ -429,7 +442,19 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PUT edit highlight
   fastify.put('/highlights/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks } = request.body || {}
+    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks, programId, pics } = request.body || {}
+
+    if (programId) {
+      const progItem = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
+      if (!progItem) {
+        return reply.code(400).send({ success: false, error: 'Sub-Program tidak ditemukan' })
+      }
+    }
+
+    const picList = Array.isArray(pics) ? pics.filter((p: any) => p && (p.name || p.email || p.nama)) : null
+    const namePicResult = picList && picList.length > 0
+      ? picList.map((p: any) => p.name || p.nama).filter(Boolean).join(' / ')
+      : (namePic !== undefined ? namePic : undefined)
 
     const updated = await prisma.highlight.update({
       where: { id },
@@ -440,11 +465,13 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         item,
         description,
         actionToBeTaken,
-        namePic,
+        namePic: namePicResult,
         targetDate,
         closedDate: status !== 'Closed' ? null : closedDate ?? undefined,
         status,
         remarks,
+        programId: programId !== undefined ? (programId || null) : undefined,
+        pics: picList && picList.length > 0 ? picList : undefined,
       },
     })
     return { success: true, data: updated }
@@ -464,20 +491,27 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // 6. USER SDM MANAGEMENT ROUTES
   // ==========================================
 
-  // GET all users
+  // GET all users (dengan penugasan sub-program kerja)
   fastify.get('/users', async (request, reply) => {
     try {
       const users = await (prisma as any).user.findMany({
-        orderBy: { nama: 'asc' }
+        orderBy: { nama: 'asc' },
+        include: {
+          programs: {
+            include: {
+              program: { include: { programKerja: true } }
+            }
+          }
+        }
       })
       return { data: users }
     } catch (e) {
       // Fallback if table query fails
       const activities = await prisma.activity.findMany({ select: { picNama: true, picEmail: true } })
       const map = new Map()
-      activities.forEach(a => {
+      activities.forEach((a: any) => {
         if (!map.has(a.picEmail)) {
-          map.set(a.picEmail, { id: a.picEmail, nama: a.picNama, email: a.picEmail, jabatan: 'Staff Operasional', unit: 'IT & Sistem Operational', isActive: true })
+          map.set(a.picEmail, { id: a.picEmail, nama: a.picNama, email: a.picEmail, jabatan: 'Staff Operasional', unit: 'IT & Sistem Operational', isActive: true, role: 'USER', programs: [] })
         }
       })
       return { data: Array.from(map.values()) }
@@ -507,15 +541,61 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     }
   })
 
-  // PUT edit user
+  // PUT edit user (+ penugasan sub-program kerja, bisa lebih dari 1)
   fastify.put('/users/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { nama, email, jabatan, unit, role } = request.body || {}
+    const { nama, email, jabatan, unit, role, programIds } = request.body || {}
 
     try {
-      const updated = await (prisma as any).user.update({
-        where: { id },
-        data: { nama, email, jabatan, unit, role }
+      const target = await (prisma as any).user.findUnique({ where: { id } })
+      if (!target) return reply.code(404).send({ success: false, error: 'User tidak ditemukan' })
+
+      const updated = await prisma.$transaction(async (tx: any) => {
+        const result = await (tx as any).user.update({
+          where: { id },
+          data: { nama, email, jabatan, unit, role }
+        })
+
+        if (Array.isArray(programIds)) {
+          await (tx as any).userProgram.deleteMany({ where: { userId: id } })
+
+          const sessionUser = request.session.get('user')
+          const actorName = sessionUser?.name || sessionUser?.email || 'Sistem'
+
+          for (const programId of programIds) {
+            const prog = await tx.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
+            if (!prog) continue
+            await (tx as any).userProgram.create({
+              data: { userId: id, programId, assignedBy: actorName }
+            })
+          }
+
+          // Jika yang mengubah penugasan adalah staff (bukan ADMIN) → notifikasi ke admin
+          const staffEditor = sessionUser?.email
+            ? await (tx as any).user.findUnique({ where: { email: sessionUser.email } })
+            : null
+          const isAdminEditor = staffEditor?.role === 'ADMIN' || sessionUser?.role === 'ADMIN'
+
+          if (!isAdminEditor) {
+            const progNames = await tx.ref_Item_ProgramKerja.findMany({
+              where: { id: { in: programIds } },
+              select: { namaItem: true, kode: true }
+            })
+            const label = progNames.length > 0
+              ? progNames.map((p: any) => `${p.kode} ${p.namaItem}`).join(', ')
+              : '-'
+            await tx.notification.create({
+              data: {
+                type: 'PROGRAM_ASSIGNMENT',
+                title: 'Perubahan Penugasan Sub-Program oleh Staff',
+                message: `${actorName} mengubah penugasan sub-program ${target.nama} menjadi: ${label}`,
+                createdBy: actorName,
+              }
+            })
+          }
+        }
+
+        return result
       })
       return { success: true, data: updated }
     } catch (e: any) {
@@ -538,6 +618,52 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     } catch (e: any) {
       return reply.code(400).send({ success: false, error: 'Gagal mengubah status user' })
     }
+  })
+
+  // ==========================================
+  // 7. NOTIFICATION ROUTES (untuk dashboard admin)
+  // ==========================================
+
+  // GET notifications (opsional filter unread)
+  fastify.get('/notifications', async (request: any, reply) => {
+    const { unread, limit } = request.query || {}
+    const where: any = {}
+    if (unread === '1' || unread === 'true') where.isRead = false
+
+    const take = limit ? Number(limit) : undefined
+    const notifications = await prisma.notification.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      ...(take ? { take } : {}),
+    })
+    return { data: notifications }
+  })
+
+  // GET jumlah notifikasi belum dibaca
+  fastify.get('/notifications/unread-count', async (_request, _reply) => {
+    const count = await prisma.notification.count({ where: { isRead: false } })
+    return { data: { count } }
+  })
+
+  // PATCH tandai notifikasi sudah dibaca (bisa semua jika id = all)
+  fastify.patch('/notifications/:id/read', async (request: any, reply) => {
+    const { id } = request.params
+    if (id === 'all') {
+      const updated = await prisma.notification.updateMany({
+        where: { isRead: false },
+        data: { isRead: true },
+      })
+      return { success: true, data: { count: updated.count } }
+    }
+
+    const current = await prisma.notification.findUnique({ where: { id } })
+    if (!current) return reply.code(404).send({ success: false, error: 'Notifikasi tidak ditemukan' })
+
+    const updated = await prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    })
+    return { success: true, data: updated }
   })
 }
 

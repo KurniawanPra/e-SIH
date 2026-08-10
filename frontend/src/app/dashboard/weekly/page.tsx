@@ -29,6 +29,47 @@ const MONTH_NAMES = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ]
 
+// Week label dalam 1 bulan: W1 (1-7), W2 (8-14), W3 (15-21), W4 (22-28), W5 (29+)
+const getWeekTag = (dateStr?: string) => {
+  if (!dateStr) return null
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return null
+  const day = d.getDate()
+  if (day >= 1 && day <= 7) return 'W1'
+  if (day >= 8 && day <= 14) return 'W2'
+  if (day >= 15 && day <= 21) return 'W3'
+  if (day >= 22 && day <= 28) return 'W4'
+  return 'W5'
+}
+
+const isSameMonthYear = (dateStr?: string, month?: number, year?: number) => {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return false
+  return d.getMonth() + 1 === month && d.getFullYear() === year
+}
+
+const formatUploadTime = (iso?: string | null) => {
+  if (!iso) return '-'
+  try {
+    const d = new Date(iso)
+    return d.toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  } catch {
+    return '-'
+  }
+}
+
+// Label minggu utk tampilan: M1, atau M1 → M2 bila Start & Due beda minggu
+const weekLabel = (startDate?: string, dueDate?: string) => {
+  const ws = getWeekTag(startDate)
+  const wd = getWeekTag(dueDate)
+  if (!ws) return '-'
+  if (wd && wd !== ws) return `${ws.replace('W', 'M')} → ${wd.replace('W', 'M')}`
+  return ws.replace('W', 'M')
+}
+
 export default function WeeklyActivitiesPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
@@ -120,7 +161,6 @@ export default function WeeklyActivitiesPage() {
       if (!a.startDate) return false
       const d = new Date(a.startDate)
       const m = d.getMonth() + 1
-      const day = d.getDate()
       const y = d.getFullYear()
 
       // Date Range Custom Filter (if specified)
@@ -132,15 +172,14 @@ export default function WeeklyActivitiesPage() {
         if (m !== selectedMonth) return false
         if (y !== selectedYear) return false
 
-        // Week Sprint Grouping Filter (W1: 1-7, W2: 8-14, W3: 15-21, W4: 22-28, W5: 29+)
+        // Week Grouping Filter (W1: 1-7, W2: 8-14, W3: 15-21, W4: 22-28, W5: 29+)
+        // Aktivitas masuk minggu terpilih bila Start Date ATAU Due Date jatuh di minggu tsb
         if (selectedWeek !== 'ALL') {
-          let weekTag = 'W1'
-          if (day >= 8 && day <= 14) weekTag = 'W2'
-          else if (day >= 15 && day <= 21) weekTag = 'W3'
-          else if (day >= 22 && day <= 28) weekTag = 'W4'
-          else if (day >= 29) weekTag = 'W5'
-
-          if (weekTag !== selectedWeek) return false
+          const weekStart = getWeekTag(a.startDate)
+          const weekDue = getWeekTag(a.dueDate)
+          const matchStart = weekStart === selectedWeek && isSameMonthYear(a.startDate, m, y)
+          const matchDue = weekDue === selectedWeek && isSameMonthYear(a.dueDate, m, y)
+          if (!matchStart && !matchDue) return false
         }
       }
 
@@ -219,6 +258,7 @@ export default function WeeklyActivitiesPage() {
 
     const headers = [
       'No',
+      'Minggu (Start-Due)',
       'Program Kerja Induk',
       'Sub-Item Program',
       'Laporan Kegiatan',
@@ -228,11 +268,13 @@ export default function WeeklyActivitiesPage() {
       'Status Aktivitas',
       'Penanggung Jawab (PIC)',
       'Tindak Lanjut / Catatan',
-      'Kendala / Hambatan'
+      'Kendala / Hambatan',
+      'Waktu Upload Laporan'
     ]
 
     const rows = filteredActivities.map((a, idx) => [
       idx + 1,
+      weekLabel(a.startDate, a.dueDate),
       `"${(a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')).replace(/"/g, '""')}"`,
       `"${(a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')).replace(/"/g, '""')}"`,
       `"${(a.kegiatan || '').replace(/"/g, '""')}"`,
@@ -242,7 +284,8 @@ export default function WeeklyActivitiesPage() {
       a.status || '',
       `"${(a.picNama || '').replace(/"/g, '""')}"`,
       `"${(a.tindakLanjut || '').replace(/"/g, '""')}"`,
-      `"${(a.kendala || '').replace(/"/g, '""')}"`
+      `"${(a.kendala || '').replace(/"/g, '""')}"`,
+      `"${(formatUploadTime(a.createdAt) || '').replace(/"/g, '""')}"`
     ])
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
@@ -353,10 +396,10 @@ export default function WeeklyActivitiesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <CalendarDays className="text-brand-700" size={24} /> Weekly Activities (Sprint Mingguan)
+            <CalendarDays className="text-brand-700" size={24} /> Weekly Activities Report (Laporan Aktivitas Mingguan)
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Pengelompokan Aktivitas Operasional per Bulan &amp; Minggu Sprints (Minggu 1 - 5)
+            Laporan pekerjaan yang dilakukan user dalam 1 minggu — dilacak dari Tanggal Start &amp; Due Date, plus waktu upload laporan
           </p>
         </div>
 
@@ -434,9 +477,9 @@ export default function WeeklyActivitiesPage() {
           </div>
         </div>
 
-        {/* Sprint Week Pills — baris terpisah, lebar menyesuaikan layar */}
+        {/* Week Pills — baris terpisah, lebar menyesuaikan layar */}
         <div className="pt-2.5 border-t border-slate-200">
-          <span className="block text-xs font-black text-slate-700 mb-2">Sprint Minggu:</span>
+          <span className="block text-xs font-black text-slate-700 mb-2">Pilih Minggu (berdasarkan Start &amp; Due Date):</span>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
             {[
               { id: 'ALL', label: 'Semua Minggu' },
@@ -597,20 +640,25 @@ export default function WeeklyActivitiesPage() {
         ) : (
           paginatedActivities.map((a) => (
             <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 p-4 shadow-xs space-y-3 w-full min-w-0">
-              {/* Top Row: Program Badge & Status */}
-              <div className="space-y-1.5 border-b border-slate-200 pb-2.5 min-w-0">
-                <div className="flex items-center justify-between gap-2 min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200 truncate min-w-0">
-                    {a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')}
-                  </span>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
-                    a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
-                  }`}>
-                    {a.status === 'Closed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                    {a.status}
-                  </span>
-                </div>
-                <p className="font-black text-slate-900 text-xs truncate min-w-0">{a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')}</p>
+              {/* Top Row: Status */}
+              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
+                <span className="text-xs font-black text-slate-700">Aktivitas #{a.no || a.id}</span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
+                  a.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Cancelled' ? 'bg-slate-100 text-slate-600 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'
+                }`}>
+                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                  {a.status}
+                </span>
+              </div>
+
+              {/* Week Badge */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-50 border border-brand-200 text-[11px] font-black text-brand-800" title={`Start: ${a.startDate || '-'} | Due: ${a.dueDate || '-'}`}>
+                  <CalendarDays size={12} /> Minggu: {weekLabel(a.startDate, a.dueDate)}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500">
+                  <Clock size={11} className="text-slate-400" /> Upload: {formatUploadTime(a.createdAt)}
+                </span>
               </div>
 
               {/* Activity Details */}
@@ -640,7 +688,7 @@ export default function WeeklyActivitiesPage() {
                   </span>
                 </div>
 
-                {/* 2 Action Buttons: Update Status & Edit (NO DELETE) */}
+                {/* 2 Action Buttons: Update Status & Edit */}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => openQuickStatus(a)}
@@ -670,20 +718,21 @@ export default function WeeklyActivitiesPage() {
             <thead>
               <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
                 <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300 shadow-xs">No</th>
-                <th className="py-3.5 px-4 w-64">Program &amp; Item Kerja</th>
-                <th className="py-3.5 px-4">Laporan Kegiatan</th>
-                <th className="py-3.5 px-4">Tindak Lanjut</th>
-                <th className="py-3.5 px-4">Kendala</th>
+                <th className="py-3.5 px-4 w-24">Minggu</th>
+                <th className="py-3.5 px-4 min-w-[220px]">Laporan Kegiatan</th>
+                <th className="py-3.5 px-4 min-w-[180px]">Tindak Lanjut</th>
+                <th className="py-3.5 px-4 min-w-[180px]">Kendala</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
                 <th className="py-3.5 px-4 w-36 text-center">Status</th>
                 <th className="py-3.5 px-4 w-40">Penanggung Jawab (PIC)</th>
+                <th className="py-3.5 px-4 w-44">Waktu Upload Laporan</th>
                 <th className="py-3.5 px-4 w-36 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
               {paginatedActivities.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-400 font-bold">
+                  <td colSpan={10} className="text-center py-12 text-slate-400 font-bold">
                     Tidak ada data laporan aktivitas pada rentang tanggal/filter terpilih.
                   </td>
                 </tr>
@@ -691,15 +740,12 @@ export default function WeeklyActivitiesPage() {
                 paginatedActivities.map((a, i) => (
                   <tr key={a.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4 text-center font-mono font-black text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">{startIndex + i + 1}</td>
-                    
-                    {/* Program Column - Clean Responsive Formatting */}
-                    <td className="py-4 px-4 space-y-1">
-                      <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
-                        {a.program?.programKerja ? `${a.program.programKerja.kode} - ${a.program.programKerja.namaProgram}` : (a.kategoriProgram || 'Kegiatan Personal')}
+
+                    {/* Minggu Column (Start & Due) */}
+                    <td className="py-4 px-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-brand-50 border border-brand-200 text-[11px] font-black text-brand-800 whitespace-nowrap" title={`Start: ${a.startDate || '-'} | Due: ${a.dueDate || '-'}`}>
+                        {weekLabel(a.startDate, a.dueDate)}
                       </span>
-                      <p className="font-extrabold text-slate-900 text-xs leading-snug">
-                        {a.program?.kode ? `${a.program.kode} - ${a.itemName}` : (a.itemName || '-')}
-                      </p>
                     </td>
 
                     {/* Kegiatan Column */}
@@ -751,6 +797,13 @@ export default function WeeklyActivitiesPage() {
                         </div>
                         <span className="font-extrabold text-slate-800 truncate">{a.picNama?.split('/')[0]}</span>
                       </div>
+                    </td>
+
+                    {/* Waktu Upload Laporan Column */}
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 whitespace-nowrap">
+                        <Clock size={12} className="text-slate-400 shrink-0" /> {formatUploadTime(a.createdAt)}
+                      </span>
                     </td>
 
                     {/* 2 Actions Column: Update Status & Edit (NO DELETE) */}

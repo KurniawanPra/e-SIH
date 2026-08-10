@@ -12,8 +12,22 @@ export default function DemoLoginPage() {
 
   useEffect(() => {
     getCurrentUser()
-      .then((user) => user ? router.replace('/dashboard') : setChecking(false))
-      .catch(() => setChecking(false))
+      .then(async (user) => {
+        if (user) {
+          router.replace('/dashboard')
+        } else {
+          try {
+            await api.post('/api/auth/demo-login', { role: 'ADMIN' })
+          } catch {}
+          router.replace('/dashboard')
+        }
+      })
+      .catch(async () => {
+        try {
+          await api.post('/api/auth/demo-login', { role: 'ADMIN' })
+        } catch {}
+        router.replace('/dashboard')
+      })
   }, [router])
 
   const handleDemoLoginRole = async (role: 'ADMIN' | 'USER') => {

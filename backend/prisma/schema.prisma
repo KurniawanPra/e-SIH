@@ -9,7 +9,7 @@ datasource db {
 }
 
 // Parent: Master Program Kerja Induk
-model ProgramKerja {
+model ref_ProgramKerja {
   id          String   @id
   kode        String   // e.g., "A", "B", "C"
   namaProgram String   // e.g., "ENABLING DIGITAL AND RELIABLE OPERATION"
@@ -18,11 +18,13 @@ model ProgramKerja {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  items MasterProgram[]
+  items ref_Item_ProgramKerja[]
+
+  @@map("ref_ProgramKerja")
 }
 
 // Child: Sub-Program / Item Spesifik
-model MasterProgram {
+model ref_Item_ProgramKerja {
   id             String   @id
   programKerjaId String
   kode           String   // e.g., "A.1", "A.2"
@@ -34,8 +36,12 @@ model MasterProgram {
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
 
-  programKerja ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
+  programKerja ref_ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
   activities   Activity[]
+  userPrograms UserProgram[]
+  highlights   Highlight[]
+
+  @@map("ref_Item_ProgramKerja")
 }
 
 model Activity {
@@ -58,7 +64,7 @@ model Activity {
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
 
-  program       MasterProgram?  @relation(fields: [idProgram], references: [id])
+  program       ref_Item_ProgramKerja?  @relation(fields: [idProgram], references: [id])
 }
 
 model User {
@@ -72,6 +78,22 @@ model User {
   createdAt DateTime @default(now())
 
   highlights Highlight[]
+  programs   UserProgram[]
+}
+
+// Penugasan user ke sub-program kerja (bisa lebih dari 1, mis. IT Development & IT Infrastructure)
+model UserProgram {
+  id         String   @id @default(cuid())
+  userId     String
+  programId  String
+  assignedBy String? // nama yang menetapkan (staff/admin)
+  createdAt  DateTime @default(now())
+
+  user    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program ref_Item_ProgramKerja @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([programId])
 }
 
 // Monthly curated highlight report (PERIODE bulanan, format INLHO/REP-F/-021)
@@ -89,10 +111,27 @@ model Highlight {
   status          String    @default("Open") // "Open", "On Progress", "Closed", "Cancelled"
   remarks         String?
   authorId        String?
+  programId       String? // sub-program (mis. IT Development) tujuan program highlight
+  pics            Json?    // daftar PIC lebih dari 1: [{ name, email }]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author  User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  program ref_Item_ProgramKerja? @relation(fields: [programId], references: [id], onDelete: SetNull)
 
   @@index([bulan, tahun])
+  @@index([programId])
+}
+
+// Notifikasi (mis. staff mengubah penugasan sub-program user → muncul di dashboard admin)
+model Notification {
+  id        String    @id @default(cuid())
+  type      String    @default("INFO") // "PROGRAM_ASSIGNMENT", dll
+  title     String
+  message   String
+  createdBy String? // nama aktor yang memicu notifikasi
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([isRead, createdAt])
 }

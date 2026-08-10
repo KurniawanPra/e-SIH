@@ -11,7 +11,7 @@ echo "[e-SIH] Skema database tersinkronisasi."
 SEEDED=$(node -e "
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-prisma.programKerja.count()
+prisma.ref_ProgramKerja.count()
   .then((count) => { console.log(count); return prisma.\$disconnect(); })
   .catch((error) => { console.error(error.message); process.exit(1); });
 " || true)

@@ -12,17 +12,27 @@ import {
   Unlock,
   Building2,
   Mail,
-  Briefcase
+  Briefcase,
+  FolderKanban,
+  Save
 } from 'lucide-react'
 
 export default function AccessControlPage() {
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [programs, setPrograms] = useState<any[]>([])
+  const [drafts, setDrafts] = useState<Record<string, string[]>>({})
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   const fetchUsers = async () => {
     try {
       const res = await api.get('/api/esih/users')
       setUsers(res.data.data || [])
+      const d: Record<string, string[]> = {}
+      ;(res.data.data || []).forEach((u: any) => {
+        d[u.id] = (u.programs || []).map((p: any) => p.programId).filter(Boolean)
+      })
+      setDrafts(d)
       setLoading(false)
     } catch (err) {
       console.error(err)
@@ -32,7 +42,67 @@ export default function AccessControlPage() {
 
   useEffect(() => {
     fetchUsers()
+    api.get('/api/esih/programs').then(r => setPrograms(r.data.data || [])).catch(() => setPrograms([]))
   }, [])
+
+  const progLabel = (p: any) =>
+    p ? `${p.programKerja?.kode || ''} - ${p.namaItem} (${p.programKerja?.namaProgram || 'Program'})` : ''
+
+  const progShort = (p: any) => (p ? `${p.programKerja?.namaProgram || ''} · ${p.namaItem}` : '')
+
+  const toggleProgram = (userId: string, programId: string) => {
+    setDrafts(prev => {
+      const cur = prev[userId] || []
+      return {
+        ...prev,
+        [userId]: cur.includes(programId) ? cur.filter(id => id !== programId) : [...cur, programId],
+      }
+    })
+  }
+
+  const isDirty = (u: any) => {
+    const current = (u.programs || []).map((p: any) => p.programId).filter(Boolean)
+    const draft = drafts[u.id] || []
+    return current.length !== draft.length || current.some((id: string) => !draft.includes(id))
+  }
+
+  const saveAssignment = async (u: any) => {
+    setSavingId(u.id)
+    try {
+      await api.put(`/api/esih/users/${u.id}`, { programIds: drafts[u.id] || [] })
+      await fetchUsers()
+      alert(`Penugasan sub-program ${u.nama} berhasil disimpan${u.role !== 'ADMIN' ? '. Admin akan menerima notifikasi perubahan.' : ''}`)
+    } catch (err) {
+      console.error(err)
+      alert('Gagal menyimpan penugasan sub-program')
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const ProgramChips = ({ u }: { u: any }) => (
+    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+      {programs.length === 0 && <span className="text-[11px] text-slate-400 font-semibold">Belum ada sub-program.</span>}
+      {programs.map(p => {
+        const active = (drafts[u.id] || []).includes(p.id)
+        return (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => toggleProgram(u.id, p.id)}
+            title={progLabel(p)}
+            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-extrabold transition cursor-pointer ${
+              active
+                ? 'border-brand-500 bg-brand-600 text-white'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-brand-300'
+            }`}
+          >
+            {p.namaItem}
+          </button>
+        )
+      })}
+    </div>
+  )
 
   const handleRoleToggle = async (id: string, currentRole: string) => {
     const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN'
@@ -133,9 +203,15 @@ export default function AccessControlPage() {
                 <p className="text-slate-500 font-medium flex items-center gap-1.5">
                   <Building2 size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{u.unit}</span>
                 </p>
+                <div className="pt-1">
+                  <p className="flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 mb-1.5">
+                    <FolderKanban size={12} /> Sub-Program Penugasan
+                  </p>
+                  <ProgramChips u={u} />
+                </div>
               </div>
 
-              <div className="pt-1 flex justify-end">
+              <div className="pt-1 flex justify-end gap-1.5">
                 <button
                   onClick={() => handleRoleToggle(u.id, u.role)}
                   className={`px-3 py-1.5 rounded-lg border font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -146,6 +222,18 @@ export default function AccessControlPage() {
                 >
                   {u.role === 'ADMIN' ? <Lock size={13} /> : <Unlock size={13} />}
                   {u.role === 'ADMIN' ? 'Ubah ke Staff User' : 'Jadikan Admin'}
+                </button>
+                <button
+                  onClick={() => saveAssignment(u)}
+                  disabled={!isDirty(u) || savingId === u.id}
+                  className={`px-3 py-1.5 rounded-lg border font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    !isDirty(u)
+                      ? 'border-slate-200 text-slate-300 cursor-not-allowed'
+                      : 'border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100'
+                  }`}
+                >
+                  <Save size={13} />
+                  {savingId === u.id ? 'Menyimpan...' : 'Simpan Penugasan'}
                 </button>
               </div>
             </div>
@@ -163,7 +251,8 @@ export default function AccessControlPage() {
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Jabatan &amp; Unit Kerja</th>
                 <th className="py-3.5 px-4 text-center">Hak Akses (Role)</th>
-                <th className="py-3.5 px-4 text-right">Ubah Hak Akses</th>
+                <th className="py-3.5 px-4 min-w-64">Sub-Program Penugasan (Bisa Lebih Dari Satu)</th>
+                <th className="py-3.5 px-4 text-right">Ubah Hak Akses / Simpan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -201,6 +290,16 @@ export default function AccessControlPage() {
                     </span>
                   </td>
 
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-bold text-slate-400">
+                      <FolderKanban size={11} /> Pilih sub-program tempat user bekerja
+                    </div>
+                    <ProgramChips u={u} />
+                    {(drafts[u.id] || []).length > 0 && (
+                      <p className="mt-1.5 text-[10px] font-bold text-brand-700">Terpilih: {(drafts[u.id] || []).length} sub-program</p>
+                    )}
+                  </td>
+
                   <td className="py-3.5 px-4 text-right">
                     <button
                       onClick={() => handleRoleToggle(u.id, u.role)}
@@ -210,6 +309,19 @@ export default function AccessControlPage() {
                     >
                       {u.role === 'ADMIN' ? 'Ubah ke Staff User' : 'Jadikan Admin'}
                     </button>
+                    <div className="mt-2">
+                      <button
+                        onClick={() => saveAssignment(u)}
+                        disabled={!isDirty(u) || savingId === u.id}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs neu-btn w-full ${
+                          !isDirty(u)
+                            ? 'text-slate-300 cursor-not-allowed'
+                            : 'text-sky-700 hover:bg-sky-50'
+                        }`}
+                      >
+                        {savingId === u.id ? 'Menyimpan...' : (<span className="inline-flex items-center gap-1"><Save size={13} /> Simpan Penugasan</span>)}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
