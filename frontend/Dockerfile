@@ -38,5 +38,5 @@ ENV NODE_ENV=production
 RUN npm i -g serve@14.2.6
 COPY --from=builder /app/out ./out
 COPY --from=builder /app/package.json /app/package-lock.json ./
-EXPOSE 4100
-CMD ["serve", "out", "-l", "4100"]
+EXPOSE 8098
+CMD ["serve", "out", "-l", "8098"]

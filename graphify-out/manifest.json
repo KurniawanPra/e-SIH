@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "backend/prisma/seed.ts": {
-    "mtime": 1786320355.8953311,
-    "ast_hash": "fd040bc251d60ba2d3baf2d0d567ae57",
+    "mtime": 1786348436.1460202,
+    "ast_hash": "dfc12f74715ea7b39823f6baa6667ee4",
     "semantic_hash": ""
   },
   "backend/skills-lock.json": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "backend/src/routes/esih.route.ts": {
-    "mtime": 1786320363.9903412,
-    "ast_hash": "69df631aa4279fcb5fb1dfb1816b70cb",
+    "mtime": 1786346733.1890786,
+    "ast_hash": "f8123a0cec9c8fd7c393477cafdeeca4",
     "semantic_hash": ""
   },
   "backend/src/routes/portal-data.route.ts": {
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1786171757.5485806,
-    "ast_hash": "d36fe73f509658f8f1d011266128fd25",
+    "mtime": 1786335847.814437,
+    "ast_hash": "ef141c6399650559c725a410416bde92",
     "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/activities/page.tsx": {
-    "mtime": 1786318411.419852,
-    "ast_hash": "c2290bee9eee4090c969906a9ab94341",
+    "mtime": 1786347100.9456856,
+    "ast_hash": "81e79710cc191f8b39d09d85cd2ed88f",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/layout.tsx": {
@@ -145,8 +145,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/master/programs/page.tsx": {
-    "mtime": 1786322503.9132075,
-    "ast_hash": "b947259c9de4f9a8749795a9d10eb267",
+    "mtime": 1786351611.804812,
+    "ast_hash": "829aff3bc5319b04d56024aabe26b01b",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/master/roles/page.tsx": {
@@ -165,18 +165,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/monthly/page.tsx": {
-    "mtime": 1786322110.7895324,
-    "ast_hash": "3c701d46ab9b80f9f1a5a16c68a7958a",
+    "mtime": 1786352068.8616533,
+    "ast_hash": "079fc14518750ee691a8400310b5cfee",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/page.tsx": {
-    "mtime": 1786318411.4268498,
-    "ast_hash": "6b3e09ee24fdf2c19c4930bda0bdcca9",
+    "mtime": 1786351231.5524888,
+    "ast_hash": "c51aa866405b665d09582ecc622923a1",
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/weekly/page.tsx": {
-    "mtime": 1786321278.3022423,
-    "ast_hash": "4d8eecc18449f0d950805ac4ff2b1d0e",
+    "mtime": 1786351742.9902494,
+    "ast_hash": "303972dea416825742e01379c83f4d35",
     "semantic_hash": ""
   },
   "frontend/src/app/layout.tsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/page.tsx": {
-    "mtime": 1786319791.1697283,
-    "ast_hash": "e88dec43d96cdf19c70f3f43163c55d6",
+    "mtime": 1786351440.7175558,
+    "ast_hash": "50814fc1ce49df0f9b0d8de6f52deefe",
     "semantic_hash": ""
   },
   "frontend/src/app/sso-callback/page.tsx": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/Sidebar.tsx": {
-    "mtime": 1786321005.1716206,
-    "ast_hash": "72f854b8aef33ce879caea3fb1628248",
+    "mtime": 1786346527.622741,
+    "ast_hash": "2907a018200c16305f08e936bd8ba6ef",
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
@@ -1635,8 +1635,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/dashboard/my-activities/page.tsx": {
-    "mtime": 1786318411.4258497,
-    "ast_hash": "6904859f5f982d36d198a3ab958ae51f",
+    "mtime": 1786347305.560637,
+    "ast_hash": "49c9b05fd0af660f82d506ead7ad88a9",
     "semantic_hash": ""
   },
   "frontend/src/context/YearContext.tsx": {
@@ -2007,6 +2007,11 @@
   "backend/prisma/migrations/20260810010000_init_full_schema/migration.sql": {
     "mtime": 1786319939.6611285,
     "ast_hash": "fefc2b862b8bc8709b6c99509d94eaef",
+    "semantic_hash": ""
+  },
+  "frontend/src/lib/excelExport.ts": {
+    "mtime": 1786336932.4340315,
+    "ast_hash": "7861987c39ee3748243660d375834d4d",
     "semantic_hash": ""
   }
 }

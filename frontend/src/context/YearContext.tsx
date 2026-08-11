@@ -30,7 +30,7 @@ export function YearProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('esih_selected_year', year.toString())
   }
 
-  const availableYears = [2024, 2025, 2026, 2027]
+  const availableYears = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
 
   return (
     <YearContext.Provider value={{ selectedYear, setSelectedYear, availableYears }}>

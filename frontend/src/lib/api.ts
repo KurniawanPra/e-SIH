@@ -12,7 +12,7 @@ export type BackendDriver = 'fastify' | 'laravel'
 
 const envApiUrl = process.env.NEXT_PUBLIC_API_URL ?? ''
 export const API_URL = envApiUrl
-  || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:4101` : '')
+  || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3015` : '')
 export const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? 'https://portal.example.com'
 export const PORTAL_LOGIN_URL = process.env.NEXT_PUBLIC_PORTAL_LOGIN_URL
   ?? `${PORTAL_URL.replace(/\/$/, '')}/login`

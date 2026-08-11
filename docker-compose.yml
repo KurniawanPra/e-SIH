@@ -6,18 +6,18 @@ services:
     environment:
       NODE_ENV: development
       HOST: 0.0.0.0
-      PORT: 4101
+      PORT: 3015
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/esih?schema=public
       PORTAL_API_URL: http://portal:3001
       SSO_INTERNAL_TOKEN: ${SSO_INTERNAL_TOKEN:?SSO_INTERNAL_TOKEN wajib diatur di .env}
       TARGET_APP_ID: 77777777-7777-4777-8777-777777777777
-      TARGET_FRONTEND_ORIGIN: http://localhost:4100
+      TARGET_FRONTEND_ORIGIN: http://localhost:8098
       ALLOWED_ORIGINS: ""
       SESSION_SECRET_HEX: ${SESSION_SECRET_HEX:?SESSION_SECRET_HEX wajib diatur di .env}
       COOKIE_NAME: target_session
       COOKIE_MAX_AGE_SECONDS: 1800
     ports:
-      - "4101:4101"
+      - "3015:3015"
     networks:
       - default
       - esih
@@ -39,7 +39,7 @@ services:
     container_name: esih-frontend
     restart: unless-stopped
     ports:
-      - "4100:4100"
+      - "8098:8098"
 
 networks:
   esih:

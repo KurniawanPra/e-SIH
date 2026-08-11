@@ -8,7 +8,7 @@
   "variable": [
     { "key": "portal_url", "value": "https://portal.example.com", "type": "string" },
     { "key": "target_backend_url", "value": "http://localhost:8000", "type": "string" },
-    { "key": "target_frontend_origin", "value": "http://localhost:4100", "type": "string" },
+    { "key": "target_frontend_origin", "value": "http://localhost:8098", "type": "string" },
     { "key": "app_id", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
     { "key": "portal_email", "value": "", "type": "string" },
     { "key": "portal_password", "value": "", "type": "string" },

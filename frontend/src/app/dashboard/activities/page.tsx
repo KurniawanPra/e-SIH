@@ -372,7 +372,7 @@ export default function AllActivitiesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-16 sm:pb-24">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
@@ -579,14 +579,14 @@ export default function AllActivitiesPage() {
                     <td className="py-4 px-4 text-center">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border ${
-                          a.status === 'Closed'
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : a.status === 'On Progress'
+                          a.status === 'On Progress'
                             ? 'bg-amber-100 text-amber-800 border-amber-300'
-                            : 'bg-red-100 text-red-800 border-red-300'
+                            : a.status === 'Open'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-slate-200 text-slate-700 border-slate-300'
                         }`}
                       >
-                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         {a.status}
                       </span>
                     </td>
@@ -656,9 +656,11 @@ export default function AllActivitiesPage() {
                 </span>
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shrink-0 ${
-                    a.status === 'Closed'
+                    a.status === 'On Progress'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : a.status === 'Open'
                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                      : 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-slate-200 text-slate-700 border-slate-300'
                   }`}
                 >
                   {a.status}

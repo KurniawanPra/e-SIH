@@ -19,6 +19,7 @@ import ModalPortal from '@/components/ModalPortal'
 
 export default function MasterUsersPage() {
   const [users, setUsers] = useState<any[]>([])
+  const [portalUnits, setPortalUnits] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [unitFilter, setUnitFilter] = useState('ALL')
@@ -44,15 +45,31 @@ export default function MasterUsersPage() {
     }
   }
 
+  const fetchPortalUnits = async () => {
+    try {
+      const res = await api.get('/api/portal/organization-units')
+      if (res.data?.data && Array.isArray(res.data.data)) {
+        const units = res.data.data
+          .map((u: any) => u.nama || u.name || u.unitNama)
+          .filter((name: any): name is string => typeof name === 'string' && Boolean(name.trim()))
+        setPortalUnits(units)
+      }
+    } catch (e) {
+      // Fallback silently if portal units endpoint is unavailable
+    }
+  }
+
   useEffect(() => {
     fetchUsers()
+    fetchPortalUnits()
   }, [])
 
   const uniqueUnits = useMemo(() => {
     const set = new Set<string>()
-    users.forEach(u => { if (u.unit) set.add(u.unit) })
-    return Array.from(set)
-  }, [users])
+    portalUnits.forEach(u => set.add(u.trim()))
+    users.forEach(u => { if (u.unit) set.add(u.unit.trim()) })
+    return Array.from(set).sort()
+  }, [users, portalUnits])
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
@@ -132,18 +149,30 @@ export default function MasterUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Users className="text-brand-700" size={24} /> Kelola User Sub Bagian Sistem &amp; IT
+            <Users className="text-brand-700" size={24} /> Kelola User (Portal SSO Terpusat)
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Manajemen Pengguna &amp; Penanggung Jawab Aktivitas Operasional (PIC IT)
+            Seluruh data pengguna, hak akses login, jabatan, dan unit kerja dikelola terpusat dari Portal SSO.
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer self-start sm:self-auto"
-        >
-          <UserPlus size={16} /> Tambah User IT Baru
-        </button>
+        <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto shadow-2xs">
+          <ShieldCheck size={16} /> Portal SSO Live Data
+        </div>
+      </div>
+
+      {/* SSO Portal Access Badge / Information Banner */}
+      <div className="p-4 rounded-2xl bg-brand-50/80 border-2 border-brand-200 text-xs text-brand-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-start gap-3">
+          <ShieldCheck size={20} className="text-brand-700 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <div className="font-extrabold text-brand-900 text-sm flex items-center gap-2 flex-wrap">
+              Akses Login Portal SSO <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-200 text-brand-900 font-mono font-bold">App ID: 924b0197-31b4-4620-b15e-c037989b49a3</span>
+            </div>
+            <p className="text-slate-600 font-medium">
+              Aplikasi e-SIH membaca data user langsung dari tabel employee Portal SSO. Kartu aplikasi di portal dibatasi khusus untuk karyawan <strong>Sub Bagian Sistem &amp; IT</strong> serta seksi turunannya. Personel luar unit diblokir otomatis.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Ringkasan Mini (Tanpa Icon) */}
@@ -190,14 +219,13 @@ export default function MasterUsersPage() {
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Jabatan</th>
                 <th className="py-3.5 px-4">Unit Kerja</th>
-                <th className="py-3.5 px-4 text-center">Status</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
+                <th className="py-3.5 px-4 text-center">Status Portal SSO</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400 font-semibold">
+                  <td colSpan={5} className="text-center py-10 text-slate-400 font-semibold">
                     Tidak ada data user yang sesuai.
                   </td>
                 </tr>
@@ -222,24 +250,14 @@ export default function MasterUsersPage() {
                       <span className="flex items-center gap-1.5"><Building2 size={13} className="text-slate-400" /> {u.unit}</span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => handleToggle(u.id)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors cursor-pointer ${
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                           u.isActive ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-300'
                         }`}
                       >
                         {u.isActive ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-                        {u.isActive ? 'Aktif' : 'Non-Aktif'}
-                      </button>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleOpenModal(u)}
-                        className="p-1.5 text-slate-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors cursor-pointer"
-                        title="Edit User"
-                      >
-                        <Edit2 size={15} />
-                      </button>
+                        {u.isActive ? 'Portal SSO Aktif' : 'Non-Aktif'}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -362,14 +380,17 @@ export default function MasterUsersPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Unit Kerja / Divisi</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: IT &amp; Sistem Operational"
+                    <label className="text-xs font-bold text-slate-700">Sub Bagian / Unit Kerja Portal *</label>
+                    <select
                       value={form.unit}
                       onChange={e => setForm({ ...form, unit: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                    >
+                      {uniqueUnits.map(u => <option key={u} value={u}>{u}</option>)}
+                      {!uniqueUnits.includes(form.unit) && form.unit && (
+                        <option value={form.unit}>{form.unit}</option>
+                      )}
+                    </select>
                   </div>
                 </div>
 

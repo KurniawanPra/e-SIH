@@ -33,15 +33,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
   const isAdmin = user?.role === 'ADMIN' || !user?.role // default Kurniawan is admin
   const programKerjaLabel = isAdmin ? 'Daftar Program Kerja' : 'Program Kerja Ku'
-  const proyekLabel = isAdmin ? 'Proyek Staff' : 'Proyek Ku'
+  const activitiesLabel = isAdmin ? 'Activities' : 'Activities Ku'
+  const proyekLabel = 'Update Aktivitas'
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: programKerjaLabel, path: '/dashboard/master/programs', icon: FolderKanban },
-    { name: 'My Activities', path: '/dashboard/my-activities', icon: ListChecks },
-    { name: 'Weekly Activities Report', path: '/dashboard/weekly', icon: CalendarDays },
+    { name: activitiesLabel, path: '/dashboard/weekly', icon: ListChecks },
     { name: proyekLabel, path: '/dashboard/monthly', icon: FolderKanban },
-    { name: 'Semua Aktivitas', path: '/dashboard/activities', icon: ListFilter },
   ]
 
   return (

@@ -16,8 +16,17 @@ import {
   Users,
   Layers,
   UserCheck,
-  Crown
+  Crown,
+  Filter,
+  FilterX,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  FileSpreadsheet
 } from 'lucide-react'
+import { exportSubItemToExcel, exportTableToExcel3 } from '@/lib/excelExport'
 import type { SessionUser } from '@/types/auth'
 
 interface ActivityItem {
@@ -87,11 +96,14 @@ export default function DaftarProgramKerjaPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED'>('ALL')
-  const [onlyMyPrograms, setOnlyMyPrograms] = useState(false)
 
   // TABS STATE: Main Tab (Parent PK: e.g., 'PK-A') & Sub Tab (Child Item: e.g., 'ALL' or 'PROG-A1-2026')
   const [activeParentTab, setActiveParentTab] = useState<string>('PK-A')
   const [activeSubTab, setActiveSubTab] = useState<string>('ALL')
+
+  // PAGINATION STATE: pageSize (per-page) & subPages (current page per sub-item id)
+  const [pageSize, setPageSize] = useState<number>(10)
+  const [subPages, setSubPages] = useState<{ [subId: string]: number }>({})
 
   // Activity Modal State
   const [showModal, setShowModal] = useState(false)
@@ -99,6 +111,14 @@ export default function DaftarProgramKerjaPage() {
   const [activityForm, setActivityForm] = useState({ ...emptyActivityForm })
   const [selectedPics, setSelectedPics] = useState<{ nama: string; email: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
+
+  // 1. Searchable Sub-Program Dropdown State inside Modal
+  const [subProgramDropdownOpen, setSubProgramDropdownOpen] = useState(false)
+  const [subProgramSearchQuery, setSubProgramSearchQuery] = useState('')
+
+  // 2. Searchable PIC Selector Dropdown State inside Modal
+  const [picDropdownOpen, setPicDropdownOpen] = useState(false)
+  const [picSearchQuery, setPicSearchQuery] = useState('')
 
   const isAdmin = currentUser?.role === 'ADMIN' || !currentUser?.role
 
@@ -128,8 +148,14 @@ export default function DaftarProgramKerjaPage() {
       }
       const data: ParentProgram[] = res.data.data || []
       setParents(data)
-      if (data.length > 0 && !data.some(p => p.id === activeParentTab)) {
-        setActiveParentTab(data[0].id)
+      if (data.length > 0) {
+        const targetParent = data.find(p => p.id === activeParentTab) || data[0]
+        if (!data.some(p => p.id === activeParentTab)) {
+          setActiveParentTab(targetParent.id)
+        }
+        if (targetParent.items && targetParent.items.length > 0 && (activeSubTab === 'ALL' || !targetParent.items.some(s => s.id === activeSubTab))) {
+          setActiveSubTab(targetParent.items[0].id)
+        }
       }
     } catch (e) {
       console.error(e)
@@ -172,10 +198,15 @@ export default function DaftarProgramKerjaPage() {
     updatePicsState([target, ...rest])
   }
 
-  // Reset activeSubTab to 'ALL' whenever activeParentTab changes
+  // Switch parent tab and default activeSubTab to the 1st sub-item of that parent
   const handleParentTabChange = (parentId: string) => {
     setActiveParentTab(parentId)
-    setActiveSubTab('ALL')
+    const targetParent = parents.find(p => p.id === parentId)
+    if (targetParent && targetParent.items && targetParent.items.length > 0) {
+      setActiveSubTab(targetParent.items[0].id)
+    } else {
+      setActiveSubTab('ALL')
+    }
   }
 
   // Selected Parent Object
@@ -188,13 +219,26 @@ export default function DaftarProgramKerjaPage() {
     return currentParent?.items || []
   }, [currentParent])
 
-  // Flat list of all sub-programs for modal selection
+  // Flat list of all sub-programs for dropdowns & selection
   const allSubPrograms = useMemo(() => {
-    const list: { id: string; label: string }[] = []
+    const list: {
+      id: string
+      programKerjaId: string
+      kode: string
+      namaItem: string
+      parentKode: string
+      parentNama: string
+      label: string
+    }[] = []
     parents.forEach(p => {
       p.items?.forEach(sub => {
         list.push({
           id: sub.id,
+          programKerjaId: p.id,
+          kode: sub.kode,
+          namaItem: sub.namaItem,
+          parentKode: p.kode,
+          parentNama: p.namaProgram,
           label: `[${sub.kode}] ${sub.namaItem} (${p.namaProgram})`
         })
       })
@@ -202,8 +246,36 @@ export default function DaftarProgramKerjaPage() {
     return list
   }, [parents])
 
+  const filteredSubProgramsForModal = useMemo(() => {
+    if (!subProgramSearchQuery.trim()) return allSubPrograms
+    const q = subProgramSearchQuery.toLowerCase()
+    return allSubPrograms.filter(
+      sp =>
+        sp.kode.toLowerCase().includes(q) ||
+        sp.namaItem.toLowerCase().includes(q) ||
+        sp.parentKode.toLowerCase().includes(q) ||
+        sp.parentNama.toLowerCase().includes(q)
+    )
+  }, [allSubPrograms, subProgramSearchQuery])
+
+  const filteredUsersListForModal = useMemo(() => {
+    if (!picSearchQuery.trim()) return usersList
+    const q = picSearchQuery.toLowerCase()
+    return usersList.filter(
+      u =>
+        u.nama.toLowerCase().includes(q) ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.jabatan && u.jabatan.toLowerCase().includes(q))
+    )
+  }, [usersList, picSearchQuery])
+
   const openAddModal = (subId?: string) => {
+    if (!isAdmin) return
     setEditingActivityId(null)
+    setSubProgramDropdownOpen(false)
+    setSubProgramSearchQuery('')
+    setPicDropdownOpen(false)
+    setPicSearchQuery('')
     const defaultPicName = currentUser?.name || 'Kurniawan Pralambang'
     const defaultPicEmail = currentUser?.email || 'kurniawan@inl.co.id'
     const initialPics = [{ nama: defaultPicName, email: defaultPicEmail }]
@@ -220,7 +292,12 @@ export default function DaftarProgramKerjaPage() {
   }
 
   const openEditModal = (act: ActivityItem) => {
+    if (!isAdmin) return
     setEditingActivityId(act.id)
+    setSubProgramDropdownOpen(false)
+    setSubProgramSearchQuery('')
+    setPicDropdownOpen(false)
+    setPicSearchQuery('')
     const rawNames = act.picNama ? act.picNama.split(/[/,;]+/).map(n => n.trim()).filter(Boolean) : []
     const parsedPics = rawNames.map((name, i) => {
       const matchedUser = usersList.find(u => u.nama.toLowerCase() === name.toLowerCase())
@@ -248,6 +325,10 @@ export default function DaftarProgramKerjaPage() {
 
   const handleSubmitActivity = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isAdmin) {
+      alert('Hanya Admin yang dapat mengubah data')
+      return
+    }
     if (!activityForm.kegiatan.trim()) {
       alert('Nama Kegiatan wajib diisi')
       return
@@ -273,6 +354,10 @@ export default function DaftarProgramKerjaPage() {
   }
 
   const toggleActivityStatus = async (act: ActivityItem) => {
+    if (!isAdmin) {
+      alert('Hanya Admin yang dapat mengubah status')
+      return
+    }
     const nextStatus = act.status === 'Closed' ? 'On Progress' : 'Closed'
     const todayStr = new Date().toISOString().split('T')[0]
     try {
@@ -287,9 +372,18 @@ export default function DaftarProgramKerjaPage() {
     }
   }
 
-  // Filter activities based on search, status filter, and user assignment
-  const filterActivities = (activities: ActivityItem[] = []) => {
+  // Filter activities based on search, status filter, user assignment, and sub-program item ownership
+  const filterActivities = (activities: ActivityItem[] = [], currentSub?: SubProgram) => {
     return activities.filter(act => {
+      // 0. Sub-Item Ownership Check: Ensure activity strictly belongs to currentSub if provided
+      if (currentSub) {
+        if (act.idProgram) {
+          if (act.idProgram !== currentSub.id) return false
+        } else if (act.itemName) {
+          if (act.itemName.toLowerCase() !== currentSub.namaItem.toLowerCase()) return false
+        }
+      }
+
       // 1. Search Filter
       if (search.trim()) {
         const q = search.toLowerCase()
@@ -308,17 +402,6 @@ export default function DaftarProgramKerjaPage() {
       } else if (statusFilter === 'CLOSED') {
         if (act.status !== 'Closed' && act.status !== 'Cancelled') return false
       }
-
-      // 3. User Role Assignment Filter
-      if (onlyMyPrograms && currentUser) {
-        const userEmail = currentUser.email?.toLowerCase() || ''
-        const userName = currentUser.name?.toLowerCase() || ''
-        const isMyPic =
-          act.picEmail?.toLowerCase() === userEmail ||
-          act.picNama?.toLowerCase().includes(userName)
-        if (!isMyPic) return false
-      }
-
       return true
     })
   }
@@ -367,11 +450,20 @@ export default function DaftarProgramKerjaPage() {
     )
   }
 
-  // Displayed sub-items for active parent tab
-  const displayedSubItems = useMemo(() => {
-    if (activeSubTab === 'ALL') return currentSubItems
-    return currentSubItems.filter(s => s.id === activeSubTab)
-  }, [currentSubItems, activeSubTab])
+  // Active single sub-program object for the unified single table view
+  const activeSubProgramObj = useMemo(() => {
+    if (!currentParent || !currentSubItems.length) return null
+    if (activeSubTab !== 'ALL') {
+      const matchInCurrent = currentSubItems.find(s => s.id === activeSubTab)
+      if (matchInCurrent) return matchInCurrent
+      // Fallback: search across all parents
+      for (const p of parents) {
+        const found = p.items?.find(s => s.id === activeSubTab)
+        if (found) return found
+      }
+    }
+    return currentSubItems[0] || null
+  }, [currentParent, currentSubItems, activeSubTab, parents])
 
   if (loading) {
     return (
@@ -382,172 +474,165 @@ export default function DaftarProgramKerjaPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-16 sm:pb-24">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-black text-slate-800">
-            <FolderKanban size={22} className="text-brand-600 shrink-0" />
-            {isAdmin ? 'Daftar Program Kerja (Semua Karyawan)' : 'Program Kerja Ku'}
-          </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Kelola Project &amp; Kegiatan berdasarkan Tab Program Kerja Induk (A, B, C) dan Sub-Item Program Kerja ({selectedYear}).
-          </p>
-        </div>
-        <button
-          onClick={() => openAddModal()}
-          className="flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-700 shadow-md transition-all cursor-pointer shrink-0"
-        >
-          <Plus size={16} /> Tambah Project / Kegiatan
-        </button>
+      <div>
+        <h1 className="flex items-center gap-2 text-xl font-black text-slate-800">
+          <FolderKanban size={22} className="text-brand-600 shrink-0" />
+          Daftar Program Kerja
+        </h1>
+        <p className="text-xs font-medium text-slate-500 mt-0.5">
+          Kelola Project &amp; Kegiatan berdasarkan Tab Program Kerja Induk (A, B, C) dan Sub-Item Program Kerja ({selectedYear}).
+        </p>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      {/* ROW 1: SEARCH BAR & STATUS FILTER TOOLBAR */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search */}
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative flex-1 min-w-[200px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Cari Project, Kegiatan, PIC, atau kata kunci..."
-            className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 text-xs focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
+            className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 text-xs focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none font-medium"
           />
         </div>
 
-        {/* Filter Status Pills */}
-        <div className="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <button
-            onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Semua Status
-          </button>
-          <button
-            onClick={() => setStatusFilter('OPEN')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-              statusFilter === 'OPEN' ? 'bg-amber-500 text-white shadow-xs font-black' : 'text-amber-700 hover:bg-amber-100'
-            }`}
-          >
-            <Clock size={12} /> Masih Open
-          </button>
-          <button
-            onClick={() => setStatusFilter('CLOSED')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-              statusFilter === 'CLOSED' ? 'bg-emerald-600 text-white shadow-xs font-black' : 'text-emerald-700 hover:bg-emerald-100'
-            }`}
-          >
-            <CheckCircle2 size={12} /> Sudah Close
-          </button>
-        </div>
-
-        {/* User filter checkbox */}
-        <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 shrink-0">
-          <input
-            type="checkbox"
-            checked={onlyMyPrograms}
-            onChange={e => setOnlyMyPrograms(e.target.checked)}
-            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-          />
-          <UserCheck size={14} className="text-brand-600" />
-          <span>Hanya Ditugaskan Ke Saya</span>
-        </label>
-      </div>
-
-      {/* 1. MAIN TABS (Program Kerja A, B, C) */}
-      <div className="bg-slate-50 p-2 rounded-2xl border border-slate-200 shadow-2xs overflow-x-auto flex flex-nowrap items-center gap-2.5 scrollbar-thin">
-        {parents.map(p => {
-          const isActive = p.id === activeParentTab
-          const subCount = p.items?.length || 0
-          return (
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter Status Pills */}
+          <div className="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
-              key={p.id}
-              onClick={() => handleParentTabChange(p.id)}
-              className={`flex-1 min-w-[260px] sm:min-w-[280px] shrink-0 flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer text-left ${
-                isActive
-                  ? 'bg-white text-emerald-850 font-black border-2 border-emerald-600 shadow-sm ring-2 ring-emerald-500/20'
-                  : 'bg-white text-slate-700 font-bold border border-slate-200 hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50/80'
+              onClick={() => setStatusFilter('ALL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm shrink-0 border ${
-                  isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
-                }`}>
-                  {p.kode}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className={`text-xs font-black tracking-tight truncate ${isActive ? 'text-emerald-950' : 'text-slate-900'}`} title={`Program ${p.kode}: ${p.namaProgram}`}>
-                    Program {p.kode}: {p.namaProgram}
-                  </div>
-                  <div className="text-[10px] font-medium text-slate-500 truncate">
-                    {subCount} Sub-Program Item
-                  </div>
-                </div>
-              </div>
-              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full shrink-0 border ${
-                isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
-              }`}>
-                {p.totalProgress}%
-              </span>
+              Semua Status
             </button>
-          )
-        })}
+            <button
+              onClick={() => setStatusFilter('OPEN')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                statusFilter === 'OPEN' ? 'bg-amber-500 text-white shadow-xs font-black' : 'text-amber-700 hover:bg-amber-100'
+              }`}
+            >
+              <Clock size={12} /> Masih Open
+            </button>
+            <button
+              onClick={() => setStatusFilter('CLOSED')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                statusFilter === 'CLOSED' ? 'bg-emerald-600 text-white shadow-xs font-black' : 'text-emerald-700 hover:bg-emerald-100'
+              }`}
+            >
+              <CheckCircle2 size={12} /> Sudah Close
+            </button>
+          </div>
+
+          {/* Reset Filter Button */}
+          {(search.trim() !== '' || statusFilter !== 'ALL' || activeSubTab !== 'ALL') && (
+            <button
+              onClick={() => {
+                setSearch('')
+                setStatusFilter('ALL')
+                setActiveSubTab('ALL')
+              }}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Reset Seluruh Filter"
+            >
+              <RotateCcw size={13} className="text-slate-500" />
+              <span>Reset Filter</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 2. SUB-TABS (Child Sub-Items under active Parent) */}
-      {currentParent && (
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Layers size={14} className="text-emerald-600" />
-                Sub-Item Program Kerja [{currentParent.kode}]:
-              </span>
+      {/* ROW 2: MAIN PARENT PROGRAM TABS (A, B, C) */}
+      <div className="space-y-1.5">
+        <div className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5 px-1">
+          <FolderKanban size={14} className="text-brand-600" />
+          <span>Semua Program Kerja:</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {parents.map(p => {
+            const isActive = p.id === activeParentTab
+            const subCount = p.items?.length || 0
+            return (
               <button
-                onClick={() => setActiveSubTab('ALL')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                  activeSubTab === 'ALL'
-                    ? 'bg-emerald-50 text-emerald-900 border-emerald-400 font-black ring-2 ring-emerald-500/20 shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                key={p.id}
+                onClick={() => handleParentTabChange(p.id)}
+                className={`w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl transition-all cursor-pointer text-left ${
+                  isActive
+                    ? 'bg-white text-emerald-950 font-black border-2 border-emerald-600 shadow-md ring-2 ring-emerald-500/20'
+                    : 'bg-white text-slate-700 font-bold border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
-                title="Tampilkan Seluruh Sub-Item Program Kerja"
               >
-                <Layers size={13} className={activeSubTab === 'ALL' ? 'text-emerald-600' : 'text-slate-400'} />
-                <span>Lihat Semua Sub-Item ({currentSubItems.length})</span>
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono font-black text-sm shrink-0 border ${
+                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}>
+                    {p.kode}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-xs font-black tracking-tight leading-snug truncate ${isActive ? 'text-emerald-950' : 'text-slate-900'}`} title={p.namaProgram}>
+                      Program {p.kode}: {p.namaProgram}
+                    </div>
+                    <div className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">
+                      {subCount} Sub-Program Item
+                    </div>
+                  </div>
+                </div>
+                <span className={`text-[11px] font-black px-2.5 py-1 rounded-full shrink-0 border ${
+                  isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
+                  {p.totalProgress}%
+                </span>
               </button>
-            </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 2. SUB-ITEM BUTTON TABS (Child Sub-Items under active Parent) */}
+      {currentParent && currentSubItems.length > 0 && (
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Layers size={14} className="text-emerald-600" />
+              Pilih Sub-Item Program Kerja [{currentParent.kode}]:
+            </span>
             <span className="text-xs font-bold text-slate-500">
-              Total {currentSubItems.length} Sub-Item
+              {currentSubItems.length} Sub-Item Tersedia
             </span>
           </div>
 
-          {/* Sub-Item Tabs list */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin flex-nowrap">
+          {/* Sub-Item Buttons list */}
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-thin flex-nowrap">
             {currentSubItems.map(sub => {
-              const isActive = sub.id === activeSubTab
+              const isActive = sub.id === activeSubProgramObj?.id
               const rawActs = sub.activities || []
-              const filteredActs = filterActivities(rawActs)
+              const filteredActs = filterActivities(rawActs, sub)
               return (
                 <button
                   key={sub.id}
-                  onClick={() => setActiveSubTab(sub.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 font-bold shrink-0 ${
+                  onClick={() => {
+                    setActiveSubTab(sub.id)
+                    setSubPages({}) // Reset pagination to page 1 when switching sub-item
+                  }}
+                  className={`px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-2.5 font-bold shrink-0 shadow-2xs ${
                     isActive
-                      ? 'bg-white text-emerald-900 border-2 border-emerald-600 shadow-2xs font-black ring-2 ring-emerald-500/20'
+                      ? 'bg-emerald-50 text-emerald-950 border-2 border-emerald-600 font-black ring-2 ring-emerald-500/20 shadow-2xs'
                       : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-black border ${
-                    isActive ? 'bg-emerald-50 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
+                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
                   }`}>
                     {sub.kode}
                   </span>
-                  <span>{sub.namaItem}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold border ${
-                    isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                  <span className="font-extrabold">{sub.namaItem}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-black border ${
+                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
                   }`}>
                     {filteredActs.length}
                   </span>
@@ -558,33 +643,44 @@ export default function DaftarProgramKerjaPage() {
         </div>
       )}
 
-      {/* 3. PROJECTS / ACTIVITIES TABLES (FOR DISPLAYED SUB-ITEMS) */}
+      {/* 3. SINGLE UNIFIED TABLE CONTAINER (SWITCHES PER SUB-ITEM BUTTON) */}
       <div className="space-y-5">
-        {displayedSubItems.length === 0 ? (
+        {!activeSubProgramObj ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400 font-semibold text-sm">
             Tidak ada Sub-Item Program Kerja untuk kelompok ini.
           </div>
         ) : (
-          displayedSubItems.map(sub => {
+          (() => {
+            const sub = activeSubProgramObj
             const rawActivities = sub.activities || []
-            const activities = filterActivities(rawActivities)
+            const activities = filterActivities(rawActivities, sub)
             const openCount = activities.filter(a => a.status === 'Open' || a.status === 'On Progress').length
             const closedCount = activities.filter(a => a.status === 'Closed' || a.status === 'Cancelled').length
 
+            // Pagination calculation for the single table
+            const currentPage = subPages[sub.id] || 1
+            const isAll = pageSize === -1
+            const actualPageSize = isAll ? (activities.length || 1) : pageSize
+            const totalPages = isAll ? 1 : Math.ceil(activities.length / actualPageSize) || 1
+            const validPage = Math.min(currentPage, totalPages)
+            const startIndex = isAll ? 0 : (validPage - 1) * actualPageSize
+            const endIndex = isAll ? activities.length : Math.min(startIndex + actualPageSize, activities.length)
+            const paginatedActivities = activities.slice(startIndex, endIndex)
+
             return (
-              <div key={sub.id} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+              <div key={sub.id} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden transition-all">
                 {/* Sub-Item Section Header Banner */}
-                <div className="px-4 sm:px-5 py-3.5 bg-slate-100/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="px-2.5 py-1 rounded-lg bg-brand-700 text-white font-mono font-black text-xs shrink-0">
+                <div className="px-5 py-4 bg-slate-100/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="px-3 py-1.5 rounded-xl bg-brand-700 text-white font-mono font-black text-xs shrink-0 shadow-2xs">
                       {sub.kode}
                     </span>
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm truncate">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-black text-slate-900 text-base leading-snug truncate">
                         {sub.namaItem}
                       </h3>
                       {sub.keterangan && (
-                        <p className="text-[11px] text-slate-500 font-medium truncate">
+                        <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
                           {sub.keterangan}
                         </p>
                       )}
@@ -592,15 +688,35 @@ export default function DaftarProgramKerjaPage() {
                   </div>
 
                   <div className="flex items-center gap-2.5 shrink-0">
-                    <span className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                    <span className="text-xs font-bold text-slate-700 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
                       Total: <b>{activities.length}</b> Kegiatan (<b className="text-amber-600">{openCount}</b> Open, <b className="text-emerald-600">{closedCount}</b> Close)
                     </span>
                     <button
-                      onClick={() => openAddModal(sub.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 transition-colors shadow-2xs cursor-pointer"
+                      onClick={() =>
+                        exportSubItemToExcel({
+                          parentKode: currentParent?.kode || 'PK',
+                          parentNama: currentParent?.namaProgram || 'PROGRAM KERJA',
+                          subKode: sub.kode,
+                          subNamaItem: sub.namaItem,
+                          subKeterangan: sub.keterangan,
+                          year: selectedYear,
+                          activities: activities
+                        })
+                      }
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+                      title="Export Data Sub-Item ke Excel"
                     >
-                      <Plus size={14} /> Tambah Kegiatan
+                      <FileSpreadsheet size={15} /> Export Excel
                     </button>
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => openAddModal(sub.id)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Plus size={15} /> Tambah Kegiatan
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -617,23 +733,23 @@ export default function DaftarProgramKerjaPage() {
                         <th className="py-3 px-3.5 w-24">Closed Date</th>
                         <th className="py-3 px-3.5 w-32">Status</th>
                         <th className="py-3 px-3.5 min-w-[150px]">Remarks</th>
-                        <th className="py-3 px-3.5 w-20 text-center">Aksi</th>
+                        {isAdmin && <th className="py-3 px-3.5 w-20 text-center">Aksi</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {activities.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="py-8 text-center text-slate-400 font-semibold">
+                          <td colSpan={isAdmin ? 9 : 8} className="py-8 text-center text-slate-400 font-semibold">
                             Belum ada Project / Kegiatan tercatat di bawah sub-program {sub.kode} ({sub.namaItem}).
                           </td>
                         </tr>
                       ) : (
-                        activities.map((act, index) => {
+                        paginatedActivities.map((act, index) => {
                           const isOpenStatus = act.status === 'Open' || act.status === 'On Progress'
                           return (
                             <tr key={act.id} className="hover:bg-slate-50/80 transition-colors align-top">
                               <td className="py-3.5 px-3.5 text-center font-bold text-slate-400">
-                                {index + 1}
+                                {startIndex + index + 1}
                               </td>
                               <td className="py-3.5 px-3.5 font-extrabold text-slate-900 leading-snug">
                                 {act.kegiatan}
@@ -658,9 +774,7 @@ export default function DaftarProgramKerjaPage() {
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : act.status === 'On Progress'
                                         ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                        : act.status === 'Open'
-                                        ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                        : 'bg-slate-100 text-slate-600 border-slate-300'
+                                        : 'bg-sky-50 text-sky-700 border-sky-200'
                                     }`}
                                   >
                                     {act.status === 'Closed' ? (
@@ -688,28 +802,30 @@ export default function DaftarProgramKerjaPage() {
                               <td className="py-3.5 px-3.5 text-slate-500 whitespace-pre-wrap">
                                 {act.remarks || '-'}
                               </td>
-                              <td className="py-3.5 px-3.5 text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                  <button
-                                    onClick={() => openEditModal(act)}
-                                    className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
-                                    title="Edit Project / Kegiatan"
-                                  >
-                                    <Pencil size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => toggleActivityStatus(act)}
-                                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                      act.status === 'Closed'
-                                        ? 'text-amber-600 hover:bg-amber-50'
-                                        : 'text-emerald-600 hover:bg-emerald-50'
-                                    }`}
-                                    title={act.status === 'Closed' ? 'Tandai Kembali On Progress' : 'Tandai Selesai (Closed)'}
-                                  >
-                                    {act.status === 'Closed' ? <Clock size={14} /> : <CheckCircle2 size={14} />}
-                                  </button>
-                                </div>
-                              </td>
+                              {isAdmin && (
+                                <td className="py-3.5 px-3.5 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button
+                                      onClick={() => openEditModal(act)}
+                                      className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                                      title="Edit Project / Kegiatan"
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => toggleActivityStatus(act)}
+                                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                        act.status === 'Closed'
+                                          ? 'text-amber-600 hover:bg-amber-50'
+                                          : 'text-emerald-600 hover:bg-emerald-50'
+                                      }`}
+                                      title={act.status === 'Closed' ? 'Tandai Kembali On Progress' : 'Tandai Selesai (Closed)'}
+                                    >
+                                      {act.status === 'Closed' ? <Clock size={14} /> : <CheckCircle2 size={14} />}
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
                             </tr>
                           )
                         })
@@ -717,9 +833,112 @@ export default function DaftarProgramKerjaPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Table Footer with Pagination Controls */}
+                <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+                  {/* Left: Dropdown Rows per Page & Counter Info */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <span>Tampilkan</span>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value))
+                          setSubPages({})
+                        }}
+                        className="px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 cursor-pointer shadow-2xs"
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={-1}>Semua Data</option>
+                      </select>
+                      <span>data per halaman</span>
+                    </div>
+
+                    <span className="text-slate-300 hidden sm:inline">|</span>
+
+                    <span>
+                      {activities.length > 0 ? (
+                        <>
+                          Menampilkan <b className="text-slate-900">{startIndex + 1}</b> - <b className="text-slate-900">{endIndex}</b> dari <b className="text-slate-900">{activities.length}</b> data
+                        </>
+                      ) : (
+                        '0 data'
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Right: Direct Page Number Jump & Navigation Buttons */}
+                  {activities.length > 0 && !isAll && totalPages > 1 && (
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      {/* Direct Page Input Number */}
+                      <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs">
+                        <span className="text-[11px] font-bold text-slate-500">Ke Halaman:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={validPage}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10)
+                            if (!isNaN(val)) {
+                              const target = Math.max(1, Math.min(val, totalPages))
+                              setSubPages(prev => ({ ...prev, [sub.id]: target }))
+                            }
+                          }}
+                          className="w-12 px-1.5 py-0.5 text-center font-extrabold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
+                        />
+                        <span className="text-[11px] font-bold text-slate-500">/ {totalPages}</span>
+                      </div>
+
+                      {/* Prev & Next Buttons */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setSubPages(prev => ({ ...prev, [sub.id]: 1 }))}
+                          disabled={validPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                          title="Halaman Pertama"
+                        >
+                          <ChevronsLeft size={14} />
+                        </button>
+                        <button
+                          onClick={() => setSubPages(prev => ({ ...prev, [sub.id]: Math.max(1, validPage - 1) }))}
+                          disabled={validPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                          title="Halaman Sebelumnya"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+
+                        <span className="px-2.5 py-1 rounded-lg bg-brand-50 border border-brand-200 text-brand-800 font-extrabold text-xs">
+                          {validPage} / {totalPages}
+                        </span>
+
+                        <button
+                          onClick={() => setSubPages(prev => ({ ...prev, [sub.id]: Math.min(totalPages, validPage + 1) }))}
+                          disabled={validPage === totalPages}
+                          className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                          title="Halaman Selanjutnya"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                        <button
+                          onClick={() => setSubPages(prev => ({ ...prev, [sub.id]: totalPages }))}
+                          disabled={validPage === totalPages}
+                          className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                          title="Halaman Terakhir"
+                        >
+                          <ChevronsRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )
-          })
+          })()
         )}
       </div>
 
@@ -741,21 +960,107 @@ export default function DaftarProgramKerjaPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitActivity} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
-                <div className="space-y-3.5">
-                  {/* Select Sub-Program */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700">Sub-Program / Item Program Kerja *</label>
-                    <select
-                      value={activityForm.idProgram}
-                      onChange={e => setActivityForm({ ...activityForm, idProgram: e.target.value })}
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
-                    >
-                      {allSubPrograms.map(sp => (
-                        <option key={sp.id} value={sp.id}>{sp.label}</option>
-                      ))}
-                    </select>
+              <form onSubmit={handleSubmitActivity} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                {/* Form Content (Scrollable) */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {/* Searchable Sub-Program / Item Program Kerja Dropdown */}
+                  <div className="space-y-1 relative">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Sub-Program / Item Program Kerja *
+                    </label>
+
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubProgramDropdownOpen(prev => !prev)
+                          setPicDropdownOpen(false)
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-extrabold text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 flex items-center justify-between gap-2 text-left cursor-pointer shadow-2xs"
+                      >
+                        <span className="truncate">
+                          {allSubPrograms.find(sp => sp.id === activityForm.idProgram)?.label ||
+                            '-- Pilih Sub-Program / Item Program Kerja --'}
+                        </span>
+                        <ChevronRight
+                          size={16}
+                          className={`text-slate-400 shrink-0 transition-transform ${
+                            subProgramDropdownOpen ? 'rotate-90 text-brand-600' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {subProgramDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-brand-500 shadow-2xl z-[100] overflow-hidden p-2 space-y-2 animate-zoom-in">
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              autoFocus
+                              value={subProgramSearchQuery}
+                              onChange={e => setSubProgramSearchQuery(e.target.value)}
+                              placeholder="🔍 Ketik nama/kode sub-program (misal: RFID, A.1, IT...)"
+                              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
+                            />
+                            {subProgramSearchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => setSubProgramSearchQuery('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
+                              >
+                                <X size={13} />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+                            {filteredSubProgramsForModal.length === 0 ? (
+                              <div className="p-3 text-center text-xs font-semibold text-slate-400">
+                                Tidak ada Sub-Program yang cocok dengan &quot;{subProgramSearchQuery}&quot;
+                              </div>
+                            ) : (
+                              filteredSubProgramsForModal.map(sp => {
+                                const isSelected = sp.id === activityForm.idProgram
+                                return (
+                                  <button
+                                    key={sp.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setActivityForm({ ...activityForm, idProgram: sp.id })
+                                      setSubProgramDropdownOpen(false)
+                                      setSubProgramSearchQuery('')
+                                    }}
+                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                      isSelected
+                                        ? 'bg-brand-600 text-white font-black shadow-xs'
+                                        : 'hover:bg-slate-100 text-slate-800 font-bold'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span
+                                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-black shrink-0 ${
+                                          isSelected ? 'bg-brand-800 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                        }`}
+                                      >
+                                        {sp.kode}
+                                      </span>
+                                      <span className="truncate">{sp.namaItem}</span>
+                                    </div>
+                                    <span
+                                      className={`text-[10px] font-bold shrink-0 ${
+                                        isSelected ? 'text-brand-100' : 'text-slate-400'
+                                      }`}
+                                    >
+                                      {sp.parentKode}
+                                    </span>
+                                  </button>
+                                )
+                              })
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Nama Project / Kegiatan */}
@@ -794,23 +1099,105 @@ export default function DaftarProgramKerjaPage() {
                       </span>
                     </div>
 
-                    {/* Dropdown Selector */}
-                    <div className="flex gap-2">
-                      <select
-                        value=""
-                        onChange={(e) => {
-                          const userObj = usersList.find(u => u.id === e.target.value || u.email === e.target.value)
-                          if (userObj) addPic(userObj)
+                    {/* Searchable PIC Selector */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPicDropdownOpen(prev => !prev)
+                          setSubProgramDropdownOpen(false)
                         }}
-                        className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 cursor-pointer"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 flex items-center justify-between gap-2 text-left cursor-pointer shadow-2xs hover:border-slate-400"
                       >
-                        <option value="">+ Pilih &amp; Tambah PIC dari Daftar Karyawan...</option>
-                        {usersList.map(u => (
-                          <option key={u.id || u.email} value={u.id || u.email}>
-                            {u.nama} — {u.jabatan || 'Staff'} ({u.email})
-                          </option>
-                        ))}
-                      </select>
+                        <span className="truncate text-brand-700 font-extrabold">
+                          + Cari &amp; Tambah PIC dari Daftar Karyawan...
+                        </span>
+                        <ChevronRight
+                          size={16}
+                          className={`text-slate-400 shrink-0 transition-transform ${
+                            picDropdownOpen ? 'rotate-90 text-brand-600' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {picDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border-2 border-brand-500 shadow-2xl z-[100] overflow-hidden p-2 space-y-2 animate-zoom-in">
+                          {/* Search Bar inside PIC Dropdown */}
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              autoFocus
+                              value={picSearchQuery}
+                              onChange={e => setPicSearchQuery(e.target.value)}
+                              placeholder="🔍 Cari nama, email, atau jabatan (misal: Fitri, Tommy, Staff)..."
+                              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
+                            />
+                            {picSearchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => setPicSearchQuery('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
+                              >
+                                <X size={13} />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Users / PIC List */}
+                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+                            {filteredUsersListForModal.length === 0 ? (
+                              <div className="p-3 text-center text-xs font-semibold text-slate-400">
+                                Tidak ada Karyawan yang cocok dengan &quot;{picSearchQuery}&quot;
+                              </div>
+                            ) : (
+                              filteredUsersListForModal.map(u => {
+                                const isAlreadySelected = selectedPics.some(
+                                  p => p.nama.toLowerCase() === u.nama.toLowerCase()
+                                )
+                                return (
+                                  <button
+                                    key={u.id || u.email}
+                                    type="button"
+                                    disabled={isAlreadySelected}
+                                    onClick={() => {
+                                      addPic(u)
+                                      setPicDropdownOpen(false)
+                                      setPicSearchQuery('')
+                                    }}
+                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2 ${
+                                      isAlreadySelected
+                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
+                                        : 'hover:bg-brand-50 hover:text-brand-900 text-slate-800 font-bold cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-800 font-black flex items-center justify-center text-[10px] shrink-0">
+                                        {u.nama.charAt(0)}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="font-extrabold truncate">{u.nama}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium truncate">
+                                          {u.jabatan || 'Staff'} ({u.email})
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {isAlreadySelected ? (
+                                      <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded">
+                                        Sudah Dipilih
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                                        + Pilih
+                                      </span>
+                                    )}
+                                  </button>
+                                )
+                              })
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* List of Selected PICs with Order & Role Badges */}
@@ -930,7 +1317,7 @@ export default function DaftarProgramKerjaPage() {
                   </div>
 
                   {/* Remarks */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 pb-2">
                     <label className="block text-xs font-bold text-slate-700">Remarks (Catatan Tambahan)</label>
                     <textarea
                       rows={2}
@@ -942,11 +1329,12 @@ export default function DaftarProgramKerjaPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
+                {/* Fixed Footer Bar */}
+                <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2.5 shrink-0 z-10">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shadow-2xs"
                   >
                     Batal
                   </button>

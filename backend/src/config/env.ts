@@ -6,7 +6,7 @@ const exampleSessionSecret = '0123456789abcdef0123456789abcdef0123456789abcdef01
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   HOST: z.string().default('0.0.0.0'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(4101),
+  PORT: z.coerce.number().int().min(1).max(65535).default(3015),
   PORTAL_API_URL: z.string().url(),
   SSO_INTERNAL_TOKEN: z.string().default(''),
   TARGET_APP_ID: z.string().uuid(),

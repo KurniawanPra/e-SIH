@@ -359,8 +359,21 @@ export default function DashboardPage() {
   const selectedProgramActivities = useMemo(() => {
     if (selectedPieProgram === 'ALL') return filtered
     return filtered.filter((a: any) => {
-      const kat = a.kategoriProgram || ''
-      const progId = a.idProgram || ''
+      const kat = (a.kategoriProgram || '').toUpperCase()
+      const progId = (a.idProgram || '').toUpperCase()
+      const item = (a.itemName || '').toUpperCase()
+      const pic = (a.picNama || '').toUpperCase()
+      const keg = (a.kegiatan || '').toUpperCase()
+
+      if (selectedPieProgram === 'SISTEM' || selectedPieProgram === 'B') {
+        return progId.includes('B') || kat.startsWith('B') || kat.includes('SUSTAINABLE') || kat.includes('AUDIT') || kat.includes('SISTEM') || kat.includes('ISO') || pic.includes('HERBINA')
+      }
+      if (selectedPieProgram === 'HSSE' || selectedPieProgram === 'C') {
+        return progId.includes('C') || kat.startsWith('C') || kat.includes('HSE') || kat.includes('HSSE') || kat.includes('SAFETY') || kat.includes('ENVIRONMENT') || pic.includes('AGUNG') || pic.includes('FITRI') || keg.includes('HSE') || keg.includes('SAFETY')
+      }
+      if (selectedPieProgram === 'IT' || selectedPieProgram === 'A') {
+        return progId.includes('A') || kat.startsWith('A') || kat.includes('DIGITAL') || kat.includes('IT') || kat.includes('INFRA') || kat.includes('DEVELOPMENT') || pic.includes('KURNIAWAN') || pic.includes('SALMAN') || pic.includes('TOMMY') || pic.includes('AUNDRY') || keg.includes('IT')
+      }
       return kat.startsWith(selectedPieProgram) || progId.includes(selectedPieProgram)
     })
   }, [filtered, selectedPieProgram])
@@ -432,21 +445,24 @@ export default function DashboardPage() {
   }, [filtered])
 
   const employeeProgress = useMemo(() => {
-    const picMap: Record<string, { total: number; closed: number; progress: number }> = {}
+    const picMap: Record<string, { total: number; closed: number; progress: number; open: number }> = {}
 
     filtered.forEach((a: any) => {
       const name = a.picNama?.split('/')[0]?.trim() || 'Unassigned'
       if (!picMap[name]) {
-        picMap[name] = { total: 0, closed: 0, progress: 0 }
+        picMap[name] = { total: 0, closed: 0, progress: 0, open: 0 }
       }
       picMap[name].total += 1
       if (a.status === 'Closed') picMap[name].closed += 1
-      if (a.status === 'On Progress') picMap[name].progress += 1
+      else if (a.status === 'On Progress') picMap[name].progress += 1
+      else picMap[name].open += 1
     })
 
     return Object.entries(picMap).map(([name, data]) => {
-      const percentage = data.total > 0 ? Math.round((data.closed / data.total) * 100) : 0
-      return { name, ...data, percentage }
+      const closedPct = data.total > 0 ? Math.round((data.closed / data.total) * 100) : 0
+      const progressPct = data.total > 0 ? Math.round((data.progress / data.total) * 100) : 0
+      const openPct = data.total > 0 ? Math.max(0, 100 - closedPct - progressPct) : 0
+      return { name, ...data, percentage: closedPct, progressPct, openPct }
     }).sort((a, b) => b.total - a.total)
   }, [filtered])
 
@@ -876,16 +892,16 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs font-bold text-slate-700 shrink-0">Filter Program:</span>
+                <span className="text-xs font-bold text-slate-700 shrink-0">Filter Bagian:</span>
                 <select
                   value={selectedPieProgram}
                   onChange={(e) => setSelectedPieProgram(e.target.value)}
                   className="neu-btn text-xs font-extrabold text-slate-800 bg-slate-50 border-2 border-slate-300 px-3 py-1.5 rounded-xl hover:border-slate-800 transition-all cursor-pointer outline-none"
                 >
-                  <option value="ALL">Semua Kelompok Program</option>
-                  <option value="A">Prog A - Digital &amp; IT Infra</option>
-                  <option value="B">Prog B - Audit &amp; ISO Halal</option>
-                  <option value="C">Prog C - HSE &amp; Safety Drill</option>
+                  <option value="ALL">Semua Bagian</option>
+                  <option value="SISTEM">Sistem</option>
+                  <option value="HSSE">HSSE</option>
+                  <option value="IT">IT</option>
                 </select>
               </div>
             </div>
@@ -953,7 +969,7 @@ export default function DashboardPage() {
             {employeeProgress.map((emp) => (
               <div
                 key={emp.name}
-                className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all space-y-2"
+                className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all space-y-2.5"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -962,36 +978,46 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0">
                       <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-tight truncate">{emp.name}</h5>
-                      <p className="text-[11px] text-slate-500 font-semibold truncate">{emp.total} Total Laporan ({emp.closed} Selesai, {emp.progress} Berjalan)</p>
+                      <p className="text-[11px] text-slate-500 font-semibold truncate">{emp.total} Total Laporan</p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs sm:text-sm font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 inline-block">
-                      {emp.percentage}%
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[11px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-300">
+                      {emp.percentage}% Closed
                     </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="space-y-1">
+                {/* Multi-Segment Progress Bar */}
+                <div className="space-y-1.5">
                   <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden border border-slate-300 flex">
                     <div
                       className="h-full bg-emerald-600 transition-all"
                       style={{ width: `${emp.percentage}%` }}
-                      title={`${emp.closed} Selesai (${emp.percentage}%)`}
+                      title={`Selesai (Closed): ${emp.closed} dari ${emp.total} Laporan (${emp.percentage}%)`}
                     />
                     <div
                       className="h-full bg-amber-500 transition-all"
-                      style={{ width: `${emp.total > 0 ? Math.round((emp.progress / emp.total) * 100) : 0}%` }}
-                      title={`${emp.progress} Berjalan`}
+                      style={{ width: `${emp.progressPct}%` }}
+                      title={`On Progress: ${emp.progress} dari ${emp.total} Laporan (${emp.progressPct}%)`}
+                    />
+                    <div
+                      className="h-full bg-emerald-400 transition-all"
+                      style={{ width: `${emp.openPct}%` }}
+                      title={`Open: ${emp.open} dari ${emp.total} Laporan (${emp.openPct}%)`}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] pt-0.5 font-extrabold">
+
+                  {/* 3 Parameter Indicator (Simple 1 Baris) */}
+                  <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] pt-0.5 font-extrabold gap-x-2 gap-y-1">
                     <span className="text-emerald-700 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" /> {emp.closed} Selesai ({emp.percentage}%)
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" /> Selesai (Closed): <strong className="text-slate-900">{emp.closed} / {emp.total} ({emp.percentage}%)</strong>
                     </span>
                     <span className="text-amber-600 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" /> {emp.progress} Berjalan ({emp.total > 0 ? Math.round((emp.progress / emp.total) * 100) : 0}%)
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" /> On Progress: <strong className="text-slate-900">{emp.progress} / {emp.total} ({emp.progressPct}%)</strong>
+                    </span>
+                    <span className="text-emerald-800 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" /> Open: <strong className="text-slate-900">{emp.open} / {emp.total} ({emp.openPct}%)</strong>
                     </span>
                   </div>
                 </div>
@@ -1181,7 +1207,11 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shrink-0 ${
-                      task.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                      task.status === 'Open'
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : task.status === 'On Progress'
+                        ? 'bg-amber-100 text-amber-800 border-amber-300'
+                        : 'bg-slate-200 text-slate-700 border-slate-300'
                     }`}>
                       {task.status}
                     </span>

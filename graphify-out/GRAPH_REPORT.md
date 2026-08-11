@@ -1,16 +1,16 @@
 # Graph Report - e-SIH  (2026-08-10)
 
 ## Corpus Check
-- 385 files · ~359,760 words
+- 386 files · ~365,665 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2649 nodes · 3849 edges · 197 communities (174 shown, 23 thin omitted)
+- 2657 nodes · 3866 edges · 194 communities (171 shown, 23 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 13 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `32b4c605`
+- Built from commit: `687be242`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -73,6 +73,8 @@
 - Removed Features
 - terminal-agent-control.ts
 - prisma migrate dev
+- extractToken
+- react-chartjs-2
 - read-commands.ts
 - Prisma CLI Reference
 - prisma db seed
@@ -119,7 +121,6 @@
 - decision-stay-or-migrate
 - console-and-connections
 - management-api-sdk
-- proxy-config.ts
 - browse/package.json
 - pty-session-cookie.ts
 - prisma migrate status
@@ -143,8 +144,6 @@
 - .launchHeaded
 - graphify reference: query, path, explain
 - e-SIH
-- react
-- tailwindcss
 - AI safety checkpoint for destructive commands
 - graphify reference: add a URL and watch a folder
 - graphify reference: commit hook and native CLAUDE.md integration
@@ -182,7 +181,6 @@
 - design-review/SKILL.md
 - design-consultation/SKILL.md
 - Prisma Compute
-- sso-callback/page.tsx
 - find-browse.ts
 - find-browse
 - remote-slug
@@ -216,7 +214,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (197 total, 23 thin omitted)
+## Communities (194 total, 23 thin omitted)
 
 ### Community 0 - "dependencies"
 Cohesion: 0.04
@@ -228,15 +226,15 @@ Nodes (27): buildApp(), getLocalIpv4s(), config, env, envSchema, EmployeeGrade, 
 
 ### Community 2 - "browse/src/server.ts"
 Cohesion: 0.07
-Nodes (37): AuditEntry, initAuditLog(), writeAuditEntry(), hasActivePicker(), toUpstreamConfig(), BROWSE_PARENT_PID, BROWSE_PORT, browserManager (+29 more)
+Nodes (39): AuditEntry, initAuditLog(), writeAuditEntry(), readVersionHash(), BROWSE_PARENT_PID, BROWSE_PORT, browserManager, checkPortAvailable() (+31 more)
 
 ### Community 4 - "dashboard/page.tsx"
-Cohesion: 0.18
-Nodes (9): DashboardPage(), ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES (+1 more)
+Cohesion: 0.20
+Nodes (8): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES, cn()
 
 ### Community 5 - "dashboard/layout.tsx"
-Cohesion: 0.18
-Nodes (12): DashboardLayout(), Header(), HeaderProps, BADGE_COLORS, MarqueeFooter(), Sidebar(), SidebarProps, YearContext (+4 more)
+Cohesion: 0.13
+Nodes (16): DashboardLayout(), HeaderProps, BADGE_COLORS, MarqueeFooter(), Sidebar(), SidebarProps, YearContext, YearContextType (+8 more)
 
 ### Community 6 - "Model Queries"
 Cohesion: 0.07
@@ -251,8 +249,8 @@ Cohesion: 0.07
 Nodes (28): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+20 more)
 
 ### Community 9 - "api.ts"
-Cohesion: 0.13
-Nodes (15): activeExchanges, CallbackContent(), BACKEND_DRIVER, BackendDriver, exchangeSsoToken(), getApiError(), logoutSession(), prepareCsrf() (+7 more)
+Cohesion: 0.14
+Nodes (14): activeExchanges, CallbackContent(), Header(), accessSteps, getInitials(), PortalLoginGate(), BACKEND_DRIVER, BackendDriver (+6 more)
 
 ### Community 10 - "frontend/package.json"
 Cohesion: 0.22
@@ -279,8 +277,8 @@ Cohesion: 0.33
 Nodes (6): scripts, build, dev, lint, start, typecheck
 
 ### Community 16 - "activities/page.tsx"
-Cohesion: 0.20
-Nodes (13): CookieImportError, PlaywrightCookie, corsOrigin(), errorResponse(), getSessionFromCookie(), handleCookiePickerRoute(), importedCounts, importedDomains (+5 more)
+Cohesion: 0.18
+Nodes (14): CookieImportError, PlaywrightCookie, corsOrigin(), errorResponse(), getSessionFromCookie(), handleCookiePickerRoute(), hasActivePicker(), importedCounts (+6 more)
 
 ### Community 17 - "Relation Queries"
 Cohesion: 0.08
@@ -291,8 +289,8 @@ Cohesion: 0.08
 Nodes (23): Alternatives, Auto-generate after migrate, Auto-seed after migrate, Automatic Behaviors Removed, CLI Flags Removed, Client Middleware, Common Middleware Patterns, Custom counter with extensions (+15 more)
 
 ### Community 19 - "programs/page.tsx"
-Cohesion: 0.10
-Nodes (15): activityBuffer, ActivityEntry, ActivitySubscriber, emitActivity(), filterArgs(), getActivityAfter(), getActivityHistory(), SENSITIVE_COMMANDS (+7 more)
+Cohesion: 0.18
+Nodes (11): activityBuffer, ActivityEntry, ActivitySubscriber, emitActivity(), filterArgs(), getActivityAfter(), getActivityHistory(), SENSITIVE_COMMANDS (+3 more)
 
 ### Community 20 - "PortalLoginGate.tsx"
 Cohesion: 0.09
@@ -335,20 +333,20 @@ Cohesion: 0.04
 Nodes (48): 10. Compare environments, 11. Show screenshots to the user, 12. Render local HTML (no HTTP server needed), 13. Retina screenshots (deviceScaleFactor), 14. Offline render mode (rasterize your own HTML/JSON, zero network), 1. Verify a page loads correctly, 2. Test a user flow, 3. Verify an action worked (+40 more)
 
 ### Community 30 - "commands.ts"
-Cohesion: 0.12
-Nodes (31): ALL_COMMANDS, allCmds, buildUnknownCommandError(), canonicalizeCommand(), COMMAND_ALIASES, COMMAND_DESCRIPTIONS, descKeys, DOM_CONTENT_COMMANDS (+23 more)
+Cohesion: 0.11
+Nodes (33): ALL_COMMANDS, allCmds, buildUnknownCommandError(), canonicalizeCommand(), COMMAND_ALIASES, COMMAND_DESCRIPTIONS, descKeys, DOM_CONTENT_COMMANDS (+25 more)
 
 ### Community 31 - "cli.ts"
-Cohesion: 0.15
-Nodes (29): acquireServerLock(), buildRestartEnv(), cleanChromiumProfileLocks(), cleanupLegacyState(), config, ensureServer(), extractTabId(), generateInstructionBlock() (+21 more)
+Cohesion: 0.12
+Nodes (33): acquireServerLock(), buildRestartEnv(), cleanChromiumProfileLocks(), cleanupLegacyState(), config, ensureServer(), extractGlobalFlags(), extractTabId() (+25 more)
 
 ### Community 32 - "domain-skill-commands.ts"
 Cohesion: 0.15
 Nodes (36): formatSavedOk(), formatSkillListing(), handleDomainSkillCommand(), handleEdit(), handleList(), handlePromoteToGlobal(), handleRm(), handleRollback() (+28 more)
 
 ### Community 33 - "token-registry.ts"
-Cohesion: 0.08
-Nodes (24): checkDomain(), checkRate(), checkRateLimit(), connectAttempts, createSetupKey(), createToken(), CreateTokenOptions, exchangeSetupKey() (+16 more)
+Cohesion: 0.09
+Nodes (23): checkDomain(), checkRate(), checkRateLimit(), connectAttempts, createSetupKey(), createToken(), CreateTokenOptions, exchangeSetupKey() (+15 more)
 
 ### Community 34 - "Client Methods"
 Cohesion: 0.10
@@ -371,20 +369,20 @@ Cohesion: 0.07
 Nodes (33): AttemptRecord, ATTEMPTS_LOG, buildTelemetrySpawnCommand(), classifyTranscript(), clearDecision(), combineVerdict(), CombineVerdictOpts, decisionFileForTab() (+25 more)
 
 ### Community 41 - "meta-commands.ts"
-Cohesion: 0.09
-Nodes (13): guardScreenshotBuffer(), guardScreenshotPath(), SizeGuardResult, handleSnapshot(), INTERACTIVE_ROLES, ParsedNode, parseLine(), parseSnapshotArgs() (+5 more)
+Cohesion: 0.11
+Nodes (8): handleSnapshot(), INTERACTIVE_ROLES, ParsedNode, parseLine(), parseSnapshotArgs(), SNAPSHOT_FLAGS, SnapshotOptions, TabSession
 
 ### Community 42 - "Model Queries"
-Cohesion: 0.22
-Nodes (8): Lease, LEASE_TTL_MS, leases, mintLease(), pruneExpired(), refreshLease(), revokeLease(), validateLease()
+Cohesion: 0.18
+Nodes (4): addConsoleEntry(), addDialogEntry(), addNetworkEntry(), CircularBuffer
 
 ### Community 43 - "Driver Adapters"
-Cohesion: 0.31
-Nodes (13): modifyStyle(), undoModification(), generatePickerCode(), parsePdfFromFile(), SAFE_DIRECTORIES, TEMP_ONLY, validateOutputPath(), validateReadPath() (+5 more)
+Cohesion: 0.18
+Nodes (18): modifyStyle(), undoModification(), generatePickerCode(), parsePdfFromFile(), SAFE_DIRECTORIES, TEMP_ONLY, validateOutputPath(), validateReadPath() (+10 more)
 
 ### Community 44 - "Model Queries"
-Cohesion: 0.22
-Nodes (9): ActivityItem, DaftarProgramKerjaPage(), emptyActivityForm, ParentProgram, SubProgram, UserOption, MyActivitiesPage(), DemoLoginPage() (+1 more)
+Cohesion: 0.13
+Nodes (8): ActivityItem, emptyActivityForm, ParentProgram, SubProgram, UserOption, ModalPortal(), ModalPortalProps, api
 
 ### Community 45 - "Driver Adapters"
 Cohesion: 0.11
@@ -399,8 +397,8 @@ Cohesion: 0.44
 Nodes (9): BLOCKED_IPV6_PREFIXES, BLOCKED_METADATA_HOSTS, isBlockedIpv6(), isMetadataIp(), normalizeFileUrl(), normalizeHostname(), resolvesToBlockedIp(), RFC-3986 (+1 more)
 
 ### Community 48 - "terminal-agent.ts"
-Cohesion: 0.10
-Nodes (37): safeUnlink(), mkdirSecure(), writeSecureFile(), writeDecision(), writeSessionState(), appendToRingBuffer(), BROWSE_SERVER_PORT, buildServer() (+29 more)
+Cohesion: 0.09
+Nodes (38): safeUnlink(), mkdirSecure(), writeSecureFile(), writeDecision(), writeSessionState(), appendToRingBuffer(), BROWSE_SERVER_PORT, buildServer() (+30 more)
 
 ### Community 49 - "Relation Queries"
 Cohesion: 0.25
@@ -432,19 +430,23 @@ Nodes (19): After (v7) - prisma.config.ts, Basic Configuration, Before (v6) - sc
 
 ### Community 56 - "getCurrentUser"
 Cohesion: 0.16
-Nodes (11): ParentPK, ProgramKerjaPage(), SubItem, emptyForm, MONTH_NAMES, MonthlyActivitiesPage(), STATUS_COLORS, ModalPortal() (+3 more)
+Nodes (14): ParentPK, ProgramKerjaPage(), SubItem, DaftarProgramKerjaPage(), emptyForm, MONTH_NAMES, MonthlyActivitiesPage(), STATUS_COLORS (+6 more)
 
 ### Community 57 - "Removed Features"
-Cohesion: 0.52
-Nodes (6): formatUploadTime(), getWeekTag(), isSameMonthYear(), MONTH_NAMES, weekLabel(), WeeklyActivitiesPage()
+Cohesion: 0.31
+Nodes (9): formatUploadTime(), getWeekTag(), isSameMonthYear(), MONTH_NAMES, weekLabel(), WeeklyActivitiesPage(), ActivityItem, exportTableToExcel3() (+1 more)
 
 ### Community 58 - "terminal-agent-control.ts"
-Cohesion: 0.23
-Nodes (11): MetaCommandOpts, ServerConfig, BridgeHandle, buildUpstream(), parseConnectRequest(), startSocksBridge(), testUpstream(), UpstreamTestOpts (+3 more)
+Cohesion: 0.22
+Nodes (10): ParsedProxyConfig, ProxyConfigError, toUpstreamConfig(), buildUpstream(), parseConnectRequest(), startSocksBridge(), testUpstream(), UpstreamConfig (+2 more)
 
 ### Community 59 - "prisma migrate dev"
 Cohesion: 0.11
 Nodes (18): After schema changes, Command, Common Patterns, Create and apply migration, Create without applying, Examples, Follow-up Commands, Full workflow (+10 more)
+
+### Community 60 - "extractToken"
+Cohesion: 0.22
+Nodes (8): Lease, LEASE_TTL_MS, leases, mintLease(), pruneExpired(), refreshLease(), revokeLease(), validateLease()
 
 ### Community 62 - "read-commands.ts"
 Cohesion: 0.17
@@ -463,8 +465,8 @@ Cohesion: 0.11
 Nodes (17): 1. Install dotenv, 2. Import in prisma.config.ts, Application Code, Bun Users, CI/CD Considerations, Entry point, Environment Variables, Multiple .env Files (+9 more)
 
 ### Community 66 - "dependencies"
-Cohesion: 0.13
-Nodes (15): axios, chart.js, dependencies, axios, chart.js, lucide-react, next, react-chartjs-2 (+7 more)
+Cohesion: 0.11
+Nodes (18): axios, chart.js, exceljs, dependencies, axios, chart.js, exceljs, lucide-react (+10 more)
 
 ### Community 81 - "prisma db pull"
 Cohesion: 0.12
@@ -495,8 +497,8 @@ Cohesion: 0.12
 Nodes (16): Browser-Safe Types, Bun, "Cannot use import statement outside a module", CommonJS Projects, "ERR_REQUIRE_ESM", ESM and CommonJS Support, ESM Projects, File Extensions (+8 more)
 
 ### Community 88 - "devDependencies"
-Cohesion: 0.12
-Nodes (17): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, serve, @tailwindcss/postcss, @types/node (+9 more)
+Cohesion: 0.11
+Nodes (19): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, serve, tailwindcss, @tailwindcss/postcss (+11 more)
 
 ### Community 91 - "Schema Changes"
 Cohesion: 0.12
@@ -595,8 +597,8 @@ Cohesion: 0.42
 Nodes (8): cleanupXvfb(), isDisplayFree(), isOurXvfb(), pickFreeDisplay(), readPidCmdline(), readPidStartTime(), ShouldSpawnDecision, spawnXvfb()
 
 ### Community 158 - "config.ts"
-Cohesion: 0.29
-Nodes (9): BrowseConfig, cleanSingletonLocks(), getGitRoot(), getRemoteSlug(), readVersionHash(), resolveChromiumProfile(), resolveGstackHome(), safeUnlinkQuiet() (+1 more)
+Cohesion: 0.31
+Nodes (9): BrowseConfig, cleanSingletonLocks(), getGitRoot(), getRemoteSlug(), resolveChromiumProfile(), resolveConfig(), resolveGstackHome(), safeUnlinkQuiet() (+1 more)
 
 ### Community 161 - "prisma format"
 Cohesion: 0.20
@@ -625,10 +627,6 @@ Nodes (9): Adapter choices, Connection setup, console-and-connections, Console w
 ### Community 167 - "management-api-sdk"
 Cohesion: 0.20
 Nodes (9): Full SDK (OAuth + refresh), Install, management-api-sdk, OAuth SDK flow, Priority, References, Simple client (existing token), Why It Matters (+1 more)
-
-### Community 174 - "proxy-config.ts"
-Cohesion: 0.20
-Nodes (8): extractGlobalFlags(), canonicalizeProxyUrl(), computeConfigHash(), ParsedProxyConfig, parseProxyConfig(), ProxyConfigError, redactProxyUrl(), UpstreamConfig
 
 ### Community 186 - "browse/package.json"
 Cohesion: 0.17
@@ -722,10 +720,6 @@ Nodes (5): For /graphify explain, For /graphify path, graphify reference: query,
 Cohesion: 0.40
 Nodes (4): Backend, e-SIH, Frontend, Integrasi SSO Otomatis (`Intes.cmd --integrate`)
 
-### Community 231 - "react"
-Cohesion: 0.67
-Nodes (3): react, useChart(), react
-
 ### Community 233 - "AI safety checkpoint for destructive commands"
 Cohesion: 0.50
 Nodes (3): AI safety checkpoint for destructive commands, Reference, Required workflow
@@ -810,23 +804,19 @@ Nodes (6): Execution Contract, Output, Required Input, Required Sections, Rules,
 Cohesion: 0.22
 Nodes (9): Avoid, Decision Tree, Preferred Workflow, Prisma Compute, Prisma Compute CLI Surface, Rules by Priority, Send Feedback and Report CLI Issues, Source-of-Truth Order (+1 more)
 
-### Community 311 - "sso-callback/page.tsx"
-Cohesion: 0.67
-Nodes (3): accessSteps, getInitials(), PortalLoginGate()
-
 ### Community 330 - "find-browse.ts"
 Cohesion: 0.60
 Nodes (5): findExecutable(), getGitRoot(), isExecutable(), locateBinary(), main()
 
 ## Knowledge Gaps
-- **1360 isolated node(s):** `name`, `version`, `private`, `type`, `diff` (+1355 more)
+- **1363 isolated node(s):** `name`, `version`, `private`, `type`, `diff` (+1358 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BrowserManager` connect `BrowserManager` to `domain-skill-commands.ts`, `browse/src/server.ts`, `.launchHeaded`, `meta-commands.ts`, `Driver Adapters`, `cdp-bridge.ts`, `activities/page.tsx`, `programs/page.tsx`, `browser-manager.ts`, `read-commands.ts`, `terminal-agent-control.ts`, `commands.ts`?**
+- **Why does `BrowserManager` connect `BrowserManager` to `domain-skill-commands.ts`, `browse/src/server.ts`, `.launchHeaded`, `meta-commands.ts`, `Model Queries`, `Driver Adapters`, `cdp-bridge.ts`, `activities/page.tsx`, `programs/page.tsx`, `browser-manager.ts`, `read-commands.ts`, `commands.ts`?**
   _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Why does `mkdirSecure()` connect `terminal-agent.ts` to `browse/src/server.ts`, `.launchHeaded`, `security-classifier.ts`, `security.ts`, `file-permissions.ts`, `browser-skill-commands.ts`, `commands.ts`, `browser-manager.ts`, `config.ts`, `cli.ts`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
@@ -835,7 +825,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 3 inferred relationships involving `buildFetchHandler()` (e.g. with `subscribe()` and `.totalAdded()`) actually correct?**
   _`buildFetchHandler()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `name`, `version`, `private` to the rest of the system?**
-  _1360 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1363 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
 - **Should `plugins/auth.ts` be split into smaller, more focused modules?**

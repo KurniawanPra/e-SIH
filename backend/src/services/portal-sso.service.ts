@@ -43,15 +43,16 @@ export async function exchangePortalToken(
       return {
         id: 'dev-user-id',
         sub: 'dev-user-id',
-        email: 'admin@inl.co.id',
-        name: 'Administrator (Dev Bypass)',
+        email: 'oka@inl.co.id',
+        name: 'Oka Aritonang',
         isActive: true,
         employeeId: 'emp-001',
-        jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+        jabatan: 'Kepala Sub Bagian Sistem & IT',
         employee: {
           id: 'emp-001',
-          namaLengkap: 'Kurniawan (Dev Admin)',
-          jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+          namaLengkap: 'Oka Aritonang',
+          jabatan: 'Kepala Sub Bagian Sistem & IT',
+          unit: { nama: 'Sub Bagian Sistem & IT' }
         }
       } as unknown as SessionUser
     }

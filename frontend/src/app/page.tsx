@@ -12,21 +12,15 @@ export default function DemoLoginPage() {
 
   useEffect(() => {
     getCurrentUser()
-      .then(async (user) => {
+      .then((user) => {
         if (user) {
           router.replace('/dashboard')
         } else {
-          try {
-            await api.post('/api/auth/demo-login', { role: 'ADMIN' })
-          } catch {}
-          router.replace('/dashboard')
+          setChecking(false)
         }
       })
-      .catch(async () => {
-        try {
-          await api.post('/api/auth/demo-login', { role: 'ADMIN' })
-        } catch {}
-        router.replace('/dashboard')
+      .catch(() => {
+        setChecking(false)
       })
   }, [router])
 

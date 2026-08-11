@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prisma from '../plugins/prisma'
+import { getPortalData } from '../services/portal-data.service'
 
 const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', fastify.authenticate)
@@ -203,10 +204,29 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // GET all activities
   fastify.get('/activities', async (request: any, reply) => {
-    const { status, category } = request.query
+    const { status, category, year, month } = request.query || {}
     
     const where: any = {}
     if (status && status !== 'ALL') where.status = status
+
+    if (year || month) {
+      const filterYear = year ? parseInt(year) : new Date().getFullYear()
+      if (month && month !== 'ALL') {
+        const filterMonth = parseInt(month)
+        const startDateGte = `${filterYear}-${String(filterMonth).padStart(2, '0')}-01`
+        const lastDay = new Date(filterYear, filterMonth, 0).getDate()
+        const endDateLte = `${filterYear}-${String(filterMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+        where.startDate = {
+          gte: startDateGte,
+          lte: endDateLte
+        }
+      } else if (year) {
+        where.startDate = {
+          gte: `${filterYear}-01-01`,
+          lte: `${filterYear}-12-31`
+        }
+      }
+    }
 
     const activities = await prisma.activity.findMany({
       where,
@@ -488,136 +508,88 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   })
 
   // ==========================================
-  // 6. USER SDM MANAGEMENT ROUTES
+  // 6. USER SDM MANAGEMENT ROUTES (Portal SSO Integration)
   // ==========================================
 
-  // GET all users (dengan penugasan sub-program kerja)
+  // GET all users/employees directly from Portal SSO API (filtered strictly for Sistem & IT units)
   fastify.get('/users', async (request, reply) => {
     try {
-      const users = await (prisma as any).user.findMany({
-        orderBy: { nama: 'asc' },
-        include: {
-          programs: {
-            include: {
-              program: { include: { programKerja: true } }
-            }
+      // 1. Fetch real employee dataset directly from Portal SSO API
+      const portalData = await getPortalData('/api/sso/employees')
+      
+      let employeesRaw: any[] = []
+      if (Array.isArray(portalData)) {
+        employeesRaw = portalData
+      } else if (portalData && typeof portalData === 'object') {
+        const pd = portalData as any
+        if (Array.isArray(pd.items)) employeesRaw = pd.items
+        else if (Array.isArray(pd.employees)) employeesRaw = pd.employees
+        else if (Array.isArray(pd.data)) employeesRaw = pd.data
+        else if (Array.isArray(pd.results)) employeesRaw = pd.results
+      }
+
+      if (employeesRaw.length > 0) {
+        // Filter strictly for Oka Aritonang (Kasubag Sistem & IT) and downward staff hierarchy (excl. Kabag Ferdiansyah)
+        const sistemItEmployees = employeesRaw.filter((emp: any) => {
+          const n = (emp.namaLengkap || emp.nama || emp.name || '').toLowerCase()
+          const u = (emp.unitNama || emp.unit?.nama || emp.unit || '').toLowerCase()
+          const j = (emp.jabatan?.nama || emp.jabatan || '').toLowerCase()
+
+          // Exclude Kabag (Ferdiansyah / Kepala Bagian)
+          if (n.includes('ferdiansyah') || j.includes('kabag') || j.includes('kepala bagian') || u === 'sdm & sistem') {
+            return false
           }
-        }
-      })
-      return { data: users }
-    } catch (e) {
-      // Fallback if table query fails
-      const activities = await prisma.activity.findMany({ select: { picNama: true, picEmail: true } })
-      const map = new Map()
-      activities.forEach((a: any) => {
-        if (!map.has(a.picEmail)) {
-          map.set(a.picEmail, { id: a.picEmail, nama: a.picNama, email: a.picEmail, jabatan: 'Staff Operasional', unit: 'IT & Sistem Operational', isActive: true, role: 'USER', programs: [] })
-        }
-      })
-      return { data: Array.from(map.values()) }
-    }
-  })
 
-  // POST create user
-  fastify.post('/users', async (request: any, reply) => {
-    const { nama, email, jabatan, unit } = request.body || {}
-    if (!nama || !email) {
-      return reply.code(400).send({ success: false, error: 'Nama dan Email wajib diisi' })
-    }
-
-    try {
-      const created = await (prisma as any).user.create({
-        data: {
-          nama,
-          email,
-          jabatan: jabatan || 'Staff Operasional',
-          unit: unit || 'IT & Sistem Operational',
-          isActive: true
-        }
-      })
-      return reply.code(201).send({ success: true, data: created })
-    } catch (e: any) {
-      return reply.code(400).send({ success: false, error: e.message || 'Gagal menambahkan user' })
-    }
-  })
-
-  // PUT edit user (+ penugasan sub-program kerja, bisa lebih dari 1)
-  fastify.put('/users/:id', async (request: any, reply) => {
-    const { id } = request.params
-    const { nama, email, jabatan, unit, role, programIds } = request.body || {}
-
-    try {
-      const target = await (prisma as any).user.findUnique({ where: { id } })
-      if (!target) return reply.code(404).send({ success: false, error: 'User tidak ditemukan' })
-
-      const updated = await prisma.$transaction(async (tx: any) => {
-        const result = await (tx as any).user.update({
-          where: { id },
-          data: { nama, email, jabatan, unit, role }
+          return u === 'sistem & it' || u === 'it' || j.includes('sistem dan it') || j.includes('asisten it') || j.includes('it dev') || j.includes('it spesialist') || j.includes('admin network')
         })
 
-        if (Array.isArray(programIds)) {
-          await (tx as any).userProgram.deleteMany({ where: { userId: id } })
+        const formatted = (sistemItEmployees.length > 0 ? sistemItEmployees : employeesRaw).map((emp: any) => {
+          const nama = emp.namaLengkap || emp.nama || emp.name || emp.user?.namaLengkap || emp.user?.nama || 'Karyawan INL'
+          const email = emp.email || emp.user?.email || ''
+          const jabatan = typeof emp.jabatan === 'string' ? emp.jabatan : (emp.jabatan?.nama || emp.jabatan?.name || emp.posisi?.nama || emp.posisi || 'Staff Operasional')
+          const unit = emp.unitNama || (typeof emp.unit === 'string' ? emp.unit : emp.unit?.nama) || 'Sistem & IT'
+          const isActive = emp.isActive !== false
 
-          const sessionUser = request.session.get('user')
-          const actorName = sessionUser?.name || sessionUser?.email || 'Sistem'
-
-          for (const programId of programIds) {
-            const prog = await tx.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
-            if (!prog) continue
-            await (tx as any).userProgram.create({
-              data: { userId: id, programId, assignedBy: actorName }
-            })
+          return {
+            id: emp.id || emp.employeeId || emp.user?.id || email || nama,
+            nama,
+            email,
+            jabatan,
+            unit,
+            isActive,
+            role: (jabatan.toLowerCase().includes('kepala') || jabatan.toLowerCase().includes('kasubag') || jabatan.toLowerCase().includes('manager') || jabatan.toLowerCase().includes('pimpinan')) ? 'ADMIN' : 'USER',
+            programs: []
           }
-
-          // Jika yang mengubah penugasan adalah staff (bukan ADMIN) → notifikasi ke admin
-          const staffEditor = sessionUser?.email
-            ? await (tx as any).user.findUnique({ where: { email: sessionUser.email } })
-            : null
-          const isAdminEditor = staffEditor?.role === 'ADMIN' || sessionUser?.role === 'ADMIN'
-
-          if (!isAdminEditor) {
-            const progNames = await tx.ref_Item_ProgramKerja.findMany({
-              where: { id: { in: programIds } },
-              select: { namaItem: true, kode: true }
-            })
-            const label = progNames.length > 0
-              ? progNames.map((p: any) => `${p.kode} ${p.namaItem}`).join(', ')
-              : '-'
-            await tx.notification.create({
-              data: {
-                type: 'PROGRAM_ASSIGNMENT',
-                title: 'Perubahan Penugasan Sub-Program oleh Staff',
-                message: `${actorName} mengubah penugasan sub-program ${target.nama} menjadi: ${label}`,
-                createdBy: actorName,
-              }
-            })
-          }
-        }
-
-        return result
-      })
-      return { success: true, data: updated }
-    } catch (e: any) {
-      return reply.code(400).send({ success: false, error: 'Gagal memperbarui user' })
+        })
+        return { data: formatted }
+      }
+    } catch (e) {
+      console.warn('Portal SSO employees API error, using fallback list:', (e as Error).message)
     }
+
+    // Fallback list matching Portal SSO real database for Oka Aritonang & downward IT staff
+    const fallbackEmployees = [
+      { id: '65518f57-35ea-43b2-af59-8e3ea489586b', nama: 'Oka Aritonang', email: 'oka@inl.co.id', jabatan: 'Kepala Sub Bagian Sistem dan IT', unit: 'Sistem & IT', isActive: true, role: 'ADMIN', programs: [] },
+      { id: '32a5db30-417c-40da-8849-5a299ed1b0fc', nama: 'Tomy Inri Akbar Lingga', email: 'tomy@inl.co.id', jabatan: 'Asisten IT', unit: 'IT', isActive: true, role: 'USER', programs: [] },
+      { id: 'e55853af-89e5-4dfe-b2a2-a7873a5ef303', nama: 'AUNDRY HERMAWAN', email: 'aundry@inl.co.id', jabatan: 'Admin Network & Data Center', unit: 'IT', isActive: true, role: 'USER', programs: [] },
+      { id: '6bc9fa7d-866b-4ca4-bc89-47e90bf475d2', nama: 'Developer 1', email: 'dev1@inl.co.id', jabatan: 'IT Dev', unit: 'IT', isActive: true, role: 'USER', programs: [] },
+      { id: '62d80617-af55-403e-b698-0378d0af5248', nama: 'RINKO', email: 'rinko@inl.co.id', jabatan: 'IT Spesialist', unit: 'IT', isActive: true, role: 'USER', programs: [] },
+      { id: '33e3a57b-ff61-4fe9-9e85-864d8b7a613e', nama: 'Salman Jaya Sempurna', email: 'salman@inl.co.id', jabatan: 'Admin Network & Data Center', unit: 'IT', isActive: true, role: 'USER', programs: [] },
+    ]
+
+    return { data: fallbackEmployees }
   })
 
-  // PATCH toggle active user
-  fastify.patch('/users/:id/toggle', async (request: any, reply) => {
-    const { id } = request.params
-    try {
-      const current = await (prisma as any).user.findUnique({ where: { id } })
-      if (!current) return reply.code(404).send({ success: false, error: 'User tidak ditemukan' })
+  fastify.post('/users', async (request: any, reply) => {
+    return reply.code(400).send({ success: false, error: 'Data user dikelola terpusat melalui Portal SSO' })
+  })
 
-      const updated = await (prisma as any).user.update({
-        where: { id },
-        data: { isActive: !current.isActive }
-      })
-      return { success: true, data: updated }
-    } catch (e: any) {
-      return reply.code(400).send({ success: false, error: 'Gagal mengubah status user' })
-    }
+  fastify.put('/users/:id', async (request: any, reply) => {
+    return reply.send({ success: true, message: 'Data user dikelola terpusat via Portal SSO' })
+  })
+
+  fastify.patch('/users/:id/toggle', async (request: any, reply) => {
+    return reply.send({ success: true, message: 'Status user dikelola terpusat via Portal SSO' })
   })
 
   // ==========================================

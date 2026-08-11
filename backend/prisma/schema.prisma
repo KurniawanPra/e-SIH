@@ -38,7 +38,6 @@ model ref_Item_ProgramKerja {
 
   programKerja ref_ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
   activities   Activity[]
-  userPrograms UserProgram[]
   highlights   Highlight[]
 
   @@map("ref_Item_ProgramKerja")
@@ -67,35 +66,6 @@ model Activity {
   program       ref_Item_ProgramKerja?  @relation(fields: [idProgram], references: [id])
 }
 
-model User {
-  id        String   @id @default(uuid())
-  nama      String
-  email     String   @unique
-  jabatan   String   @default("Staff Operasional")
-  unit      String   @default("IT & Sistem Operational")
-  role      String   @default("USER") // "ADMIN" or "USER"
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-
-  highlights Highlight[]
-  programs   UserProgram[]
-}
-
-// Penugasan user ke sub-program kerja (bisa lebih dari 1, mis. IT Development & IT Infrastructure)
-model UserProgram {
-  id         String   @id @default(cuid())
-  userId     String
-  programId  String
-  assignedBy String? // nama yang menetapkan (staff/admin)
-  createdAt  DateTime @default(now())
-
-  user    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  program ref_Item_ProgramKerja @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, programId])
-  @@index([programId])
-}
-
 // Monthly curated highlight report (PERIODE bulanan, format INLHO/REP-F/-021)
 model Highlight {
   id              String    @id @default(cuid())
@@ -116,7 +86,6 @@ model Highlight {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  author  User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
   program ref_Item_ProgramKerja? @relation(fields: [programId], references: [id], onDelete: SetNull)
 
   @@index([bulan, tahun])
