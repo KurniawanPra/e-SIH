@@ -8,6 +8,8 @@
 .gstack
 .idea
 .vscode
+AGENTS.md
+agents.md
 
 # Non-backend/frontend directories & files
 legacy
@@ -41,7 +43,3 @@ dev.db
 *.log
 .DS_Store
 Thumbs.db
-
-# Exceptions
-!AGENTS.md
-!agents.md

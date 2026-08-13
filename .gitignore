@@ -50,10 +50,8 @@ graphify-out/
 .gstack/
 .idea/
 .vscode/
+AGENTS.md
+agents.md
 
 # Non-backend/frontend root files
 esih-architecture.png
-
-# Exceptions
-!AGENTS.md
-!agents.md

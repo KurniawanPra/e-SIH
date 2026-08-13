@@ -13,6 +13,5 @@ tsconfig.tsbuildinfo
 .opencode
 .agents
 .windsurf
-
-!AGENTS.md
-!agents.md
+AGENTS.md
+agents.md
