@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  e-sih-be:
+    build: ./be
+    container_name: e-sih-be
+    ports:
+      - "3016:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - ./be/.env
+    volumes:
+      - ./be/.env:/app/.env
+    networks:
+      - e-sih-net
+
+  e-sih-fe:
+    build: ./fe
+    container_name: e-sih-fe
+    ports:
+      - "8098:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - ./fe/.env.local
+    volumes:
+      - ./fe/.env.local:/app/.env.local
+    depends_on:
+      - e-sih-be
+    networks:
+      - e-sih-net
+
+networks:
+  e-sih-net:
+    driver: bridge
+
+
