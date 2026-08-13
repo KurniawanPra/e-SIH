@@ -1,10 +1,11 @@
-FROM node:18-alpine AS build
+FROM node:18-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN rm -f package-lock.json && npm install && npm install @tailwindcss/oxide-linux-x64-musl @tailwindcss/oxide-linux-x64-gnu
+RUN npm install
 COPY . .
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build -- --no-lint
-FROM node:18-alpine AS runner
+
+FROM node:18-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/public ./public
