@@ -24,24 +24,15 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.19.9",
     "@types/react": "18.3.23",
     "@types/react-dom": "18.3.7",
+    "autoprefixer": "^10.4.21",
     "eslint": "8.57.1",
     "eslint-config-next": "14.2.35",
+    "postcss": "^8.5.22",
     "serve": "14.2.6",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^3.4.17",
     "typescript": "5.8.3"
-  },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
-    "@tailwindcss/oxide-linux-x64-musl": "^4.3.3",
-    "@tailwindcss/oxide-linux-arm64-gnu": "^4.3.3",
-    "@tailwindcss/oxide-linux-arm64-musl": "^4.3.3"
-  },
-  "overrides": {
-    "glob": "10.5.0",
-    "postcss": "8.5.22"
   }
 }
