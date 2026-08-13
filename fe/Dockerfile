@@ -1,6 +1,6 @@
 FROM node:18-slim AS build
 WORKDIR /app
-COPY package*.json ./
+COPY package.json ./
 RUN npm install
 COPY . .
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build -- --no-lint
