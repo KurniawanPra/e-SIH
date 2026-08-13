@@ -41,3 +41,7 @@ dev.db
 *.log
 .DS_Store
 Thumbs.db
+
+# Exceptions
+!AGENTS.md
+!agents.md

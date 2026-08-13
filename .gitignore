@@ -53,3 +53,7 @@ graphify-out/
 
 # Non-backend/frontend root files
 esih-architecture.png
+
+# Exceptions
+!AGENTS.md
+!agents.md
