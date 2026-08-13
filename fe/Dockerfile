@@ -1,7 +1,7 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install && npm install @tailwindcss/oxide-linux-x64-musl @tailwindcss/oxide-linux-x64-gnu
+RUN rm -f package-lock.json && npm install && npm install @tailwindcss/oxide-linux-x64-musl @tailwindcss/oxide-linux-x64-gnu
 COPY . .
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build -- --no-lint
 FROM node:18-alpine AS runner
