@@ -4,7 +4,7 @@ node_modules/
 
 # Build outputs
 .next/
-**/ .next/
+**/.next/
 out/
 **/out/
 build/
@@ -38,7 +38,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Non-backend/frontend directories & tooling
+# Non-backend/frontend directories & tooling metadata
 legacy/
 postman/
 referensi/
@@ -52,6 +52,8 @@ graphify-out/
 .vscode/
 AGENTS.md
 agents.md
+skills-lock.json
+**/skills-lock.json
 
 # Non-backend/frontend root files
 esih-architecture.png
