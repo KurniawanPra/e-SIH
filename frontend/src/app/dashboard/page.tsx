@@ -96,9 +96,8 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
           <div className="flex items-center gap-2.5 min-w-[180px] sm:min-w-[220px]">
             <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-300">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  parent.totalProgress >= 80 ? 'bg-emerald-600' : parent.totalProgress >= 50 ? 'bg-brand-700' : 'bg-amber-500'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${parent.totalProgress >= 80 ? 'bg-emerald-600' : parent.totalProgress >= 50 ? 'bg-brand-700' : 'bg-amber-500'
+                  }`}
                 style={{ width: `${parent.totalProgress}%` }}
               />
             </div>
@@ -161,9 +160,8 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
               {activeItems.map((item: any) => (
                 <div
                   key={item.id}
-                  className={`p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between hover:bg-white hover:border-slate-800 transition-all shadow-2xs gap-2.5 ${
-                    isScrollable ? 'w-[240px] sm:w-[260px] shrink-0' : 'w-full'
-                  }`}
+                  className={`p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between hover:bg-white hover:border-slate-800 transition-all shadow-2xs gap-2.5 ${isScrollable ? 'w-[240px] sm:w-[260px] shrink-0' : 'w-full'
+                    }`}
                 >
                   {/* 1. Nama Item Sub */}
                   <div>
@@ -175,9 +173,8 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden border border-slate-300">
                       <div
-                        className={`h-full rounded-full transition-all ${
-                          item.progress >= 80 ? 'bg-emerald-600' : item.progress >= 50 ? 'bg-brand-700' : 'bg-amber-500'
-                        }`}
+                        className={`h-full rounded-full transition-all ${item.progress >= 80 ? 'bg-emerald-600' : item.progress >= 50 ? 'bg-brand-700' : 'bg-amber-500'
+                          }`}
                         style={{ width: `${item.progress}%` }}
                       />
                     </div>
@@ -187,9 +184,8 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
                   {/* 3. Status Badge */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-200">
                     <span className="text-[10px] text-slate-500 font-semibold">Status Progress</span>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border shrink-0 ${
-                      item.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : item.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
-                    }`}>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border shrink-0 ${item.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : item.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                      }`}>
                       {item.status}
                     </span>
                   </div>
@@ -866,8 +862,8 @@ export default function DashboardPage() {
                   <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorAkumulatif" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#006837" stopOpacity={0.35}/>
-                        <stop offset="95%" stopColor="#006837" stopOpacity={0.0}/>
+                        <stop offset="5%" stopColor="#006837" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#006837" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -1165,9 +1161,8 @@ export default function DashboardPage() {
             {topPics.map((pic, idx) => (
               <div key={pic.name} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${
-                    idx === 0 ? 'bg-amber-400 text-slate-900' : idx === 1 ? 'bg-slate-300 text-slate-900' : 'bg-amber-700 text-white'
-                  }`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-900' : idx === 1 ? 'bg-slate-300 text-slate-900' : 'bg-amber-700 text-white'
+                    }`}>
                     #{idx + 1}
                   </div>
                   <div className="min-w-0">
@@ -1206,13 +1201,12 @@ export default function DashboardPage() {
                 <div key={task.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shrink-0 ${
-                      task.status === 'Open'
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shrink-0 ${task.status === 'Open'
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         : task.status === 'On Progress'
-                        ? 'bg-amber-100 text-amber-800 border-amber-300'
-                        : 'bg-slate-200 text-slate-700 border-slate-300'
-                    }`}>
+                          ? 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-slate-200 text-slate-700 border-slate-300'
+                      }`}>
                       {task.status}
                     </span>
                   </div>

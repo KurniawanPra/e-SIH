@@ -47,16 +47,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
     <>
       {/* Overlay on mobile (fades in/out) */}
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300 ${
-          collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
+        className={`fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
         onClick={onToggle}
       />
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-dvh w-72 lg:w-64 neu-sidebar flex flex-col transition-transform duration-300 ease-out ${
-          collapsed ? '-translate-x-full' : 'translate-x-0'
-        }`}
+        className={`fixed top-0 left-0 z-50 h-dvh w-72 lg:w-64 neu-sidebar flex flex-col transition-transform duration-300 ease-out ${collapsed ? '-translate-x-full' : 'translate-x-0'
+          }`}
       >
         {/* Logo Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-300">
@@ -88,11 +86,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     <Link
                       href={item.path}
                       onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${
-                        active
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${active
                           ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
                           : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-white' : 'text-slate-600'} />
                       <span className={active ? 'text-white font-black' : 'text-slate-700 font-bold'}>{item.name}</span>
@@ -113,11 +110,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                 <>
                   <button
                     onClick={() => setMasterOpen(!masterOpen)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isMasterActive
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isMasterActive
                         ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
                         : 'neu-btn text-slate-700 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     <span className="flex items-center gap-3">
                       <FolderKanban size={18} strokeWidth={isMasterActive ? 2.5 : 1.8} className={isMasterActive ? 'text-white' : 'text-slate-600'} />
@@ -132,11 +128,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                         <Link
                           href="/dashboard/master/program-kerja"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                            normalizedPath.includes('/master/program-kerja')
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/program-kerja')
                               ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <span className="flex items-center gap-2">
                             <FolderKanban size={15} className={normalizedPath.includes('/master/program-kerja') ? 'text-white' : ''} />
@@ -148,11 +143,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                         <Link
                           href="/dashboard/master/users"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                            normalizedPath.includes('/master/users')
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/users')
                               ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <span className="flex items-center gap-2">
                             <Users size={15} className={normalizedPath.includes('/master/users') ? 'text-white' : ''} />
@@ -164,11 +158,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                         <Link
                           href="/dashboard/master/roles"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${
-                            normalizedPath.includes('/master/roles')
+                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/roles')
                               ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <span className="flex items-center gap-2">
                             <ShieldCheck size={15} className={normalizedPath.includes('/master/roles') ? 'text-white' : ''} />
@@ -191,9 +184,8 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               <p className="text-xs font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
               <p className="text-[11px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
             </div>
-            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
-              isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
-            }`}>
+            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border shrink-0 ${isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+              }`}>
               {isAdmin ? 'ADMIN' : 'USER'}
             </span>
           </div>
@@ -235,7 +227,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     try {
                       const { api } = await import('@/lib/api')
                       await api.post('/api/auth/logout')
-                    } catch {}
+                    } catch { }
                     window.location.href = '/'
                   }}
                   className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm"

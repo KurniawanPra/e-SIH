@@ -142,7 +142,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       return reply.code(400).send({ success: false, error: 'Program Induk, Kode, dan Nama Sub-Program wajib diisi' })
     }
 
-    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0 
+    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0
       ? Number(progress)
       : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
 
@@ -167,7 +167,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const { id } = request.params
     const { programKerjaId, kode, namaItem, status, progress, keterangan } = request.body || {}
 
-    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0 
+    const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0
       ? Number(progress)
       : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
 
@@ -205,7 +205,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // GET all activities
   fastify.get('/activities', async (request: any, reply) => {
     const { status, category, year, month } = request.query || {}
-    
+
     const where: any = {}
     if (status && status !== 'ALL') where.status = status
 
@@ -242,7 +242,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         }
       }
     })
-    
+
     return { data: activities }
   })
 
@@ -516,7 +516,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     try {
       // 1. Fetch real employee dataset directly from Portal SSO API
       const portalData = await getPortalData('/api/sso/employees')
-      
+
       let employeesRaw: any[] = []
       if (Array.isArray(portalData)) {
         employeesRaw = portalData

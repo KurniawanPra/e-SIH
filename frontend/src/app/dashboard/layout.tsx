@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => {})
+    getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => { })
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false)
     }

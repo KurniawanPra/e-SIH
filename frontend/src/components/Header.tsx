@@ -18,7 +18,7 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
     try {
       const { api } = await import('@/lib/api')
       await api.post('/api/auth/logout')
-    } catch {}
+    } catch { }
     window.location.href = '/'
   }
 
@@ -80,9 +80,8 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
           <div className="hidden md:block leading-tight">
             <div className="flex items-center gap-1.5">
               <p className="text-xs font-extrabold text-slate-900 truncate max-w-[130px]">{user?.name || 'Kurniawan Pralambang'}</p>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
-                user?.role === 'ADMIN' || !user?.role ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
-              }`}>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${user?.role === 'ADMIN' || !user?.role ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                }`}>
                 {user?.role === 'ADMIN' || !user?.role ? 'ADMIN' : 'USER'}
               </span>
             </div>

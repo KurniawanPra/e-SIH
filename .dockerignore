@@ -1,0 +1,43 @@
+# Git & Tooling
+.git
+.gitignore
+.claude
+.opencode
+.agents
+.windsurf
+.gstack
+.idea
+.vscode
+
+# Non-backend/frontend directories & files
+legacy
+postman
+referensi
+graphify-out
+esih-architecture.png
+
+# Dependencies & Build artifacts
+node_modules
+**/node_modules
+.next
+**/.next
+out
+**/out
+dist
+**/dist
+build
+**/build
+*.tsbuildinfo
+
+# Environment & Local Databases
+.env
+.env.local
+*.env
+dev.db
+*.sqlite
+*.sqlite-journal
+
+# Logs & OS Files
+*.log
+.DS_Store
+Thumbs.db
