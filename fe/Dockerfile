@@ -1,10 +1,10 @@
 FROM node:18-bookworm-slim AS build
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
+RUN npm install -g npm@10
 
-RUN rm -f package-lock.json && npm install
+COPY package.json ./
+RUN npm install
 
 # Copy source code
 COPY . .
