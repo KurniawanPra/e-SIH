@@ -13,7 +13,10 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "test": "tsx --test tests/auth.test.ts",
         "seed": "tsx prisma/seed.ts",
-        "seed:prod": "node dist/prisma/seed.js"
+        "seed:prod": "node dist/prisma/seed.js",
+        "migrate:fresh": "prisma db push --force-reset",
+        "migrate": "prisma db push",
+        "studio": "prisma studio"
     },
     "prisma": {
         "seed": "tsx prisma/seed.ts"
