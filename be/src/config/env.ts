@@ -15,24 +15,32 @@ const envSchema = z.object({
   SESSION_SECRET_HEX: z.string().regex(/^[a-fA-F0-9]{64}$/, 'harus berupa 64 karakter hex'),
   COOKIE_NAME: z.string().min(1).default('target_session'),
   COOKIE_MAX_AGE_SECONDS: z.coerce.number().int().positive().default(1800),
+  COOKIE_SECURE: z.enum(['true', 'false']).optional(),
+  ALLOW_INSECURE_HTTP: z.enum(['true', 'false']).default('false'),
 }).superRefine((env, context) => {
   if (env.NODE_ENV === 'production' && env.SESSION_SECRET_HEX === exampleSessionSecret) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['SESSION_SECRET_HEX'],
-      message: 'harus diganti sebelum production',
+      message: 'harus diganti sebelum production. Buat secret 64-karakter hex baru (misal: openssl rand -hex 32)',
     })
   }
-  if (env.NODE_ENV === 'production' && !env.TARGET_FRONTEND_ORIGIN.startsWith('https://')) {
+  if (
+    env.NODE_ENV === 'production' &&
+    !env.TARGET_FRONTEND_ORIGIN.startsWith('https://') &&
+    env.ALLOW_INSECURE_HTTP !== 'true'
+  ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['TARGET_FRONTEND_ORIGIN'],
-      message: 'harus menggunakan HTTPS pada production',
+      message: 'harus menggunakan HTTPS pada production. Jika masih di lingkungan internal/non-HTTPS, tambahkan ALLOW_INSECURE_HTTP=true pada .env',
     })
   }
 })
 
 const env = envSchema.parse(process.env)
+
+const isHttps = env.TARGET_FRONTEND_ORIGIN.startsWith('https://')
 
 export const config = {
   nodeEnv: env.NODE_ENV,
@@ -47,4 +55,5 @@ export const config = {
   sessionSecret: Buffer.from(env.SESSION_SECRET_HEX, 'hex'),
   cookieName: env.COOKIE_NAME,
   cookieMaxAgeSeconds: env.COOKIE_MAX_AGE_SECONDS,
+  cookieSecure: env.COOKIE_SECURE !== undefined ? env.COOKIE_SECURE === 'true' : isHttps,
 }
