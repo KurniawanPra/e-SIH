@@ -31,10 +31,7 @@ build
 **/build
 *.tsbuildinfo
 
-# Environment & Local Databases
-.env
-.env.local
-*.env
+# Local Databases
 dev.db
 *.sqlite
 *.sqlite-journal

@@ -4,9 +4,6 @@ package-lock.json
 out
 build
 tsconfig.tsbuildinfo
-.env
-.env.local
-.env*.local
 *.log
 .git
 .gitignore

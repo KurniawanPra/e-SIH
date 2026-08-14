@@ -41,9 +41,9 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
   const [configError, setConfigError] = useState('')
   const initials = useMemo(() => getInitials(appName), [])
 
-  function handleLogin() {
+  async function handleLogin() {
     try {
-      openPortal()
+      await openPortal()
     } catch (error) {
       setConfigError(error instanceof Error ? error.message : 'Portal belum dikonfigurasi')
     }
