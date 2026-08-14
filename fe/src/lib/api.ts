@@ -87,6 +87,15 @@ api.interceptors.request.use(async (reqConfig) => {
   return reqConfig
 })
 
+export function getResolvedBackendDriver(): BackendDriver {
+  const raw = (runtimeConfig.backendDriver || process.env.NEXT_PUBLIC_BACKEND_DRIVER || 'fastify')
+    .toString()
+    .replace(/\r/g, '')
+    .trim()
+    .toLowerCase()
+  return raw === 'laravel' ? 'laravel' : 'fastify'
+}
+
 export function validateRuntimeConfig() {
   const apiUrl = runtimeConfig.apiUrl || API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3016` : '')
   const portalUrl = runtimeConfig.portalUrl || PORTAL_URL || DEFAULT_PORTAL_URL
@@ -95,16 +104,13 @@ export function validateRuntimeConfig() {
   if (!apiUrl || !portalUrl || !targetAppId) {
     throw new Error('Environment SSO frontend belum lengkap')
   }
-  if (runtimeConfig.backendDriver !== 'fastify' && runtimeConfig.backendDriver !== 'laravel') {
-    throw new Error('NEXT_PUBLIC_BACKEND_DRIVER harus fastify atau laravel')
-  }
   if (targetAppId === '00000000-0000-0000-0000-000000000000') {
     throw new Error('NEXT_PUBLIC_TARGET_APP_ID masih menggunakan placeholder')
   }
 }
 
 export async function prepareCsrf() {
-  if (runtimeConfig.backendDriver === 'laravel') {
+  if (getResolvedBackendDriver() === 'laravel') {
     await api.get('/api/auth/csrf')
   }
 }
