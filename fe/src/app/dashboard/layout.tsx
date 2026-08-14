@@ -1,26 +1,47 @@
 'use client'
 
 import { useState, useEffect, type ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import MarqueeFooter from '@/components/MarqueeFooter'
 import { getCurrentUser } from '@/lib/api'
 import type { SessionUser } from '@/types/auth'
-
 import { YearProvider } from '@/context/YearContext'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null)
+  const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
-    getCurrentUser().then((u) => { if (u) setUser(u) }).catch(() => { })
+    getCurrentUser()
+      .then((u) => {
+        if (u) {
+          setUser(u)
+          setLoading(false)
+        } else {
+          router.replace('/')
+        }
+      })
+      .catch(() => {
+        router.replace('/')
+      })
+
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false)
     }
-  }, [])
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-slate-50">
+        <span className="spinner" />
+      </div>
+    )
+  }
 
   return (
     <YearProvider>
