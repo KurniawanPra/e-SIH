@@ -53,19 +53,26 @@ export async function GET() {
     return cleanString(raw)
   }
 
-  const portalUrl = getEnv('NEXT_PUBLIC_PORTAL_URL', 'https://portal.inl.co.id')
-  const portalLoginUrl = getEnv('NEXT_PUBLIC_PORTAL_LOGIN_URL', `${portalUrl.replace(/\/$/, '')}/login`)
+  let portalUrl = getEnv('NEXT_PUBLIC_PORTAL_URL', 'https://portal.inl.co.id')
+  let portalLoginUrl = getEnv('NEXT_PUBLIC_PORTAL_LOGIN_URL', `${portalUrl.replace(/\/$/, '')}/login`)
+
+  // In production container or on server, default to public portal URL if localhost is specified
+  if (process.env.NODE_ENV === 'production' && (portalUrl.includes('localhost') || portalUrl.includes('127.0.0.1'))) {
+    portalUrl = 'https://portal.inl.co.id'
+    portalLoginUrl = 'https://portal.inl.co.id/login'
+  }
+
   const rawDriver = getEnv('NEXT_PUBLIC_BACKEND_DRIVER', 'fastify').toLowerCase()
   const backendDriver = rawDriver === 'laravel' ? 'laravel' : 'fastify'
 
   return NextResponse.json({
-    apiUrl: getEnv('NEXT_PUBLIC_API_URL', ''),
+    apiUrl: '', // Always empty for same-origin rewrites
     portalUrl,
     portalLoginUrl,
     targetAppId: getEnv('NEXT_PUBLIC_TARGET_APP_ID', '924b0197-31b4-4620-b15e-c037989b49a3'),
     backendDriver,
     appName: getEnv('NEXT_PUBLIC_APP_NAME', 'Aplikasi e-SIH'),
-    appDescription: getEnv('NEXT_PUBLIC_APP_DESCRIPTION', 'Applikasi mengelola project manajement.'),
+    appDescription: getEnv('NEXT_PUBLIC_APP_DESCRIPTION', 'Aplikasi mengelola project management.'),
     appLogoUrl: getEnv('NEXT_PUBLIC_APP_LOGO_URL', '/app-logo.svg'),
     portalName: getEnv('NEXT_PUBLIC_PORTAL_NAME', 'InTes / Portal SSO'),
     portalAccountName: getEnv('NEXT_PUBLIC_PORTAL_ACCOUNT_NAME', 'Portal INL'),

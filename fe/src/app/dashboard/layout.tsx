@@ -17,8 +17,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
+    let isMounted = true
     getCurrentUser()
       .then((u) => {
+        if (!isMounted) return
         if (u) {
           setUser(u)
           setLoading(false)
@@ -27,11 +29,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
+        if (!isMounted) return
         router.replace('/')
       })
 
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setSidebarOpen(false)
+    }
+    return () => {
+      isMounted = false
     }
   }, [router])
 
