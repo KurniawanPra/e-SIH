@@ -1,6 +1,8 @@
-FROM node:18-alpine AS build
-RUN apk add --no-cache openssl
+FROM node:18-bookworm-slim AS build
 WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY package*.json ./
@@ -10,10 +12,12 @@ RUN npm install
 COPY . .
 RUN npx prisma generate && npm run build
 
-FROM node:18-alpine AS runner
-RUN apk add --no-cache openssl
+FROM node:18-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+
+# Install runtime dependencies
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json dan prisma schema
 COPY --from=build /app/package*.json ./
@@ -33,4 +37,5 @@ EXPOSE 3000
 
 # Start the API Server (entry point di dist/src/server.js)
 CMD ["node", "dist/src/server.js"]
+
 
