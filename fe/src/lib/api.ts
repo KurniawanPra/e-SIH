@@ -18,11 +18,14 @@ export interface RuntimeConfigState {
   backendDriver: BackendDriver
 }
 
+export const DEFAULT_APP_ID = '924b0197-31b4-4620-b15e-c037989b49a3'
+export const DEFAULT_PORTAL_URL = 'https://portal.inl.co.id'
+
 export const runtimeConfig: RuntimeConfigState = {
   apiUrl: process.env.NEXT_PUBLIC_API_URL ?? '',
-  portalUrl: process.env.NEXT_PUBLIC_PORTAL_URL ?? '',
-  portalLoginUrl: process.env.NEXT_PUBLIC_PORTAL_LOGIN_URL ?? '',
-  targetAppId: process.env.NEXT_PUBLIC_TARGET_APP_ID ?? '',
+  portalUrl: process.env.NEXT_PUBLIC_PORTAL_URL || DEFAULT_PORTAL_URL,
+  portalLoginUrl: process.env.NEXT_PUBLIC_PORTAL_LOGIN_URL || `${DEFAULT_PORTAL_URL}/login`,
+  targetAppId: process.env.NEXT_PUBLIC_TARGET_APP_ID || DEFAULT_APP_ID,
   backendDriver: (process.env.NEXT_PUBLIC_BACKEND_DRIVER ?? 'fastify') as BackendDriver,
 }
 
@@ -58,10 +61,10 @@ export async function ensureRuntimeConfig(): Promise<RuntimeConfigState> {
 const envApiUrl = process.env.NEXT_PUBLIC_API_URL ?? ''
 export const API_URL = envApiUrl
   || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3016` : '')
-export const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? 'https://portal.example.com'
+export const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || DEFAULT_PORTAL_URL
 export const PORTAL_LOGIN_URL = process.env.NEXT_PUBLIC_PORTAL_LOGIN_URL
-  ?? `${PORTAL_URL.replace(/\/$/, '')}/login`
-export const TARGET_APP_ID = process.env.NEXT_PUBLIC_TARGET_APP_ID ?? ''
+  || `${PORTAL_URL.replace(/\/$/, '')}/login`
+export const TARGET_APP_ID = process.env.NEXT_PUBLIC_TARGET_APP_ID || DEFAULT_APP_ID
 export const BACKEND_DRIVER = (process.env.NEXT_PUBLIC_BACKEND_DRIVER ?? 'fastify') as BackendDriver
 
 export const api = axios.create({
@@ -77,16 +80,17 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (reqConfig) => {
   await ensureRuntimeConfig()
-  if (runtimeConfig.apiUrl && (!reqConfig.baseURL || reqConfig.baseURL === '')) {
-    reqConfig.baseURL = runtimeConfig.apiUrl
+  const currentBaseUrl = runtimeConfig.apiUrl || API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3016` : '')
+  if (!reqConfig.baseURL || reqConfig.baseURL === '') {
+    reqConfig.baseURL = currentBaseUrl
   }
   return reqConfig
 })
 
 export function validateRuntimeConfig() {
   const apiUrl = runtimeConfig.apiUrl || API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3016` : '')
-  const portalUrl = runtimeConfig.portalUrl || PORTAL_URL
-  const targetAppId = runtimeConfig.targetAppId || TARGET_APP_ID
+  const portalUrl = runtimeConfig.portalUrl || PORTAL_URL || DEFAULT_PORTAL_URL
+  const targetAppId = runtimeConfig.targetAppId || TARGET_APP_ID || DEFAULT_APP_ID
 
   if (!apiUrl || !portalUrl || !targetAppId) {
     throw new Error('Environment SSO frontend belum lengkap')
