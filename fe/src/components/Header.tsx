@@ -2,7 +2,7 @@
 
 import { Menu, LogOut, ExternalLink } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
-import { openPortal } from '@/lib/api'
+import { returnToPortal } from '@/lib/api'
 
 import { useYear } from '@/context/YearContext'
 
@@ -65,7 +65,7 @@ export default function Header({ user, onToggleSidebar }: HeaderProps) {
       <div className="flex items-center gap-3">
         {/* Back to Portal */}
         <button
-          onClick={() => openPortal()}
+          onClick={() => returnToPortal()}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 neu-btn rounded-xl hover:text-brand-700 cursor-pointer"
         >
           <ExternalLink size={14} />

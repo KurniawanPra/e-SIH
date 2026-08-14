@@ -220,13 +220,32 @@ export async function getPortalPlacements() {
   return response.data.data
 }
 
+export function returnToPortal() {
+  if (typeof window === 'undefined') return
+  if (window.opener && !window.opener.closed) {
+    window.close()
+    return
+  }
+  const portalBase = (runtimeConfig.portalUrl || PORTAL_URL || DEFAULT_PORTAL_URL).replace(/\/$/, '')
+  window.location.href = `${portalBase}/dashboard`
+}
+
 export async function logoutSession() {
-  await prepareCsrf()
+  await prepareCsrf().catch(() => null)
   if (typeof window !== 'undefined') {
     localStorage.removeItem('esih_token')
     localStorage.removeItem('esih_user')
+    sessionStorage.clear()
   }
   await api.post('/api/auth/logout').catch(() => null)
+  if (typeof window !== 'undefined') {
+    if (window.opener && !window.opener.closed) {
+      window.close()
+      return
+    }
+    const portalBase = (runtimeConfig.portalUrl || PORTAL_URL || DEFAULT_PORTAL_URL).replace(/\/$/, '')
+    window.location.href = `${portalBase}/dashboard`
+  }
 }
 
 export async function openPortal() {
