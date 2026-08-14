@@ -24,18 +24,20 @@ COPY --from=build /app/package*.json ./
 COPY --from=build /app/prisma ./prisma
 RUN npm install --omit=dev && npx prisma generate
 
-# Copy hasil build dist
+# Copy hasil build dist & entrypoint
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
-# Pastikan direktori uploads ada dengan permission yang sesuai
+# Pastikan direktori uploads dan permission entrypoint sesuai
 RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Gunakan non-root user untuk keamanan
 USER node
 
 EXPOSE 3000
 
-# Start the API Server (entry point di dist/src/server.js)
-CMD ["node", "dist/src/server.js"]
+# Start via entrypoint (akan auto-sync DB schema & auto-seed jika data kosong)
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 

@@ -12,7 +12,8 @@
         "start": "node dist/src/server.js",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "test": "tsx --test tests/auth.test.ts",
-        "seed": "tsx prisma/seed.ts"
+        "seed": "tsx prisma/seed.ts",
+        "seed:prod": "node dist/prisma/seed.js"
     },
     "prisma": {
         "seed": "tsx prisma/seed.ts"
