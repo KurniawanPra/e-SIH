@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { exchangePortalToken, SsoExchangeError } from '../services/portal-sso.service'
+import { generateToken, verifyToken } from '../services/token.service'
 import { config } from '../config/env'
 import type { SessionUser } from '../plugins/auth'
 
@@ -42,8 +43,9 @@ export default async function authRoutes(app: FastifyInstance) {
       unit: { id: 'u-1', kode: 'IT', nama: 'IT & Sistem Operational' },
       penempatanArea: { id: 'p-1', kode: 'HO', nama: 'Head Office' },
     }
+    const token = generateToken(user)
     request.session.set('user', user)
-    return reply.send({ success: true, data: { user } })
+    return reply.send({ success: true, data: { user, token } })
   })
 
   app.post('/login', async (request, reply) => {
@@ -61,8 +63,9 @@ export default async function authRoutes(app: FastifyInstance) {
         parsed.data.appId,
       )
 
+      const token = generateToken(user)
       request.session.set('user', user)
-      return reply.send({ success: true, data: { user } })
+      return reply.send({ success: true, data: { user, token } })
     } catch (error) {
       const statusCode = error instanceof SsoExchangeError ? error.statusCode : 500
       request.log.warn({ error, statusCode }, 'SSO login rejected')
@@ -73,10 +76,23 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/me', async (request) => ({
-    success: true,
-    data: request.session.get('user') ?? null,
-  }))
+  app.get('/me', async (request) => {
+    let user = request.session.get('user') ?? null
+    if (!user) {
+      const authHeader = request.headers.authorization
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.slice(7).trim()
+        user = verifyToken(token)
+        if (user) {
+          request.session.set('user', user)
+        }
+      }
+    }
+    return {
+      success: true,
+      data: user,
+    }
+  })
 
   app.post('/logout', async (request, reply) => {
     request.session.delete()

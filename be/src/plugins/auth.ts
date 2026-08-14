@@ -2,6 +2,7 @@ import secureSession from '@fastify/secure-session'
 import fp from 'fastify-plugin'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { config } from '../config/env'
+import { verifyToken } from '../services/token.service'
 
 export interface EmployeeGrade {
   id?: string
@@ -96,6 +97,17 @@ export default fp(async function authPlugin(app) {
 
   app.decorate('authenticate', async function authenticate(request, reply) {
     let user = request.session.get('user') as SessionUser | undefined
+    if (!user) {
+      const authHeader = request.headers.authorization
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.slice(7).trim()
+        user = verifyToken(token) ?? undefined
+        if (user) {
+          request.session.set('user', user)
+        }
+      }
+    }
+
     if (!user && !config.isProduction) {
       user = {
         sub: 'demo-admin-id',

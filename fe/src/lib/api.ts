@@ -107,6 +107,12 @@ api.interceptors.request.use(async (reqConfig) => {
   if (!reqConfig.baseURL || reqConfig.baseURL === '') {
     reqConfig.baseURL = currentBaseUrl
   }
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('esih_token')
+    if (token) {
+      reqConfig.headers.Authorization = `Bearer ${token}`
+    }
+  }
   return reqConfig
 })
 
@@ -142,13 +148,18 @@ export async function exchangeSsoToken(ssoToken: string) {
   validateRuntimeConfig()
   await prepareCsrf()
   const targetAppId = runtimeConfig.targetAppId || TARGET_APP_ID
-  const response = await api.post<ApiEnvelope<{ user: SessionUser }>>('/api/auth/login', {
+  const response = await api.post<ApiEnvelope<{ user: SessionUser; token?: string }>>('/api/auth/login', {
     ssoToken,
     appId: targetAppId,
   })
-  const user = response.data.data.user
-  if (typeof window !== 'undefined' && user) {
-    localStorage.setItem('esih_user', JSON.stringify(user))
+  const { user, token } = response.data.data
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('esih_token', token)
+    }
+    if (user) {
+      localStorage.setItem('esih_user', JSON.stringify(user))
+    }
   }
   return user
 }
@@ -212,9 +223,10 @@ export async function getPortalPlacements() {
 export async function logoutSession() {
   await prepareCsrf()
   if (typeof window !== 'undefined') {
+    localStorage.removeItem('esih_token')
     localStorage.removeItem('esih_user')
   }
-  await api.post('/api/auth/logout')
+  await api.post('/api/auth/logout').catch(() => null)
 }
 
 export async function openPortal() {
