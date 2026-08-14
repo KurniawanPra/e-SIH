@@ -7,29 +7,53 @@ import { AlertCircle, ArrowLeft } from 'lucide-react'
 
 const activeExchanges = new Set<string>()
 
+function extractToken(): string | null {
+  if (typeof window === 'undefined') return null
+  const params = new URLSearchParams(window.location.search)
+  const token = params.get('token')
+    || params.get('sso_token')
+    || params.get('ssoToken')
+    || params.get('sso-token')
+    || params.get('code')
+    || params.get('ticket')
+  if (token) return token
+
+  if (window.location.hash) {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, ''))
+    return hashParams.get('token')
+      || hashParams.get('sso_token')
+      || hashParams.get('ssoToken')
+      || hashParams.get('sso-token')
+      || hashParams.get('code')
+      || hashParams.get('ticket')
+  }
+  return null
+}
+
 function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState('')
-  const [ssoToken] = useState(() => searchParams.get('token'))
+  const [ssoToken] = useState(() => extractToken() || searchParams.get('token') || searchParams.get('sso_token') || searchParams.get('ssoToken'))
 
   useEffect(() => {
-    if (!ssoToken) {
-      setError('Token SSO tidak ditemukan')
+    const token = ssoToken || extractToken()
+    if (!token) {
+      setError('Token SSO tidak ditemukan. Pastikan Anda masuk melalui Portal INL.')
       return
     }
-    if (activeExchanges.has(ssoToken)) return
+    if (activeExchanges.has(token)) return
 
-    activeExchanges.add(ssoToken)
+    activeExchanges.add(token)
     window.history.replaceState(null, '', '/sso-callback')
 
-    exchangeSsoToken(ssoToken)
+    exchangeSsoToken(token)
       .then(() => {
-        activeExchanges.delete(ssoToken)
+        activeExchanges.delete(token)
         router.replace('/dashboard')
       })
       .catch((reason) => {
-        activeExchanges.delete(ssoToken)
+        activeExchanges.delete(token)
         setError(getApiError(reason, 'Login SSO gagal'))
       })
   }, [router, ssoToken])
