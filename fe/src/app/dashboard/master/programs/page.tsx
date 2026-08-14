@@ -139,13 +139,7 @@ export default function DaftarProgramKerjaPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      let res
-      try {
-        res = await api.get(`/api/esih/program-kerja?year=${selectedYear}`)
-      } catch {
-        await api.post('/api/auth/demo-login', { role: 'ADMIN' })
-        res = await api.get(`/api/esih/program-kerja?year=${selectedYear}`)
-      }
+      const res = await api.get(`/api/esih/program-kerja?year=${selectedYear}`)
       const data: ParentProgram[] = res.data.data || []
       setParents(data)
       if (data.length > 0) {
