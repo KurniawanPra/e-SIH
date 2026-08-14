@@ -51,7 +51,7 @@ function CallbackContent() {
       .then(() => {
         activeExchanges.delete(token)
         sessionStorage.removeItem('sso_redirect_attempted')
-        window.location.href = '/dashboard'
+        router.replace('/dashboard')
       })
       .catch((reason) => {
         activeExchanges.delete(token)

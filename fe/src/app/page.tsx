@@ -37,6 +37,7 @@ function LandingPageContent() {
   useEffect(() => {
     const token = extractToken() || searchParams.get('token') || searchParams.get('sso_token') || searchParams.get('ssoToken')
     if (token) {
+      window.history.replaceState(null, '', '/')
       router.replace(`/sso-callback?token=${encodeURIComponent(token)}`)
       return
     }
@@ -44,7 +45,7 @@ function LandingPageContent() {
     getCurrentUser()
       .then((user) => {
         if (user) {
-          window.location.href = '/dashboard'
+          router.replace('/dashboard')
         } else {
           // Check if we already tried auto-redirect (prevent infinite loop)
           const alreadyRedirected = sessionStorage.getItem('sso_redirect_attempted')

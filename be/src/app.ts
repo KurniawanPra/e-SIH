@@ -20,7 +20,7 @@ function getLocalIpv4s(): string[] {
 export function buildApp() {
   const app = Fastify({
     logger: config.nodeEnv !== 'test',
-    trustProxy: false,
+    trustProxy: true,
   })
 
   const allowedOrigins = [
@@ -39,7 +39,7 @@ export function buildApp() {
       const url = new URL(origin)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
       const host = url.hostname
-      return host === 'localhost' || host.startsWith('127.') || localIpv4s.includes(host)
+      return host === 'localhost' || host.startsWith('127.') || localIpv4s.includes(host) || host === 'e-sih.inl.co.id' || host.endsWith('.inl.co.id')
     } catch {
       return false
     }
@@ -78,7 +78,7 @@ export function buildApp() {
     timestamp: new Date().toISOString(),
   })
   app.get('/api/config', async () => ({
-    apiUrl: config.frontendOrigin,
+    apiUrl: '',
     portalUrl: config.portalApiUrl,
     targetAppId: config.appId,
     backendDriver: 'fastify',

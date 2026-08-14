@@ -59,8 +59,7 @@ export async function ensureRuntimeConfig(): Promise<RuntimeConfigState> {
 }
 
 const envApiUrl = process.env.NEXT_PUBLIC_API_URL ?? ''
-export const API_URL = envApiUrl
-  || (typeof window !== 'undefined' ? (window.location.protocol === 'https:' ? window.location.origin : `${window.location.protocol}//${window.location.hostname}:3016`) : '')
+export const API_URL = envApiUrl || ''
 export const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || DEFAULT_PORTAL_URL
 export const PORTAL_LOGIN_URL = process.env.NEXT_PUBLIC_PORTAL_LOGIN_URL
   || `${PORTAL_URL.replace(/\/$/, '')}/login`
@@ -80,10 +79,7 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (reqConfig) => {
   await ensureRuntimeConfig()
-  const fallback = typeof window !== 'undefined'
-    ? (window.location.protocol === 'https:' ? window.location.origin : `${window.location.protocol}//${window.location.hostname}:3016`)
-    : ''
-  const currentBaseUrl = runtimeConfig.apiUrl || API_URL || fallback
+  const currentBaseUrl = runtimeConfig.apiUrl || API_URL || ''
   if (!reqConfig.baseURL || reqConfig.baseURL === '') {
     reqConfig.baseURL = currentBaseUrl
   }
