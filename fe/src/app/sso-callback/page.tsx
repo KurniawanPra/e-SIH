@@ -50,7 +50,7 @@ function CallbackContent() {
     exchangeSsoToken(token)
       .then(() => {
         activeExchanges.delete(token)
-        router.replace('/dashboard')
+        window.location.href = '/dashboard'
       })
       .catch((reason) => {
         activeExchanges.delete(token)

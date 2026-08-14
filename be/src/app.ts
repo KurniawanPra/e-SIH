@@ -1,4 +1,4 @@
-import cors from '@fastify/cors'
+  import cors from '@fastify/cors'
 import os from 'node:os'
 import Fastify from 'fastify'
 import { config } from './config/env'

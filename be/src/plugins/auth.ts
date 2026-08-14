@@ -88,7 +88,7 @@ export default fp(async function authPlugin(app) {
     cookie: {
       httpOnly: true,
       secure: config.cookieSecure,
-      sameSite: config.cookieSecure ? 'strict' : 'lax',
+      sameSite: 'lax',
       path: '/',
       maxAge: config.cookieMaxAgeSeconds,
     },

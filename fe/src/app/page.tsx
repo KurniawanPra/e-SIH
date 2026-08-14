@@ -43,7 +43,7 @@ function LandingPageContent() {
     getCurrentUser()
       .then((user) => {
         if (user) {
-          router.replace('/dashboard')
+          window.location.href = '/dashboard'
         } else {
           setChecking(false)
         }
