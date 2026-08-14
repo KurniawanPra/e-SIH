@@ -175,9 +175,13 @@ export async function logoutSession() {
 export async function openPortal() {
   await ensureRuntimeConfig()
   validateRuntimeConfig()
-  const portalLoginUrl = runtimeConfig.portalLoginUrl
-    || (runtimeConfig.portalUrl ? `${runtimeConfig.portalUrl.replace(/\/$/, '')}/login` : PORTAL_LOGIN_URL)
-  window.location.assign(portalLoginUrl)
+  const portalBase = (runtimeConfig.portalUrl || PORTAL_URL).replace(/\/$/, '')
+  const appId = runtimeConfig.targetAppId || TARGET_APP_ID
+  const redirectUrl = typeof window !== 'undefined' ? window.location.origin : ''
+
+  // Try /launch endpoint first (Portal INL standard)
+  const launchUrl = `${portalBase}/launch?appId=${encodeURIComponent(appId)}&redirect=${encodeURIComponent(redirectUrl)}`
+  window.location.assign(launchUrl)
 }
 
 export function getApiError(error: unknown, fallback: string) {

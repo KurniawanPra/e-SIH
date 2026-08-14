@@ -50,6 +50,7 @@ function CallbackContent() {
     exchangeSsoToken(token)
       .then(() => {
         activeExchanges.delete(token)
+        sessionStorage.removeItem('sso_redirect_attempted')
         window.location.href = '/dashboard'
       })
       .catch((reason) => {

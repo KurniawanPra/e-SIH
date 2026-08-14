@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { getCurrentUser } from '@/lib/api'
+import { getCurrentUser, openPortal } from '@/lib/api'
 import PortalLoginGate from '@/components/PortalLoginGate'
 
 function extractToken(): string | null {
@@ -32,6 +32,7 @@ function LandingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [checking, setChecking] = useState(true)
+  const [showGate, setShowGate] = useState(false)
 
   useEffect(() => {
     const token = extractToken() || searchParams.get('token') || searchParams.get('sso_token') || searchParams.get('ssoToken')
@@ -45,15 +46,28 @@ function LandingPageContent() {
         if (user) {
           window.location.href = '/dashboard'
         } else {
-          setChecking(false)
+          // Check if we already tried auto-redirect (prevent infinite loop)
+          const alreadyRedirected = sessionStorage.getItem('sso_redirect_attempted')
+          if (!alreadyRedirected) {
+            sessionStorage.setItem('sso_redirect_attempted', '1')
+            openPortal().catch(() => {
+              setShowGate(true)
+              setChecking(false)
+            })
+          } else {
+            // Already tried auto-redirect, show manual login gate
+            setShowGate(true)
+            setChecking(false)
+          }
         }
       })
       .catch(() => {
+        setShowGate(true)
         setChecking(false)
       })
   }, [router, searchParams])
 
-  if (checking) {
+  if (checking && !showGate) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-slate-50">
         <span className="spinner" />
