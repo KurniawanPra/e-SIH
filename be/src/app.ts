@@ -77,8 +77,15 @@ export function buildApp() {
     service: 'sso-target-fastify4',
     timestamp: new Date().toISOString(),
   })
-  app.get('/', health)
-  app.get('/health', health)
+  app.get('/api/config', async () => ({
+    apiUrl: config.frontendOrigin,
+    portalUrl: config.portalApiUrl,
+    targetAppId: config.appId,
+    backendDriver: 'fastify',
+    appName: 'e-SIH',
+    portalName: 'InTes / Portal SSO',
+    portalAccountName: 'Portal INL',
+  }))
 
   return app
 }
