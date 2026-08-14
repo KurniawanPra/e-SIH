@@ -25,6 +25,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - INTERNAL_BACKEND_URL=http://e-sih-be:3000
     env_file:
       - ./fe/.env.local
     volumes:
