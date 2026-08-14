@@ -711,7 +711,9 @@ export default function MonthlyActivitiesPage() {
                 {filteredHighlights.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center">
-                      <div className="text-4xl">📋</div>
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                        <FileSpreadsheet size={24} />
+                      </div>
                       <p className="mt-2 text-sm font-semibold text-slate-500">
                         Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                       </p>

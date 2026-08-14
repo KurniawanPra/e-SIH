@@ -40,8 +40,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           itemProgress = Math.round((closedCount / activeActivities.length) * 100)
         } else {
           if (item.status === 'Closed') itemProgress = 100
-          else if (item.status === 'On Progress') itemProgress = 50
-          else itemProgress = 0
+          else itemProgress = Number(item.progress) || 0
         }
         return {
           ...item,
@@ -144,7 +143,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0
       ? Number(progress)
-      : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
+      : status === 'Closed' ? 100 : 0
 
     const newId = `PROG-${kode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-${tahun || 2026}`
     const created = await prisma.ref_Item_ProgramKerja.create({
@@ -169,7 +168,7 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     const calcProgress = progress !== undefined && progress !== null && Number(progress) > 0
       ? Number(progress)
-      : status === 'Closed' ? 100 : status === 'On Progress' ? 50 : 0
+      : status === 'Closed' ? 100 : 0
 
     const updated = await prisma.ref_Item_ProgramKerja.update({
       where: { id },
