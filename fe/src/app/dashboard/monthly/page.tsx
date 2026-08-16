@@ -64,21 +64,21 @@ function PicSearchDropdown({
     <div ref={containerRef} className="relative w-full">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm flex items-center justify-between cursor-pointer hover:border-brand-400 shadow-2xs transition-all"
+        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm flex items-center justify-between cursor-pointer hover:border-brand-400 shadow-xs transition-all"
       >
         <span className="text-slate-700 font-bold text-xs flex items-center gap-2">
-          <Search size={14} className="text-slate-400" />
+          <Search size={14} className="text-slate-600" />
           {selectedPics.length === 0
-            ? '— Cari & Pilih Penanggung Jawab (PIC) —'
+            ? '- Cari & Pilih Penanggung Jawab (PIC) -'
             : `${selectedPics.length} PIC Dipilih`}
         </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-slate-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-[9999] rounded-2xl border-2 border-slate-300 bg-white p-2.5 shadow-2xl space-y-2 max-h-64 flex flex-col">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-[9999] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xl space-y-2 max-h-64 flex flex-col">
           <div className="relative shrink-0">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
             <input
               type="text"
               autoFocus
@@ -91,7 +91,7 @@ function PicSearchDropdown({
 
           <div className="overflow-y-auto flex-1 space-y-1 pr-1 custom-scrollbar">
             {filteredUsers.length === 0 ? (
-              <div className="p-3 text-center text-xs text-slate-400 font-medium">Tidak ada PIC yang cocok</div>
+              <div className="p-3 text-center text-xs text-slate-600 font-medium">Tidak ada PIC yang cocok</div>
             ) : (
               filteredUsers.map(u => {
                 const isSelected = selectedPics.includes(u.email)
@@ -103,13 +103,13 @@ function PicSearchDropdown({
                     }}
                     className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-brand-50 border border-brand-200 text-brand-900 font-extrabold'
+                        ? 'bg-brand-50 border border-brand-200 text-brand-900 font-semibold'
                         : 'hover:bg-slate-100 text-slate-700 font-medium'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className={`w-6 h-6 rounded-full font-black text-[10px] flex items-center justify-center shrink-0 ${
+                        className={`w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${
                           isSelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700'
                         }`}
                       >
@@ -117,11 +117,11 @@ function PicSearchDropdown({
                       </div>
                       <div className="truncate min-w-0">
                         <p className="truncate font-bold">{u.nama}</p>
-                        {u.jabatan && <p className="text-[10px] text-slate-400 truncate">{u.jabatan}</p>}
+                        {u.jabatan && <p className="text-xs text-slate-600 truncate">{u.jabatan}</p>}
                       </div>
                     </div>
                     {isSelected && (
-                      <span className="text-brand-600 font-black text-xs shrink-0 flex items-center gap-1">
+                      <span className="text-brand-600 font-bold text-xs shrink-0 flex items-center gap-1">
                         <Check size={14} /> Terpilih
                       </span>
                     )}
@@ -136,7 +136,7 @@ function PicSearchDropdown({
       {/* Selected Badges List */}
       <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2.5 min-h-10 items-center">
         {selectedPics.length === 0 ? (
-          <span className="text-xs text-slate-400 font-semibold italic">
+          <span className="text-xs text-slate-600 font-semibold italic">
             Belum ada PIC dipilih. Klik dropdown di atas untuk mencari dan memilih.
           </span>
         ) : (
@@ -146,9 +146,9 @@ function PicSearchDropdown({
             return (
               <span
                 key={email}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500 bg-brand-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500 bg-brand-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs"
               >
-                <span className="w-4 h-4 rounded-full bg-white/25 flex items-center justify-center text-[10px] font-black">
+                <span className="w-4 h-4 rounded-full bg-white/25 flex items-center justify-center text-xs font-bold">
                   {nameDisplay.charAt(0).toUpperCase()}
                 </span>
                 {nameDisplay}
@@ -455,7 +455,7 @@ export default function MonthlyActivitiesPage() {
 
   const formInput = (label: string, field: keyof typeof form, type = 'text') => (
     <label className="block">
-      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">{label}</span>
+      <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
       <input
         type={type}
         value={form[field] as string}
@@ -480,10 +480,10 @@ export default function MonthlyActivitiesPage() {
       {/* ===== HEADER ===== */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-2 text-xl font-black text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
             <FolderKanban size={22} className="text-brand-600 shrink-0" /> Update Aktivitas
           </h1>
-          <p className="text-xs font-medium text-slate-500">Program Highlight Report (Management Highlight) · No. Dokumen: INLHO/REP-F/-021 · {periodLabel}</p>
+          <p className="text-xs font-medium text-slate-600">Program Highlight Report (Management Highlight) · No. Dokumen: INLHO/REP-F/-021 · {periodLabel}</p>
         </div>
       </div>
 
@@ -514,29 +514,29 @@ export default function MonthlyActivitiesPage() {
                     setSelectedMonth(month)
                     setView('table')
                   }}
-                  className={`group relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
+                  className={`group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
                     isCurrent
                       ? 'border-brand-500 bg-brand-50'
                       : 'border-slate-200 bg-white hover:border-brand-300'
                   }`}
                 >
                   {isCurrent && (
-                    <span className="absolute right-2 top-2 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-black text-white uppercase">
+                    <span className="absolute right-2 top-2 rounded-md bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white">
                       Sekarang
                     </span>
                   )}
-                  <span className="text-xl font-black text-slate-800">{m}</span>
+                  <span className="text-xl font-bold text-slate-800">{m}</span>
                   <div className="w-full space-y-1">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-600">
                       <span>Action Item</span>
                       <span className="text-slate-800">{stats.bulanan?.[month]?.total ?? 0}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-600">
                       <span>Closure</span>
                       <span className="text-emerald-600">{stats.bulanan?.[month]?.closure ?? 0}%</span>
                     </div>
                   </div>
-                  <span className="mt-1 text-[10px] font-semibold text-brand-600 opacity-40 transition group-hover:opacity-100">
+                  <span className="mt-1 text-xs font-semibold text-brand-600 opacity-40 transition group-hover:opacity-100">
                     Buka tabel →
                   </span>
                 </button>
@@ -548,45 +548,45 @@ export default function MonthlyActivitiesPage() {
         /* ===== TABLE VIEW (Format INLHO/REP-F/-021) ===== */
         <div className="space-y-4">
           {/* Responsive List Summary Metrics */}
-          <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
-            <div className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
               <TrendingUp size={14} className="text-brand-600 shrink-0" /> Ringkasan Status Aktivitas:
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs font-bold">
               {/* Action Item */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
                 <span className="text-slate-600">Action Item</span>
-                <span className="font-black text-slate-900 text-sm">{stats.total}</span>
+                <span className="font-bold text-slate-900 text-sm">{stats.total}</span>
               </div>
 
               {/* Open */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200">
                 <span className="text-sky-700">Open</span>
-                <span className="font-black text-sky-900 text-sm">{stats.open}</span>
+                <span className="font-bold text-sky-900 text-sm">{stats.open}</span>
               </div>
 
               {/* On Progress */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200">
                 <span className="text-amber-700">On Progress</span>
-                <span className="font-black text-amber-900 text-sm">{stats.progress}</span>
+                <span className="font-bold text-amber-900 text-sm">{stats.progress}</span>
               </div>
 
               {/* Closed */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200">
                 <span className="text-emerald-700">Closed</span>
-                <span className="font-black text-emerald-900 text-sm">{stats.closed}</span>
+                <span className="font-bold text-emerald-900 text-sm">{stats.closed}</span>
               </div>
 
               {/* Cancelled */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
-                <span className="text-slate-500">Cancelled</span>
-                <span className="font-black text-slate-700 text-sm">{stats.cancelled}</span>
+                <span className="text-slate-600">Cancelled</span>
+                <span className="font-bold text-slate-700 text-sm">{stats.cancelled}</span>
               </div>
 
               {/* Closure (%) */}
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200">
                 <span className="text-indigo-700">Closure</span>
-                <span className="font-black text-indigo-900 text-sm">{stats.closure}%</span>
+                <span className="font-bold text-indigo-900 text-sm">{stats.closure}%</span>
               </div>
             </div>
           </div>
@@ -597,7 +597,7 @@ export default function MonthlyActivitiesPage() {
               {userRole === 'ADMIN' && (
                 <button
                   onClick={() => setView('cards')}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-2xs"
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-xs"
                   title="Kembali ke pilihan bulan"
                 >
                   <ArrowLeft size={15} /> Pilih Bulan Lain
@@ -620,7 +620,7 @@ export default function MonthlyActivitiesPage() {
               <select
                 value={selectedBagian}
                 onChange={e => setSelectedBagian(e.target.value)}
-                className="rounded-xl border-2 border-brand-200 bg-brand-50/70 px-3 py-2 text-sm font-black text-brand-800 outline-none cursor-pointer"
+                className="rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-sm font-bold text-brand-800 outline-none cursor-pointer"
                 title="Filter berdasarkan Bagian (Sistem, IT, HSSE)"
               >
                 <option value="ALL">Semua Bagian (Sistem, IT, HSSE)</option>
@@ -631,7 +631,7 @@ export default function MonthlyActivitiesPage() {
 
               {/* Filter Range Tanggal */}
               <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300">
-                <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider px-1 flex items-center gap-1">
+                <span className="text-xs font-semibold text-slate-700 px-1 flex items-center gap-1">
                   <Calendar size={13} className="text-brand-600 shrink-0" /> Range:
                 </span>
                 <input
@@ -641,7 +641,7 @@ export default function MonthlyActivitiesPage() {
                   className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
                   title="Tanggal Awal"
                 />
-                <span className="text-xs font-bold text-slate-400">s/d</span>
+                <span className="text-xs font-bold text-slate-600">s/d</span>
                 <input
                   type="date"
                   value={endDateFilter}
@@ -664,7 +664,7 @@ export default function MonthlyActivitiesPage() {
               </div>
 
               <div className="relative flex-1 min-w-[180px]">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600" />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
@@ -678,7 +678,7 @@ export default function MonthlyActivitiesPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleExportExcel}
-                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3 py-2 text-xs font-bold hover:bg-emerald-100 shadow-2xs cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3 py-2 text-xs font-bold hover:bg-emerald-100 shadow-xs cursor-pointer"
                 title="Export Data ke Excel Format Document INL (1.jpeg)"
               >
                 <FileSpreadsheet size={15} /> Export Excel
@@ -695,7 +695,7 @@ export default function MonthlyActivitiesPage() {
           <div className="overflow-x-auto print:overflow-visible">
             <table className="w-full min-w-max text-left text-sm">
               <thead>
-                <tr className="border-b-2 border-slate-300 bg-slate-100 text-[11px] font-black uppercase tracking-wide text-slate-600">
+                <tr className="border-b-2 border-slate-300 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
                   <th className="px-2.5 py-3 text-center w-10">No</th>
                   <th className="px-2.5 py-3 min-w-44">Item</th>
                   <th className="px-2.5 py-3 min-w-72">Description</th>
@@ -711,10 +711,10 @@ export default function MonthlyActivitiesPage() {
                 {filteredHighlights.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
                         <FileSpreadsheet size={24} />
                       </div>
-                      <p className="mt-2 text-sm font-semibold text-slate-500">
+                      <p className="mt-2 text-sm font-semibold text-slate-600">
                         Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                       </p>
                       <button onClick={() => openAddModal()} className="mt-3 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
@@ -725,10 +725,10 @@ export default function MonthlyActivitiesPage() {
                 ) : (
                   paginatedHighlights.map((h, idx) => (
                     <tr key={h.id} className="border-b border-slate-100 align-top hover:bg-slate-50">
-                      <td className="px-2.5 py-3 text-center font-black text-slate-500">{startIndex + idx + 1}</td>
+                      <td className="px-2.5 py-3 text-center font-bold text-slate-600">{startIndex + idx + 1}</td>
                       <td className="px-2.5 py-3 font-bold text-slate-800 whitespace-pre-wrap">
                         {h.bagian && (
-                          <span className={`inline-block mr-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                          <span className={`inline-block mr-1.5 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide ${
                             h.bagian === 'HSSE' ? 'bg-sky-100 text-sky-800 border border-sky-300' : h.bagian === 'IT' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
                           }`}>
                             {h.bagian}
@@ -741,7 +741,7 @@ export default function MonthlyActivitiesPage() {
                       <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.targetDate || '-'}</td>
                       <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.closedDate || '-'}</td>
                       <td className="px-2.5 py-3 text-center">
-                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
+                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
                           {h.status}
                         </span>
                       </td>
@@ -751,7 +751,7 @@ export default function MonthlyActivitiesPage() {
                           <button
                             onClick={() => openEditModal(h)}
                             title="Update Status"
-                            className="rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-extrabold text-xs px-2.5 py-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-2xs"
+                            className="rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs px-2.5 py-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
                           >
                             <RefreshCw size={13} /> Update Status
                           </button>
@@ -774,8 +774,8 @@ export default function MonthlyActivitiesPage() {
                 Menampilkan <strong className="text-slate-900">{filteredHighlights.length > 0 ? startIndex + 1 : 0}</strong>–<strong className="text-slate-900">{endIndex}</strong> dari <strong className="text-slate-900">{filteredHighlights.length}</strong> data
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-400">|</span>
-                <span className="text-slate-500">Tampilkan:</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-slate-600">Tampilkan:</span>
                 <select
                   value={itemsPerPage}
                   onChange={e => {
@@ -797,8 +797,8 @@ export default function MonthlyActivitiesPage() {
               <div className="flex items-center gap-2.5 flex-wrap">
                 {/* Direct Page Input Number */}
                 {totalPages > 1 && (
-                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs">
-                    <span className="text-[11px] font-bold text-slate-500">Ke Halaman:</span>
+                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">
+                    <span className="text-xs font-bold text-slate-600">Ke Halaman:</span>
                     <input
                       type="number"
                       min={1}
@@ -811,9 +811,9 @@ export default function MonthlyActivitiesPage() {
                           setCurrentPage(target)
                         }
                       }}
-                      className="w-12 px-1.5 py-0.5 text-center font-extrabold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
+                      className="w-12 px-1.5 py-0.5 text-center font-semibold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
                     />
-                    <span className="text-[11px] font-bold text-slate-500">/ {totalPages}</span>
+                    <span className="text-xs font-bold text-slate-600">/ {totalPages}</span>
                   </div>
                 )}
 
@@ -831,9 +831,9 @@ export default function MonthlyActivitiesPage() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`w-7 h-7 rounded-xl text-xs font-black transition cursor-pointer ${
+                        className={`w-7 h-7 rounded-xl text-xs font-bold transition cursor-pointer ${
                           currentPage === page
-                            ? 'bg-brand-600 text-white shadow-2xs'
+                            ? 'bg-brand-600 text-white shadow-xs'
                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                         }`}
                       >
@@ -861,16 +861,16 @@ export default function MonthlyActivitiesPage() {
       {showModal && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               {/* Sticky Modal Top Bar / Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
                   <FileText size={20} className="text-brand-600 shrink-0" />
                   {editingId ? 'Edit Management Highlight Item' : 'Tambah Management Highlight Item'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="rounded-xl p-1.5 neu-btn text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="rounded-lg p-1.5 neu-btn text-slate-600 hover:text-slate-600 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -881,7 +881,7 @@ export default function MonthlyActivitiesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-1">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Bulan</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Bulan</span>
                       <select
                         value={form.bulan}
                         onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
@@ -893,7 +893,7 @@ export default function MonthlyActivitiesPage() {
                   </div>
                   <div className="md:col-span-1">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Tahun</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Tahun</span>
                       <select
                         value={form.tahun}
                         onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
@@ -905,7 +905,7 @@ export default function MonthlyActivitiesPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Bagian *</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Bagian *</span>
                       <select
                         value={form.bagian || 'Sistem'}
                         onChange={e => setForm({ ...form, bagian: e.target.value })}
@@ -920,8 +920,8 @@ export default function MonthlyActivitiesPage() {
                   <div className="md:col-span-4">{formInput('Item / Subject *', 'item')}</div>
                   <div className="md:col-span-4">
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-bold text-slate-600 uppercase tracking-wide">
-                        Penanggung Jawab (PIC) — bisa lebih dari satu (Master Data User)
+                      <span className="mb-1.5 block text-xs font-semibold text-slate-600">
+                        Penanggung Jawab (PIC) - bisa lebih dari satu (Master Data User)
                       </span>
                       <PicSearchDropdown
                         userList={userList}
@@ -932,7 +932,7 @@ export default function MonthlyActivitiesPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Status</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Status</span>
                       <select
                         value={form.status}
                         onChange={e => setForm({ ...form, status: e.target.value })}
@@ -948,7 +948,7 @@ export default function MonthlyActivitiesPage() {
                   )}
                   <div className="md:col-span-4">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Description</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Description</span>
                       <textarea
                         value={form.description}
                         onChange={e => setForm({ ...form, description: e.target.value })}
@@ -959,7 +959,7 @@ export default function MonthlyActivitiesPage() {
                   </div>
                   <div className="md:col-span-4">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-bold text-slate-600 uppercase tracking-wide">Remarks</span>
+                      <span className="mb-1 block text-xs font-semibold text-slate-600">Remarks</span>
                       <textarea
                         value={form.remarks}
                         onChange={e => setForm({ ...form, remarks: e.target.value })}
@@ -984,7 +984,7 @@ export default function MonthlyActivitiesPage() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={submitting || !form.item.trim()}
-                  className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50 cursor-pointer transition-colors shadow-2xs"
+                  className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50 cursor-pointer transition-colors shadow-xs"
                 >
                   {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
                 </button>

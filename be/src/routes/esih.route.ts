@@ -30,18 +30,17 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     })
 
     // Calculate total progress percentage from sub-items for each parent
+    // Progress selalu dihitung dari activities aktif saja; tanpa activities = 0%.
+    // Kolom progress manual tidak lagi dipakai sebagai fallback agar konsisten
+    // dengan data activities (closure rate).
     const result = parentPrograms.map((parent: any) => {
       const activeItems = parent.items.filter((i: any) => i.isActive)
       const itemsWithProgress = activeItems.map((item: any) => {
-        let itemProgress = item.progress
         const activeActivities = item.activities || []
-        if (activeActivities.length > 0) {
-          const closedCount = activeActivities.filter((a: any) => a.status === 'Closed').length
-          itemProgress = Math.round((closedCount / activeActivities.length) * 100)
-        } else {
-          if (item.status === 'Closed') itemProgress = 100
-          else itemProgress = Number(item.progress) || 0
-        }
+        const closedCount = activeActivities.filter((a: any) => a.status === 'Closed').length
+        const itemProgress = activeActivities.length > 0
+          ? Math.round((closedCount / activeActivities.length) * 100)
+          : 0
         return {
           ...item,
           progress: itemProgress

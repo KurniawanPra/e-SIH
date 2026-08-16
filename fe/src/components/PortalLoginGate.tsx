@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { openPortal } from '@/lib/api'
-import { ShieldCheck, LogIn, AlertTriangle, Info, Lock } from 'lucide-react'
+import { LogIn, AlertTriangle, Info, Lock } from 'lucide-react'
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'e-SIH'
 const appDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()
@@ -53,14 +53,14 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
     <div className="min-h-dvh flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 pt-6 pb-2 flex items-center justify-between border-b border-slate-50">
-          <span className="font-extrabold text-lg text-brand-700 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-brand-700 text-white flex items-center justify-center text-xs">SIH</span>
-            {appName}
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold border border-brand-200">
-            <ShieldCheck size={14} /> SSO Terintegrasi
-          </span>
+        <div className="px-6 pt-6 pb-3 flex items-center justify-between border-b border-slate-100">
+          <div>
+            <span className="font-semibold text-lg text-brand-700 flex items-center gap-2">
+              <span className="w-7 h-7 rounded-lg bg-brand-700 text-white flex items-center justify-center text-xs">SIH</span>
+              {appName}
+            </span>
+            <p className="text-xs text-slate-600 mt-1">Masuk menggunakan akun SSO perusahaan</p>
+          </div>
         </div>
 
         {/* Body */}
@@ -84,7 +84,7 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
               )}
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-1">{appName}</h2>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">{appDescription}</p>
+            <p className="text-xs text-slate-600 max-w-xs mx-auto">{appDescription}</p>
           </div>
 
           {(configError || notice) && (
@@ -111,12 +111,12 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {accessSteps.map((step, index) => (
                 <div className="flex items-start gap-2" key={step.title}>
-                  <span className="w-5 h-5 rounded-full bg-brand-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-brand-700 text-white text-xs font-bold flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
                   <div>
-                    <strong className="block text-[11px] text-slate-800 leading-tight">{step.title}</strong>
-                    <span className="text-[10px] text-slate-400 leading-tight block mt-0.5">{step.description}</span>
+                    <strong className="block text-xs text-slate-800 leading-tight">{step.title}</strong>
+                    <span className="text-xs text-slate-600 leading-tight block mt-0.5">{step.description}</span>
                   </div>
                 </div>
               ))}
@@ -125,7 +125,7 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center text-[11px] text-slate-400 flex items-center justify-center gap-1">
+        <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center text-xs text-slate-600 flex items-center justify-center gap-1">
           <Lock size={12} /> Keamanan terjamin oleh {portalName}
         </div>
       </div>

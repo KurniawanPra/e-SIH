@@ -82,7 +82,7 @@ export default function AccessControlPage() {
 
   const ProgramChips = ({ u }: { u: any }) => (
     <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
-      {programs.length === 0 && <span className="text-[11px] text-slate-400 font-semibold">Belum ada sub-program.</span>}
+      {programs.length === 0 && <span className="text-xs text-slate-600 font-semibold">Belum ada sub-program.</span>}
       {programs.map(p => {
         const active = (drafts[u.id] || []).includes(p.id)
         return (
@@ -91,10 +91,10 @@ export default function AccessControlPage() {
             type="button"
             onClick={() => toggleProgram(u.id, p.id)}
             title={progLabel(p)}
-            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-extrabold transition cursor-pointer ${
+            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-semibold transition cursor-pointer ${
               active
                 ? 'border-brand-500 bg-brand-600 text-white'
-                : 'border-slate-200 bg-white text-slate-500 hover:border-brand-300'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300'
             }`}
           >
             {p.namaItem}
@@ -122,12 +122,12 @@ export default function AccessControlPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <ShieldCheck className="text-emerald-700" size={24} /> Pengaturan Hak Akses User (RBAC)
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-600 font-medium mt-0.5">
             Manajemen Peran &amp; Wewenang Pengguna Aplikasi e-SIH Operation
           </p>
         </div>
@@ -141,8 +141,8 @@ export default function AccessControlPage() {
       {/* Role Capabilities Matrix Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Admin Card */}
-        <div className="bg-emerald-50/60 rounded-2xl border-2 border-emerald-300 p-4 space-y-2.5">
-          <div className="flex items-center gap-2 text-emerald-800 font-black text-sm">
+        <div className="bg-emerald-50/60 rounded-2xl border border-emerald-200 p-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
             <ShieldCheck size={18} /> Role Admin (Pengelola Sistem)
           </div>
           <ul className="text-xs font-bold text-slate-700 space-y-1.5">
@@ -153,13 +153,13 @@ export default function AccessControlPage() {
         </div>
 
         {/* User Card */}
-        <div className="bg-slate-50 rounded-2xl border-2 border-slate-300 p-4 space-y-2.5">
-          <div className="flex items-center gap-2 text-slate-900 font-black text-sm">
+        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
             <UserCheck size={18} /> Role Staff User (PIC IT)
           </div>
           <ul className="text-xs font-bold text-slate-700 space-y-1.5">
-            <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-slate-500" /> Mengakses Dashboard &amp; Melihat Laporan Aktivitas</li>
-            <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-slate-500" /> Menginput &amp; Memperbarui Status Aktivitas yang Ditugaskan</li>
+            <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-slate-600" /> Mengakses Dashboard &amp; Melihat Laporan Aktivitas</li>
+            <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-slate-600" /> Menginput &amp; Memperbarui Status Aktivitas yang Ditugaskan</li>
             <li className="flex items-center gap-2"><Lock size={14} className="text-amber-600" /> Terbatasi dari Modul Master Data &amp; Konfigurasi Akses</li>
           </ul>
         </div>
@@ -168,27 +168,27 @@ export default function AccessControlPage() {
       {/* Mobile Card List View */}
       <div className="md:hidden space-y-3">
         {users.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl text-center border-2 border-slate-300 text-slate-400 text-xs font-semibold">
+          <div className="bg-white p-8 rounded-2xl text-center border border-slate-200 text-slate-600 text-xs font-semibold">
             Tidak ada data user yang tersedia.
           </div>
         ) : (
           users.map(u => (
-            <div key={u.id} className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-2xs space-y-3">
+            <div key={u.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between gap-2 min-w-0">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-9 h-9 rounded-xl font-black text-xs flex items-center justify-center shrink-0 ${
+                  <div className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
                     u.role === 'ADMIN' ? 'bg-emerald-700 text-white' : 'bg-slate-900 text-white'
                   }`}>
                     {u.nama.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-extrabold text-slate-900 text-sm leading-tight truncate min-w-0">{u.nama}</h4>
-                    <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate min-w-0">
-                      <Mail size={11} className="text-slate-400 shrink-0" /> {u.email}
+                    <h4 className="font-semibold text-slate-900 text-sm leading-tight truncate min-w-0">{u.nama}</h4>
+                    <p className="text-xs text-slate-600 flex items-center gap-1 truncate min-w-0">
+                      <Mail size={11} className="text-slate-600 shrink-0" /> {u.email}
                     </p>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border shrink-0 ${
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border shrink-0 ${
                   u.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-300'
                 }`}>
                   {u.role === 'ADMIN' ? <ShieldCheck size={11} /> : <UserCheck size={11} />}
@@ -198,13 +198,13 @@ export default function AccessControlPage() {
 
               <div className="pt-2 border-t border-slate-200 text-xs space-y-1">
                 <p className="text-slate-700 font-semibold flex items-center gap-1.5">
-                  <Briefcase size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{u.jabatan}</span>
+                  <Briefcase size={13} className="text-slate-600 shrink-0" /> <span className="truncate min-w-0">{u.jabatan}</span>
                 </p>
-                <p className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Building2 size={13} className="text-slate-400 shrink-0" /> <span className="truncate min-w-0">{u.unit}</span>
+                <p className="text-slate-600 font-medium flex items-center gap-1.5">
+                  <Building2 size={13} className="text-slate-600 shrink-0" /> <span className="truncate min-w-0">{u.unit}</span>
                 </p>
                 <div className="pt-1">
-                  <p className="flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 mb-1.5">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-1.5">
                     <FolderKanban size={12} /> Sub-Program Penugasan
                   </p>
                   <ProgramChips u={u} />
@@ -242,11 +242,11 @@ export default function AccessControlPage() {
       </div>
 
       {/* User Roles Table */}
-      <div className="hidden md:block bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+              <tr className="bg-slate-100/80 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                 <th className="py-3.5 px-4">Nama Pengguna SDM</th>
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Jabatan &amp; Unit Kerja</th>
@@ -260,29 +260,29 @@ export default function AccessControlPage() {
                 <tr key={u.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center shrink-0 ${
+                      <div className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
                         u.role === 'ADMIN' ? 'bg-emerald-700 text-white' : 'bg-slate-900 text-white'
                       }`}>
                         {u.nama.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-extrabold text-slate-900">{u.nama}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">{u.id}</p>
+                        <p className="font-semibold text-slate-900">{u.nama}</p>
+                        <p className="text-xs text-slate-600 font-medium">{u.id}</p>
                       </div>
                     </div>
                   </td>
 
                   <td className="py-3.5 px-4 font-semibold text-slate-600">
-                    <span className="flex items-center gap-1.5"><Mail size={13} className="text-slate-400" /> {u.email}</span>
+                    <span className="flex items-center gap-1.5"><Mail size={13} className="text-slate-600" /> {u.email}</span>
                   </td>
 
                   <td className="py-3.5 px-4 font-bold text-slate-800">
                     <p>{u.jabatan}</p>
-                    <p className="text-[10px] text-slate-400 font-medium">{u.unit}</p>
+                    <p className="text-xs text-slate-600 font-medium">{u.unit}</p>
                   </td>
 
                   <td className="py-3.5 px-4 text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black border ${
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold border ${
                       u.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-300'
                     }`}>
                       {u.role === 'ADMIN' ? <ShieldCheck size={13} /> : <UserCheck size={13} />}
@@ -291,19 +291,19 @@ export default function AccessControlPage() {
                   </td>
 
                   <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-bold text-slate-400">
+                    <div className="flex items-center gap-1.5 mb-1.5 text-xs font-bold text-slate-600">
                       <FolderKanban size={11} /> Pilih sub-program tempat user bekerja
                     </div>
                     <ProgramChips u={u} />
                     {(drafts[u.id] || []).length > 0 && (
-                      <p className="mt-1.5 text-[10px] font-bold text-brand-700">Terpilih: {(drafts[u.id] || []).length} sub-program</p>
+                      <p className="mt-1.5 text-xs font-bold text-brand-700">Terpilih: {(drafts[u.id] || []).length} sub-program</p>
                     )}
                   </td>
 
                   <td className="py-3.5 px-4 text-right">
                     <button
                       onClick={() => handleRoleToggle(u.id, u.role)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs neu-btn ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs neu-btn ${
                         u.role === 'ADMIN' ? 'text-amber-700 hover:bg-amber-50' : 'text-emerald-700 hover:bg-emerald-50'
                       }`}
                     >
@@ -313,7 +313,7 @@ export default function AccessControlPage() {
                       <button
                         onClick={() => saveAssignment(u)}
                         disabled={!isDirty(u) || savingId === u.id}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs neu-btn w-full ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs neu-btn w-full ${
                           !isDirty(u)
                             ? 'text-slate-300 cursor-not-allowed'
                             : 'text-sky-700 hover:bg-sky-50'

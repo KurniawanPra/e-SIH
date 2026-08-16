@@ -195,13 +195,13 @@ export default function ProgramKerjaPage() {
             <FolderKanban className="text-brand-700" size={22} />
             Kelola Program Kerja &amp; Sub-Item
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
             Daftar Program Kerja Induk beserta rincian Sub-Item Program Kerja di dalamnya.
           </p>
         </div>
         <button
           onClick={openAddProgram}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 neu-btn-brand font-semibold rounded-lg cursor-pointer"
         >
           <Plus size={16} /> Tambah Program Kerja Induk
         </button>
@@ -210,7 +210,7 @@ export default function ProgramKerjaPage() {
       {/* Program Cards & Sub-Item List */}
       <div className="space-y-4">
         {parents.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-400 font-semibold text-xs">
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-600 font-semibold text-xs">
             Belum ada data Program Kerja. Silakan tambah Program Kerja baru.
           </div>
         ) : (
@@ -221,29 +221,29 @@ export default function ProgramKerjaPage() {
             return (
               <div
                 key={p.id}
-                className={`bg-white rounded-2xl border-2 border-slate-300 shadow-xs overflow-hidden transition-all ${
+                className={`bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all ${
                   !p.isActive ? 'opacity-50 bg-slate-50' : ''
                 }`}
               >
                 {/* Parent Program Main Header Row */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <span className="w-10 h-10 rounded-xl neu-active-green flex items-center justify-center text-sm font-black shrink-0">
+                    <span className="w-10 h-10 rounded-xl neu-active-green flex items-center justify-center text-sm font-bold shrink-0">
                       {p.kode}
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                        <h3 className="font-semibold text-slate-900 text-sm sm:text-base">
                           {p.namaProgram}
                         </h3>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
-                          p.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-300'
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${
+                          p.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-300'
                         }`}>
                           {p.isActive ? 'AKTIF' : 'NONAKTIF'}
                         </span>
                       </div>
                       {p.deskripsi && (
-                        <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-600 mt-1 font-medium leading-relaxed">
                           {p.deskripsi}
                         </p>
                       )}
@@ -254,7 +254,7 @@ export default function ProgramKerjaPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-slate-200">
                     <div className="w-full sm:w-44">
                       <div className="flex justify-between items-center text-xs font-bold text-slate-600 mb-1">
-                        <span className="text-[11px] text-slate-400">Total Progress:</span>
+                        <span className="text-xs text-slate-600">Total Progress:</span>
                         <span>{p.totalProgress}%</span>
                       </div>
                       <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
@@ -270,28 +270,28 @@ export default function ProgramKerjaPage() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => openAddSubItem(p)}
-                        className="px-2.5 py-1.5 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg neu-btn text-brand-700 hover:bg-brand-50 text-xs font-bold flex items-center gap-1 cursor-pointer"
                         title="Tambah Sub-Item Program Kerja"
                       >
                         <Plus size={14} /> Sub-Item
                       </button>
                       <button
                         onClick={() => openEditProgram(p)}
-                        className="p-2 rounded-xl neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        className="p-2 rounded-lg neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
                         title="Edit Program Kerja Induk"
                       >
                         <Pencil size={15} />
                       </button>
                       <button
                         onClick={() => toggleProgramActive(p.id)}
-                        className="p-2 rounded-xl neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        className="p-2 rounded-lg neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
                         title={p.isActive ? 'Nonaktifkan Program' : 'Aktifkan Program'}
                       >
-                        {p.isActive ? <EyeOff size={15} className="text-slate-500" /> : <Eye size={15} className="text-emerald-600" />}
+                        {p.isActive ? <EyeOff size={15} className="text-slate-600" /> : <Eye size={15} className="text-emerald-600" />}
                       </button>
                       <button
                         onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                        className="p-2 rounded-xl neu-btn text-slate-700 cursor-pointer"
+                        className="p-2 rounded-lg neu-btn text-slate-700 cursor-pointer"
                         title="Lihat / Sembunyikan Sub-Item"
                       >
                         {expandedId === p.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -304,7 +304,7 @@ export default function ProgramKerjaPage() {
                 {isExpanded && (
                   <div className="border-t border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                      <h4 className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
                         <ListChecks size={15} className="text-brand-700" />
                         Rincian Sub-Item Program Kerja ({p.items?.length || 0} Item)
                       </h4>
@@ -317,7 +317,7 @@ export default function ProgramKerjaPage() {
                     </div>
 
                     {!p.items || p.items.length === 0 ? (
-                      <div className="bg-white p-4 rounded-xl border border-slate-200 text-center text-xs text-slate-400 font-medium">
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 text-center text-xs text-slate-600 font-medium">
                         Belum ada Sub-Item Program Kerja untuk program induk {p.kode}. Klik &ldquo;Tambah Sub-Item Baru&rdquo; untuk menambahkan.
                       </div>
                     ) : (
@@ -325,7 +325,7 @@ export default function ProgramKerjaPage() {
                         <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs min-w-[640px]">
                           <thead>
-                            <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase">
+                            <tr className="bg-slate-100/80 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                               <th className="py-2.5 px-3.5 w-20">Kode</th>
                               <th className="py-2.5 px-3.5">Nama Sub-Item Program</th>
                               <th className="py-2.5 px-3.5 w-28">Status</th>
@@ -345,14 +345,14 @@ export default function ProgramKerjaPage() {
                                   {sub.kode}
                                 </td>
                                 <td className="py-3 px-3.5">
-                                  <p className="font-extrabold text-slate-900">{sub.namaItem}</p>
+                                  <p className="font-semibold text-slate-900">{sub.namaItem}</p>
                                   {sub.keterangan && (
-                                    <p className="text-[11px] text-slate-400 font-medium">{sub.keterangan}</p>
+                                    <p className="text-xs text-slate-600 font-medium">{sub.keterangan}</p>
                                   )}
                                 </td>
                                 <td className="py-3 px-3.5">
                                   <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black border ${
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold border ${
                                       sub.status === 'Closed'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : sub.status === 'On Progress'
@@ -374,7 +374,7 @@ export default function ProgramKerjaPage() {
                                         style={{ width: `${sub.progress}%` }}
                                       />
                                     </div>
-                                    <span className="font-mono font-bold text-slate-600 text-[11px] w-7 text-right">
+                                    <span className="font-mono font-bold text-slate-600 text-xs w-7 text-right">
                                       {sub.progress}%
                                     </span>
                                   </div>
@@ -391,7 +391,7 @@ export default function ProgramKerjaPage() {
                                     {sub.id && (
                                       <button
                                         onClick={() => toggleSubItemActive(sub.id!)}
-                                        className="p-1.5 rounded-lg neu-btn text-slate-500 cursor-pointer"
+                                        className="p-1.5 rounded-lg neu-btn text-slate-600 cursor-pointer"
                                         title={sub.isActive === false ? 'Aktifkan Sub-Item' : 'Nonaktifkan Sub-Item'}
                                       >
                                         {sub.isActive === false ? <Eye size={13} className="text-emerald-600" /> : <EyeOff size={13} />}
@@ -418,15 +418,15 @@ export default function ProgramKerjaPage() {
       {showProgramModal && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                   <FolderKanban size={18} className="text-brand-700" />
                   {editProgram ? 'Edit Program Kerja Induk' : 'Tambah Program Kerja Induk'}
                 </h3>
                 <button
                   onClick={() => setShowProgramModal(false)}
-                  className="p-1 rounded-xl neu-btn text-slate-500 cursor-pointer"
+                  className="p-1 rounded-lg neu-btn text-slate-600 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -474,14 +474,14 @@ export default function ProgramKerjaPage() {
                   <button
                     type="button"
                     onClick={() => setShowProgramModal(false)}
-                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                    className="px-4 py-2 rounded-lg neu-btn font-bold text-xs text-slate-700 cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-lg neu-btn-brand font-semibold text-xs cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? 'Menyimpan...' : 'Simpan Program'}
                   </button>
@@ -496,15 +496,15 @@ export default function ProgramKerjaPage() {
       {showSubModal && selectedParentForSub && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                   <ListChecks size={18} className="text-brand-700" />
                   {editSubItemObj ? `Edit Sub-Item: ${editSubItemObj.kode}` : `Tambah Sub-Item ke Program ${selectedParentForSub.kode}`}
                 </h3>
                 <button
                   onClick={() => setShowSubModal(false)}
-                  className="p-1 rounded-xl neu-btn text-slate-500 cursor-pointer"
+                  className="p-1 rounded-lg neu-btn text-slate-600 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -546,7 +546,7 @@ export default function ProgramKerjaPage() {
                     <select
                       value={subForm.status}
                       onChange={(e) => setSubForm({ ...subForm, status: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
                     >
                       <option value="On Progress">On Progress (Berjalan)</option>
                       <option value="Closed">Closed (Selesai)</option>
@@ -570,14 +570,14 @@ export default function ProgramKerjaPage() {
                   <button
                     type="button"
                     onClick={() => setShowSubModal(false)}
-                    className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                    className="px-4 py-2 rounded-lg neu-btn font-bold text-xs text-slate-700 cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-lg neu-btn-brand font-semibold text-xs cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? 'Menyimpan...' : 'Simpan Sub-Item'}
                   </button>

@@ -240,19 +240,19 @@ export default function MyActivitiesPage() {
   return (
     <div className="space-y-6 mb-12 sm:mb-16">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <ListChecks className="text-brand-700" size={24} /> My Activities (Tugas Aktivitas Saya)
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-600 font-medium mt-0.5">
             Daftar tugas aktivitas operasional khusus akun <strong className="text-slate-900">{user?.name || 'Staf IT'}</strong>
           </p>
         </div>
 
         <button
           onClick={openAdd}
-          className="inline-flex items-center justify-center gap-2 neu-btn-brand font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 neu-btn-brand font-semibold rounded-lg cursor-pointer self-start sm:self-auto"
         >
           <Plus size={16} /> Tambah Tugas Saya
         </button>
@@ -261,21 +261,21 @@ export default function MyActivitiesPage() {
       {/* Personal KPI Badges */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Badge 1: Total Tasks */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-black uppercase text-slate-500 tracking-wider block">Total Tugas</span>
-            <span className="text-2xl font-black text-slate-900">{totalMyTasks} Task</span>
+            <span className="text-xs font-semibold text-slate-600 block">Total Tugas</span>
+            <span className="text-2xl font-bold text-slate-900">{totalMyTasks} Task</span>
           </div>
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+          <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
             Tahun {selectedYear}
           </span>
         </div>
 
         {/* Badge 2: Open Tasks */}
-        <div className="bg-white p-4 rounded-2xl border-2 border-amber-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-black uppercase text-amber-700 tracking-wider block">Belum Selesai (Open)</span>
-            <span className="text-2xl font-black text-amber-700">{openMyTasks} Task</span>
+            <span className="text-xs font-semibold text-amber-700 block">Belum Selesai (Open)</span>
+            <span className="text-2xl font-bold text-amber-700">{openMyTasks} Task</span>
           </div>
           <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
             Aktif
@@ -283,10 +283,10 @@ export default function MyActivitiesPage() {
         </div>
 
         {/* Badge 3: Closure Rate */}
-        <div className="bg-brand-50/80 p-4 rounded-2xl border-2 border-brand-200 shadow-xs flex items-center justify-between">
+        <div className="bg-brand-50/80 p-4 rounded-2xl border border-brand-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-black uppercase text-brand-800 tracking-wider block">Realisasi (Closure %)</span>
-            <span className="text-2xl font-black text-brand-700">{closureRate}%</span>
+            <span className="text-xs font-semibold text-brand-800 block">Realisasi (Closure %)</span>
+            <span className="text-2xl font-bold text-brand-700">{closureRate}%</span>
           </div>
           <span className="text-xs font-bold text-brand-800 bg-white px-2.5 py-1 rounded-lg border border-brand-200">
             {closedMyTasks}/{totalMyTasks} Closed
@@ -295,12 +295,12 @@ export default function MyActivitiesPage() {
       </div>
 
       {/* Control Bar: Filter Status, Year, & Quick Search */}
-      <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 min-w-0">
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+            className="px-3.5 py-2 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
           >
             <option value="ALL">Semua Status ({totalMyTasks})</option>
             <option value="On Progress">On Progress (Berjalan)</option>
@@ -311,7 +311,7 @@ export default function MyActivitiesPage() {
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(Number(e.target.value))}
-            className="px-3.5 py-2 rounded-xl neu-select text-xs font-extrabold text-brand-800 outline-none cursor-pointer"
+            className="px-3.5 py-2 rounded-xl neu-select text-xs font-semibold text-brand-800 outline-none cursor-pointer"
           >
             {[2024, 2025, 2026, 2027].map(y => (
               <option key={y} value={y}>Tahun {y}</option>
@@ -320,7 +320,7 @@ export default function MyActivitiesPage() {
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
           <input
             type="text"
             placeholder="Cari tugas saya..."
@@ -332,12 +332,12 @@ export default function MyActivitiesPage() {
       </div>
 
       {/* Table View */}
-      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-black z-10 border-r-2 border-slate-300">No</th>
+              <tr className="bg-slate-100/90 border-b-2 border-slate-300 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                <th className="py-3.5 px-4 w-12 text-center sticky left-0 bg-slate-100 text-slate-900 font-bold z-10 border-r-2 border-slate-300">No</th>
                 <th className="py-3.5 px-4 w-48">Program Kerja</th>
                 <th className="py-3.5 px-4 min-w-[380px]">Kegiatan</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
@@ -349,28 +349,28 @@ export default function MyActivitiesPage() {
             <tbody className="divide-y divide-slate-200 text-xs">
               {paginatedActivities.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 font-bold">
+                  <td colSpan={7} className="text-center py-12 text-slate-600 font-bold">
                     Tidak ada tugas aktivitas pada filter terpilih.
                   </td>
                 </tr>
               ) : (
                 paginatedActivities.map((a, idx) => (
                   <tr key={a.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-4 text-center font-mono font-black text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80">{startIndex + idx + 1}</td>
+                    <td className="py-4 px-4 text-center font-mono font-bold text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80">{startIndex + idx + 1}</td>
                     <td className="py-4 px-4 space-y-1">
-                      <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
+                      <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
                         {a.program?.programKerja?.kode} - {a.program?.kode}
                       </span>
-                      <p className="font-extrabold text-slate-900 text-xs">{a.itemName}</p>
+                      <p className="font-semibold text-slate-900 text-xs">{a.itemName}</p>
                     </td>
                     <td className="py-4 px-4">
-                      <p className="font-extrabold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
-                      {a.descriptionAction && <p className="text-[11px] text-slate-500 font-medium mt-0.5">{a.descriptionAction}</p>}
+                      <p className="font-semibold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
+                      {a.descriptionAction && <p className="text-xs text-slate-600 font-medium mt-0.5">{a.descriptionAction}</p>}
                     </td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.startDate}</td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.dueDate}</td>
                     <td className="py-4 px-4 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black border ${
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
                         a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                       }`}>
                         {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
@@ -381,7 +381,7 @@ export default function MyActivitiesPage() {
                       <div className="inline-flex items-center justify-start gap-1.5">
                         <button
                           onClick={() => openQuickStatus(a)}
-                          className="px-2.5 py-1.5 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg neu-btn text-brand-700 hover:bg-brand-50 font-bold text-xs flex items-center gap-1 cursor-pointer"
                           title="Update Status"
                         >
                           <RefreshCw size={13} /> Update Status
@@ -399,40 +399,40 @@ export default function MyActivitiesPage() {
       {/* Mobile Card List View */}
       <div className="grid grid-cols-1 gap-3.5 md:hidden">
         {paginatedActivities.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border-2 border-slate-300 text-center text-slate-500 font-semibold text-xs">
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-600 font-semibold text-xs">
             Tidak ada tugas aktivitas pada filter terpilih.
           </div>
         ) : (
           paginatedActivities.map((a, idx) => (
-            <div key={a.id} className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 space-y-3">
+            <div key={a.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border shrink-0 ${
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border shrink-0 ${
                   a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                 }`}>
                   {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                   {a.status}
                 </span>
-                <span className="text-[11px] font-mono font-black text-slate-400">{startIndex + idx + 1}</span>
+                <span className="text-xs font-mono font-bold text-slate-600">{startIndex + idx + 1}</span>
               </div>
 
               <div className="space-y-1">
-                <span className="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
+                <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-md bg-brand-50 text-brand-800 border border-brand-200">
                   {a.program?.programKerja?.kode} - {a.program?.kode}
                 </span>
-                <p className="font-extrabold text-slate-900 text-sm">{a.itemName}</p>
+                <p className="font-semibold text-slate-900 text-sm">{a.itemName}</p>
                 <p className="font-bold text-slate-800 text-sm leading-snug">{a.kegiatan}</p>
-                {a.descriptionAction && <p className="text-xs text-slate-500 font-medium">{a.descriptionAction}</p>}
+                {a.descriptionAction && <p className="text-xs text-slate-600 font-medium">{a.descriptionAction}</p>}
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-bold text-slate-600">
-                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Start: {a.startDate}</span>
-                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Due: {a.dueDate}</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-slate-600">
+                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-600" /> Start: {a.startDate}</span>
+                <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-600" /> Due: {a.dueDate}</span>
               </div>
 
               <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                 <button
                   onClick={() => openQuickStatus(a)}
-                  className="px-3 py-2 rounded-xl neu-btn text-brand-700 hover:bg-brand-50 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer flex-1 justify-center"
+                  className="px-3 py-2 rounded-lg neu-btn text-brand-700 hover:bg-brand-50 font-bold text-xs flex items-center gap-1.5 cursor-pointer flex-1 justify-center"
                 >
                   <RefreshCw size={13} /> Update Status
                 </button>
@@ -444,8 +444,8 @@ export default function MyActivitiesPage() {
 
       {/* Pagination Bar */}
       {filteredActivities.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border-2 border-slate-300 shadow-2xs">
-          <p className="text-xs font-extrabold text-slate-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <p className="text-xs font-semibold text-slate-600">
             Menampilkan <span className="text-brand-700">{startIndex + 1}</span>–<span className="text-brand-700">{endIndex}</span> dari <span className="text-slate-900">{filteredActivities.length}</span> data tugas
           </p>
 
@@ -453,7 +453,7 @@ export default function MyActivitiesPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg neu-btn text-xs font-semibold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
             >
               <ChevronLeft size={15} /> Prev
             </button>
@@ -461,7 +461,7 @@ export default function MyActivitiesPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 rounded-xl neu-btn text-xs font-extrabold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg neu-btn text-xs font-semibold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
             >
               Next <ChevronRight size={15} />
             </button>
@@ -473,12 +473,12 @@ export default function MyActivitiesPage() {
       {showModal && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="font-black text-slate-900 text-base">
+                <h3 className="font-bold text-slate-900 text-base">
                   {editItem ? 'Edit Tugas Saya' : 'Tambah Tugas Saya'}
                 </h3>
-                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-xl neu-btn text-slate-500 cursor-pointer">
+                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg neu-btn text-slate-600 cursor-pointer">
                   <X size={18} />
                 </button>
               </div>
@@ -493,7 +493,7 @@ export default function MyActivitiesPage() {
                       const firstItem = itemPrograms.find((i: any) => i.programKerjaId === e.target.value)
                       setForm({ ...form, idProgram: firstItem?.id || '' })
                     }}
-                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
                   >
                     {parentPrograms.map((p: any) => (
                       <option key={p.id} value={p.id}>{p.kode} - {p.namaProgram}</option>
@@ -502,7 +502,7 @@ export default function MyActivitiesPage() {
                   <select
                     value={form.idProgram}
                     onChange={e => setForm({ ...form, idProgram: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer mt-2"
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer mt-2"
                   >
                     {itemPrograms.filter((i: any) => i.programKerjaId === selectedParentId).map((i: any) => (
                       <option key={i.id} value={i.id}>{i.kode} - {i.namaItem}</option>
@@ -560,7 +560,7 @@ export default function MyActivitiesPage() {
                   <select
                     value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
                   >
                     <option value="Open">Open (Belum Dimulai)</option>
                     <option value="On Progress">On Progress (Berjalan)</option>
@@ -595,14 +595,14 @@ export default function MyActivitiesPage() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl neu-btn text-xs font-extrabold text-slate-600 cursor-pointer"
+                    className="px-4 py-2 rounded-lg neu-btn text-xs font-semibold text-slate-600 cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-lg neu-btn-brand font-semibold text-xs cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? 'Menyimpan...' : editItem ? 'Simpan Perubahan' : 'Tambah Tugas'}
                   </button>
@@ -617,12 +617,12 @@ export default function MyActivitiesPage() {
       {showStatusModal && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-sm max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                   <RefreshCw size={16} className="text-brand-700" /> Update Status Tugas
                 </h3>
-                <button onClick={() => setShowStatusModal(false)} className="p-1 rounded-lg neu-btn text-slate-500 cursor-pointer">
+                <button onClick={() => setShowStatusModal(false)} className="p-1 rounded-lg neu-btn text-slate-600 cursor-pointer">
                   <X size={16} />
                 </button>
               </div>
@@ -633,7 +633,7 @@ export default function MyActivitiesPage() {
                   <select
                     value={statusForm.status}
                     onChange={e => setStatusForm({ ...statusForm, status: e.target.value, closedDate: e.target.value === 'Closed' ? statusForm.closedDate || today : '' })}
-                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-extrabold text-slate-900 outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
                   >
                     <option value="Open">Open (Belum Dimulai)</option>
                     <option value="On Progress">On Progress (Berjalan)</option>
@@ -668,14 +668,14 @@ export default function MyActivitiesPage() {
                   <button
                     type="button"
                     onClick={() => setShowStatusModal(false)}
-                    className="px-4 py-2 rounded-xl neu-btn text-xs font-extrabold text-slate-600 cursor-pointer"
+                    className="px-4 py-2 rounded-lg neu-btn text-xs font-semibold text-slate-600 cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 rounded-xl neu-btn-brand font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-lg neu-btn-brand font-semibold text-xs cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? 'Memperbarui...' : 'Perbarui Status'}
                   </button>

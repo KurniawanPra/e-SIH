@@ -77,17 +77,17 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-4 sm:p-5 hover:border-slate-400 transition-all overflow-hidden w-full max-w-full">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 hover:border-slate-300 transition-all overflow-hidden w-full max-w-full">
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200 min-w-0 overflow-hidden">
         {/* Letter A B C + Title */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1 overflow-hidden">
-          <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none shrink-0 pt-0.5">
+          <span className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-none shrink-0 pt-0.5">
             {parent.kode}
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug truncate">{parent.namaProgram}</h4>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">{activeItems.length} Item Sub-Program Kerja</p>
+            <h4 className="font-semibold text-slate-900 text-sm sm:text-base leading-snug truncate">{parent.namaProgram}</h4>
+            <p className="text-xs text-slate-600 font-semibold mt-0.5">{activeItems.length} Item Sub-Program Kerja</p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
                 style={{ width: `${parent.totalProgress}%` }}
               />
             </div>
-            <span className="text-xs sm:text-sm font-black text-slate-900 min-w-[36px] text-right shrink-0">{parent.totalProgress}%</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-900 min-w-[36px] text-right shrink-0">{parent.totalProgress}%</span>
           </div>
 
           <button
@@ -116,7 +116,7 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
 
       {/* Collapsible Sub-items Area */}
       {isExpanded && (
-        <div className="relative pt-4 w-full max-w-full overflow-hidden animate-fade-in-up">
+        <div className="relative pt-4 w-full max-w-full overflow-hidden">
           {/* Scroll Buttons Header if > 3 items */}
           {isScrollable && (
             <div className="flex items-center justify-end mb-2">
@@ -141,13 +141,6 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
 
           {/* Items Container */}
           <div className="relative w-full max-w-full overflow-hidden">
-            {isScrollable && (
-              <div className={`edge-blur-left ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-            )}
-            {isScrollable && (
-              <div className={`edge-blur-right ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
-            )}
-
             <div
               ref={scrollRef}
               onScroll={handleScroll}
@@ -160,13 +153,13 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
               {activeItems.map((item: any) => (
                 <div
                   key={item.id}
-                  className={`p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between hover:bg-white hover:border-slate-800 transition-all shadow-2xs gap-2.5 ${isScrollable ? 'w-[240px] sm:w-[260px] shrink-0' : 'w-full'
+                  className={`p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between hover:bg-white hover:border-slate-300 transition-all shadow-xs gap-2.5 ${isScrollable ? 'w-[240px] sm:w-[260px] shrink-0' : 'w-full'
                     }`}
                 >
                   {/* 1. Nama Item Sub */}
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 block mb-0.5">{item.kode}</span>
-                    <h5 className="font-extrabold text-slate-900 text-xs leading-tight truncate">{item.namaItem}</h5>
+                    <span className="text-xs font-bold text-slate-600 block mb-0.5">{item.kode}</span>
+                    <h5 className="font-semibold text-slate-900 text-xs leading-tight truncate">{item.namaItem}</h5>
                   </div>
 
                   {/* 2. Progress Bar */}
@@ -178,13 +171,13 @@ function ProgramKerjaItemCard({ parent }: { parent: any }) {
                         style={{ width: `${item.progress}%` }}
                       />
                     </div>
-                    <span className="text-[11px] font-black text-slate-900 shrink-0">{item.progress}%</span>
+                    <span className="text-xs font-bold text-slate-900 shrink-0">{item.progress}%</span>
                   </div>
 
                   {/* 3. Status Badge */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                    <span className="text-[10px] text-slate-500 font-semibold">Status Progress</span>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border shrink-0 ${item.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : item.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
+                    <span className="text-xs text-slate-600 font-semibold">Status Progress</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md border shrink-0 ${item.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : item.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'
                       }`}>
                       {item.status}
                     </span>
@@ -474,19 +467,19 @@ export default function DashboardPage() {
     if (active && payload && payload.length) {
       const totalSum = payload.reduce((acc: number, entry: any) => acc + (Number(entry.value) || 0), 0)
       return (
-        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3.5 rounded-xl shadow-2xl text-xs space-y-1.5 border-2 border-slate-700">
-          <p className="font-black text-slate-300 border-b border-slate-700 pb-1 mb-1 text-[11px] uppercase tracking-wider">Bulan {label}</p>
+        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3.5 rounded-xl shadow-lg text-xs space-y-1.5 border border-slate-700">
+          <p className="font-bold text-slate-300 border-b border-slate-700 pb-1 mb-1 text-xs font-semibold">Bulan {label}</p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-5 font-extrabold">
+            <div key={index} className="flex items-center justify-between gap-5 font-semibold">
               <span className="flex items-center gap-1.5" style={{ color: entry.color }}>
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
                 {entry.name}:
               </span>
-              <span className="font-black text-white">{entry.value} Aktivitas</span>
+              <span className="font-bold text-white">{entry.value} Aktivitas</span>
             </div>
           ))}
           {payload.length > 1 && (
-            <div className="pt-1.5 border-t border-slate-700 flex items-center justify-between text-xs font-black text-emerald-400">
+            <div className="pt-1.5 border-t border-slate-700 flex items-center justify-between text-xs font-bold text-emerald-400">
               <span>Total Volume:</span>
               <span>{totalSum} Aktivitas</span>
             </div>
@@ -501,8 +494,8 @@ export default function DashboardPage() {
     if (active && payload && payload.length) {
       return (
         <div className="chart-tooltip-zoom bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-700">
-          <p className="font-extrabold text-slate-300 border-b border-slate-700 pb-1 mb-1">Sampai Bulan {label}</p>
-          <p className="font-extrabold text-emerald-400 text-sm">{payload[0].value} Total Aktivitas Selesai</p>
+          <p className="font-semibold text-slate-300 border-b border-slate-700 pb-1 mb-1">Sampai Bulan {label}</p>
+          <p className="font-semibold text-emerald-400 text-sm">{payload[0].value} Total Aktivitas Selesai</p>
         </div>
       )
     }
@@ -513,12 +506,12 @@ export default function DashboardPage() {
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
-        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3.5 rounded-xl shadow-2xl text-xs border-2 border-slate-700">
+        <div className="chart-tooltip-zoom bg-slate-900 text-white p-3.5 rounded-xl shadow-lg text-xs border border-slate-700">
           <p className="font-bold flex items-center gap-1.5" style={{ color: data.payload.color }}>
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: data.payload.color }} />
             {data.name}
           </p>
-          <p className="font-extrabold text-white text-base mt-1">{data.value} Aktivitas</p>
+          <p className="font-semibold text-white text-base mt-1">{data.value} Aktivitas</p>
         </div>
       )
     }
@@ -530,18 +523,18 @@ export default function DashboardPage() {
   const isUserRole = user?.role === 'USER'
 
   // =========================================================================
-  // VIEW FOR STAFF USER (Role: USER) — Concise, Personal Task Dashboard
+  // VIEW FOR STAFF USER (Role: USER) - Concise, Personal Task Dashboard
   // =========================================================================
   if (isUserRole) {
     return (
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
               <UserCheck className="text-brand-700" size={24} /> Dashboard Staff IT &amp; Sistem Operational
             </h2>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+            <p className="text-xs text-slate-600 font-semibold mt-0.5">
               Selamat datang, <strong className="text-slate-900">{user?.name}</strong> ({user?.jabatan || 'Staff IT'}). Berikut ringkasan tugas aktivitas Anda.
             </p>
           </div>
@@ -549,7 +542,7 @@ export default function DashboardPage() {
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-900 neu-select outline-none cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-900 neu-select outline-none cursor-pointer"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -559,16 +552,16 @@ export default function DashboardPage() {
         {/* 3 Personal KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Card 1: My Total Tasks */}
-          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-            <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Total Laporan Aktivitas Saya</p>
-            <div className="text-4xl font-black text-slate-900">{myStats.total}</div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2" >
+            <p className="text-xs font-semibold text-slate-600">Total Laporan Aktivitas Saya</p>
+            <div className="text-4xl font-bold text-slate-900">{myStats.total}</div>
             <p className="text-xs font-semibold text-slate-600">Ditugaskan pada tahun {selectedYear}</p>
           </div>
 
           {/* Card 2: My Closure Rate */}
-          <div className="bg-brand-50/80 p-5 rounded-2xl border-2 border-brand-200 shadow-sm space-y-2 animate-fade-in-up" style={{ animationDelay: '160ms' }}>
-            <p className="text-xs font-black text-brand-800 uppercase tracking-wider">Realisasi Selesai (Closure Rate)</p>
-            <div className="text-4xl font-black text-brand-700">{myRate}%</div>
+          <div className="bg-brand-50/80 p-5 rounded-2xl border border-brand-200 shadow-sm space-y-2" >
+            <p className="text-xs font-semibold text-brand-800">Realisasi Selesai (Closure Rate)</p>
+            <div className="text-4xl font-bold text-brand-700">{myRate}%</div>
             <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-brand-200">
               <div className="h-full bg-brand-700 rounded-full" style={{ width: `${myRate}%` }} />
             </div>
@@ -578,34 +571,34 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: My Status Breakdown */}
-          <div className="bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm space-y-2.5 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
-            <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Status Tugas Saya</p>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5" >
+            <p className="text-xs font-semibold text-slate-600">Status Tugas Saya</p>
             <div className="space-y-1.5 text-xs font-bold">
               <div className="flex justify-between text-emerald-700">
                 <span className="flex items-center gap-1.5"><CheckCircle2 size={13} /> Selesai (Closed)</span>
-                <span className="font-black">{myStats.closed}</span>
+                <span className="font-bold">{myStats.closed}</span>
               </div>
               <div className="flex justify-between text-amber-600">
                 <span className="flex items-center gap-1.5"><Clock size={13} /> On Progress</span>
-                <span className="font-black">{myStats.progress}</span>
+                <span className="font-bold">{myStats.progress}</span>
               </div>
               <div className="flex justify-between text-red-600">
                 <span className="flex items-center gap-1.5"><Activity size={13} /> Open</span>
-                <span className="font-black">{myStats.open}</span>
+                <span className="font-bold">{myStats.open}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* White Theme Line Chart with Year & Month Dropdowns */}
-        <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-lg p-6 space-y-5 animate-fade-in-up mb-12 sm:mb-16" style={{ animationDelay: '320ms' }}>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5 mb-12 sm:mb-16" >
           {/* Header & Year/Month Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
             <div>
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <LineIcon size={18} className="text-brand-700" /> Realisasi Penyelesaian Aktivitas Saya
               </h3>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              <p className="text-xs text-slate-600 font-semibold mt-0.5">
                 Grafik tren realisasi tugas selesai per {selectedMonth === 'ALL' ? 'Bulan (Jan - Des)' : 'Minggu (Sprint)'}
               </p>
             </div>
@@ -615,7 +608,7 @@ export default function DashboardPage() {
               <select
                 value={selectedYear}
                 onChange={e => setSelectedYear(Number(e.target.value))}
-                className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-slate-900 neu-select outline-none cursor-pointer border border-slate-300"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-900 neu-select outline-none cursor-pointer border border-slate-300"
               >
                 {yearOptions.map(y => (
                   <option key={y} value={y}>Tahun {y}</option>
@@ -625,7 +618,7 @@ export default function DashboardPage() {
               <select
                 value={selectedMonth === 'ALL' ? 'ALL' : selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-                className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-brand-800 bg-brand-50 neu-select outline-none cursor-pointer border border-brand-200"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-brand-800 bg-brand-50 neu-select outline-none cursor-pointer border border-brand-200"
               >
                 <option value="ALL">Semua Bulan (Jan - Des)</option>
                 {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map((m, idx) => (
@@ -639,11 +632,11 @@ export default function DashboardPage() {
             {/* Real Stats Row */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <div className="flex items-center gap-3">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">{chartStats.closed} Task</span>
-                <div className="flex items-center gap-1.5 text-brand-700 bg-brand-50 px-3 py-1 rounded-xl border border-brand-200 text-xs font-extrabold">
+                <span className="text-3xl font-bold text-slate-900 tracking-tight">{chartStats.closed} Task</span>
+                <div className="flex items-center gap-1.5 text-brand-700 bg-brand-50 px-3 py-1 rounded-xl border border-brand-200 text-xs font-semibold">
                   <TrendingUp className="w-4 h-4" />
                   <span>+{chartStats.rate}%</span>
-                  <span className="text-slate-500 font-normal ml-0.5">Closure Rate</span>
+                  <span className="text-slate-600 font-normal ml-0.5">Closure Rate</span>
                 </div>
               </div>
 
@@ -652,10 +645,10 @@ export default function DashboardPage() {
                   <Clock size={13} className="text-amber-600" /> Dalam Proses: <strong className="text-amber-700">{chartStats.progress + chartStats.open} Task</strong>
                 </span>
                 <span>
-                  High: <strong className="text-sky-600 font-black">{chartStats.high} Task</strong>
+                  High: <strong className="text-sky-600 font-bold">{chartStats.high} Task</strong>
                 </span>
                 <span>
-                  Low: <strong className="text-amber-600 font-black">{chartStats.low} Task</strong>
+                  Low: <strong className="text-amber-600 font-bold">{chartStats.low} Task</strong>
                 </span>
               </div>
             </div>
@@ -681,15 +674,7 @@ export default function DashboardPage() {
                     <stop offset="0%" stopColor="#006837" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="#006837" stopOpacity={0} />
                   </linearGradient>
-                  <pattern id="dotGridLight" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="10" cy="10" r="1" fill="#cbd5e1" fillOpacity="0.5" />
-                  </pattern>
-                  <filter id="lineGlowLight" x="-100%" y="-100%" width="300%" height="300%">
-                    <feDropShadow dx="3" dy="5" stdDeviation="6" floodColor="rgba(0, 104, 55, 0.35)" />
-                  </filter>
                 </defs>
-
-                <rect x="0" y="0" width="100%" height="100%" fill="url(#dotGridLight)" style={{ pointerEvents: 'none' }} />
 
                 <CartesianGrid
                   strokeDasharray="4 8"
@@ -731,10 +716,10 @@ export default function DashboardPage() {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload
                       return (
-                        <div className="bg-slate-900 text-white border-2 border-slate-700 rounded-xl p-3 shadow-2xl space-y-1 text-xs font-extrabold z-[1000]">
-                          <div className="text-slate-400 font-bold mb-1">{data.label}</div>
+                        <div className="bg-slate-900 text-white border border-slate-700 rounded-xl p-3 shadow-lg space-y-1 text-xs font-semibold z-[1000]">
+                          <div className="text-slate-600 font-bold mb-1">{data.label}</div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-black text-emerald-400">{data.Selesai} Task Selesai</span>
+                            <span className="text-sm font-bold text-emerald-400">{data.Selesai} Task Selesai</span>
                           </div>
                         </div>
                       )
@@ -748,8 +733,7 @@ export default function DashboardPage() {
                   type="monotone"
                   dataKey="Selesai"
                   stroke="#006837"
-                  strokeWidth={3.5}
-                  filter="url(#lineGlowLight)"
+                  strokeWidth={3}
                   dot={(props: any) => {
                     const { cx, cy, payload } = props
                     const maxTask = Math.max(...myChartData.map((d: any) => d.Selesai))
@@ -785,24 +769,24 @@ export default function DashboardPage() {
   }
 
   // =========================================================================
-  // VIEW FOR ADMIN / KEPALA UNIT ORGANISASI SUB BAGIAN SISTEM & IT (Role: ADMIN) — Comprehensive Executive Dashboard
+  // VIEW FOR ADMIN / KEPALA UNIT ORGANISASI SUB BAGIAN SISTEM & IT (Role: ADMIN) - Comprehensive Executive Dashboard
   // =========================================================================
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 gap-6 items-start w-full max-w-full overflow-hidden">
       {/* LEFT MAIN CONTENT AREA */}
       <div className="lg:col-span-2 2xl:col-span-3 min-w-0 space-y-6 overflow-hidden">
         {/* Header Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border-2 border-slate-300 shadow-sm animate-fade-in-up">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Executive Dashboard Kepala Unit Organisasi Sub Bagian Sistem &amp; IT</h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT Operational</p>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard Kepala Unit Organisasi Sub Bagian Sistem &amp; IT</h2>
+            <p className="text-xs text-slate-600 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT Operational</p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <span className="text-xs font-bold text-slate-700">Tahun:</span>
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-900 neu-select outline-none cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-900 neu-select outline-none cursor-pointer"
             >
               {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -816,7 +800,7 @@ export default function DashboardPage() {
           </h3>
           <div className="grid grid-cols-1 gap-4 w-full min-w-0">
             {parents.filter(p => p.isActive).map((parent, index) => (
-              <div key={parent.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(index * 90, 450)}ms` }}>
+              <div key={parent.id} >
                 <ProgramKerjaItemCard parent={parent} />
               </div>
             ))}
@@ -831,10 +815,10 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Chart 1: Recharts Bar Chart */}
-            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 overflow-hidden" >
               <div className="mb-4">
-                <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Aktivitas per Bulan</h4>
-                <p className="text-[11px] text-slate-500 font-medium">Jumlah aktivitas selesai vs dalam proses per bulan</p>
+                <h4 className="text-sm font-semibold text-slate-900">Aktivitas per Bulan</h4>
+                <p className="text-xs text-slate-600 font-medium">Jumlah aktivitas selesai vs dalam proses per bulan</p>
               </div>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -852,10 +836,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Chart 2: Recharts Area Chart */}
-            <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '240ms' }}>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 overflow-hidden" >
               <div className="mb-4">
-                <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Tren Akumulatif Penyelesaian</h4>
-                <p className="text-[11px] text-slate-500 font-medium">Perkembangan kumulatif aktivitas yang telah closed</p>
+                <h4 className="text-sm font-semibold text-slate-900">Tren Akumulatif Penyelesaian</h4>
+                <p className="text-xs text-slate-600 font-medium">Perkembangan kumulatif aktivitas yang telah closed</p>
               </div>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -878,13 +862,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Chart 3: Doughnut Chart with Program Group Dropdown Filter */}
-          <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 overflow-hidden animate-fade-in-up" style={{ animationDelay: '330ms' }}>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 overflow-hidden" >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200">
               <div>
-                <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                <h4 className="text-sm font-semibold text-slate-900">
                   Komposisi Status Aktivitas Operasional
                 </h4>
-                <p className="text-[11px] text-slate-500 font-medium">Proporsi status aktivitas operasional ({pieStats.total} total)</p>
+                <p className="text-xs text-slate-600 font-medium">Proporsi status aktivitas operasional ({pieStats.total} total)</p>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
@@ -892,7 +876,7 @@ export default function DashboardPage() {
                 <select
                   value={selectedPieProgram}
                   onChange={(e) => setSelectedPieProgram(e.target.value)}
-                  className="neu-btn text-xs font-extrabold text-slate-800 bg-slate-50 border-2 border-slate-300 px-3 py-1.5 rounded-xl hover:border-slate-800 transition-all cursor-pointer outline-none"
+                  className="neu-btn text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-lg hover:border-slate-300 transition-all cursor-pointer outline-none"
                 >
                   <option value="ALL">Semua Bagian</option>
                   <option value="SISTEM">Sistem</option>
@@ -905,8 +889,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center py-2">
               <div className="h-56 relative flex items-center justify-center">
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                  <span className="text-3xl font-black text-slate-900 leading-none">{pieStats.rate}%</span>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">Closure Rate</span>
+                  <span className="text-3xl font-bold text-slate-900 leading-none">{pieStats.rate}%</span>
+                  <span className="text-xs font-semibold text-slate-600 mt-1">Closure Rate</span>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%" className="relative z-10">
@@ -935,15 +919,15 @@ export default function DashboardPage() {
                 {pieData.map((item) => {
                   const itemPercent = pieStats.total > 0 ? Math.round((item.value / pieStats.total) * 100) : 0
                   return (
-                    <div key={item.name} className="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
+                    <div key={item.name} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                         <div>
-                          <p className="text-xs font-extrabold text-slate-900">{item.name}</p>
-                          <p className="text-[11px] text-slate-500 font-medium">{item.value} dari {pieStats.total} Laporan</p>
+                          <p className="text-xs font-semibold text-slate-900">{item.name}</p>
+                          <p className="text-xs text-slate-600 font-medium">{item.value} dari {pieStats.total} Laporan</p>
                         </div>
                       </div>
-                      <span className="text-sm font-black text-slate-900">{itemPercent}%</span>
+                      <span className="text-sm font-bold text-slate-900">{itemPercent}%</span>
                     </div>
                   )
                 })}
@@ -953,12 +937,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Employee Workload Section - List Format */}
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 mb-12 sm:mb-16 space-y-4 animate-fade-in-up">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-12 sm:mb-16 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
               <Users size={16} className="text-slate-800" /> Kinerja Penanggung Jawab Aktivitas (PIC) Sub Bagian Sistem &amp; IT ({selectedYear})
             </h3>
-            <span className="text-xs font-extrabold text-slate-500">{employeeProgress.length} Personel SDM</span>
+            <span className="text-xs font-semibold text-slate-600">{employeeProgress.length} Personel SDM</span>
           </div>
 
           <div className="space-y-3">
@@ -969,16 +953,16 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                       {emp.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-tight truncate">{emp.name}</h5>
-                      <p className="text-[11px] text-slate-500 font-semibold truncate">{emp.total} Total Laporan</p>
+                      <h5 className="font-semibold text-slate-900 text-xs sm:text-sm leading-tight truncate">{emp.name}</h5>
+                      <p className="text-xs text-slate-600 font-semibold truncate">{emp.total} Total Laporan</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[11px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-300">
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-300">
                       {emp.percentage}% Closed
                     </span>
                   </div>
@@ -1005,7 +989,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* 3 Parameter Indicator (Simple 1 Baris) */}
-                  <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] pt-0.5 font-extrabold gap-x-2 gap-y-1">
+                  <div className="flex flex-wrap items-center justify-between text-xs sm:text-xs pt-0.5 font-semibold gap-x-2 gap-y-1">
                     <span className="text-emerald-700 flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" /> Selesai (Closed): <strong className="text-slate-900">{emp.closed} / {emp.total} ({emp.percentage}%)</strong>
                     </span>
@@ -1026,17 +1010,17 @@ export default function DashboardPage() {
       {/* RIGHT SIDEBAR (Perfectly level with Executive Dashboard card, mt-0) */}
       <div className="lg:col-span-1 2xl:col-span-1 min-w-0 space-y-4 mt-0">
         {/* Card 1: Overall Program Kerja, Target Kuartal & Lead Time SLA */}
-        <div className="bg-white rounded-2xl border-2 border-brand-700 shadow-md p-5 space-y-5 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+        <div className="bg-white rounded-2xl border border-brand-700 shadow-sm p-5 space-y-5" >
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <h3 className="font-extrabold text-slate-900 text-base leading-tight">
+            <h3 className="font-semibold text-slate-900 text-base leading-tight">
               Overall Program Kerja ({selectedYear})
             </h3>
           </div>
 
           {/* Closure Rate Card */}
-          <div className="bg-brand-50/70 rounded-xl p-4 border-2 border-brand-200 text-center space-y-1">
-            <p className="text-[11px] font-extrabold uppercase tracking-wider text-brand-800">Total Closure Rate</p>
-            <div className="text-4xl font-black text-brand-700 tracking-tight py-1">{rate}%</div>
+          <div className="bg-brand-50/70 rounded-xl p-4 border border-brand-200 text-center space-y-1">
+            <p className="text-xs font-semibold text-brand-800">Total Closure Rate</p>
+            <div className="text-4xl font-bold text-brand-700 tracking-tight py-1">{rate}%</div>
             <p className="text-xs font-bold text-slate-700">
               <strong className="text-brand-800">{stats.closed}</strong> dari <strong className="text-brand-800">{stats.total}</strong> Aktivitas Selesai
             </p>
@@ -1046,39 +1030,39 @@ export default function DashboardPage() {
           </div>
 
           {/* Metric 1: Program Kerja */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div>
-              <p className="text-xs font-extrabold text-slate-900">Program Kerja</p>
-              <p className="text-[11px] text-slate-500 font-medium">Kelompok Induk</p>
+              <p className="text-xs font-semibold text-slate-900">Program Kerja</p>
+              <p className="text-xs text-slate-600 font-medium">Kelompok Induk</p>
             </div>
-            <span className="text-2xl font-black text-slate-900">{kpi?.totalParents || 0}</span>
+            <span className="text-2xl font-bold text-slate-900">{kpi?.totalParents || 0}</span>
           </div>
 
           {/* Metric 2: Item Program */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div>
-              <p className="text-xs font-extrabold text-slate-900">Item Program</p>
-              <p className="text-[11px] text-slate-500 font-medium">Sub-Program Kerja</p>
+              <p className="text-xs font-semibold text-slate-900">Item Program</p>
+              <p className="text-xs text-slate-600 font-medium">Sub-Program Kerja</p>
             </div>
-            <span className="text-2xl font-black text-slate-900">{kpi?.totalPrograms || 0}</span>
+            <span className="text-2xl font-bold text-slate-900">{kpi?.totalPrograms || 0}</span>
           </div>
 
           {/* Metric 3: Aktivitas */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-slate-900">Aktivitas ({selectedYear})</p>
-              <p className="text-[11px] text-slate-500 font-medium">Total Laporan Aktivitas</p>
+              <p className="text-xs text-slate-600 font-medium">Total Laporan Aktivitas</p>
             </div>
-            <span className="text-2xl font-black text-slate-900">{stats.total}</span>
+            <span className="text-2xl font-bold text-slate-900">{stats.total}</span>
           </div>
 
           {/* Executive Chart 1: Pencapaian Volume Aktivitas per Program */}
           <div className="pt-4 border-t border-slate-200 space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-extrabold text-slate-900 leading-tight">
+              <p className="text-xs font-semibold text-slate-900 leading-tight">
                 Realisasi Task per Kelompok Program
               </p>
-              <span className="text-[10px] font-bold text-slate-400 shrink-0">A, B, C</span>
+              <span className="text-xs font-bold text-slate-600 shrink-0">A, B, C</span>
             </div>
             <ChartContainer
               config={{
@@ -1101,10 +1085,10 @@ export default function DashboardPage() {
           {/* Executive Chart 2: Monitoring Status Kendala & Operasional */}
           <div className="pt-4 border-t border-slate-200 space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-extrabold text-slate-900 leading-tight">
+              <p className="text-xs font-semibold text-slate-900 leading-tight">
                 Status Penanganan &amp; Kendala
               </p>
-              <span className="text-[10px] font-bold text-slate-400 shrink-0">Operasional</span>
+              <span className="text-xs font-bold text-slate-600 shrink-0">Operasional</span>
             </div>
             <ChartContainer
               config={{
@@ -1124,35 +1108,35 @@ export default function DashboardPage() {
 
           {/* Status Breakdown */}
           <div className="pt-3 border-t border-slate-200 space-y-2.5">
-            <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Status Aktivitas Operasional</p>
+            <p className="text-xs font-semibold text-slate-600">Status Aktivitas Operasional</p>
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="flex items-center gap-2 text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-700" /> Selesai (Closed)
               </span>
-              <span className="font-extrabold text-brand-700">{stats.closed}</span>
+              <span className="font-semibold text-brand-700">{stats.closed}</span>
             </div>
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="flex items-center gap-2 text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> On Progress
               </span>
-              <span className="font-extrabold text-amber-600">{stats.progress}</span>
+              <span className="font-semibold text-amber-600">{stats.progress}</span>
             </div>
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="flex items-center gap-2 text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Open
               </span>
-              <span className="font-extrabold text-red-600">{stats.open}</span>
+              <span className="font-semibold text-red-600">{stats.open}</span>
             </div>
           </div>
         </div>
 
         {/* Card 2: Peringkat Top Performers */}
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
-            <h4 className="font-extrabold text-slate-900 text-sm leading-tight">
+            <h4 className="font-semibold text-slate-900 text-sm leading-tight">
               Top Performer PIC
             </h4>
-            <span className="text-[10px] font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200 shrink-0">
+            <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200 shrink-0">
               High Realization
             </span>
           </div>
@@ -1161,16 +1145,16 @@ export default function DashboardPage() {
             {topPics.map((pic, idx) => (
               <div key={pic.name} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-900' : idx === 1 ? 'bg-slate-300 text-slate-900' : 'bg-amber-700 text-white'
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-900' : idx === 1 ? 'bg-slate-300 text-slate-900' : 'bg-amber-700 text-white'
                     }`}>
                     #{idx + 1}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-extrabold text-xs text-slate-900 truncate">{pic.name}</p>
-                    <p className="text-[10px] text-slate-500">{pic.closed} Aktivitas Selesai</p>
+                    <p className="font-semibold text-xs text-slate-900 truncate">{pic.name}</p>
+                    <p className="text-xs text-slate-600">{pic.closed} Aktivitas Selesai</p>
                   </div>
                 </div>
-                <span className="text-xs font-black text-brand-700 shrink-0">{pic.percentage}%</span>
+                <span className="text-xs font-bold text-brand-700 shrink-0">{pic.percentage}%</span>
               </div>
             ))}
           </div>
@@ -1180,17 +1164,17 @@ export default function DashboardPage() {
             <span className="flex items-center gap-1.5 text-slate-600 font-bold">
               <ShieldCheck size={14} className="text-emerald-600" /> Kepatuhan Target SLA
             </span>
-            <span className="font-black text-emerald-700">{slaRate}%</span>
+            <span className="font-bold text-emerald-700">{slaRate}%</span>
           </div>
         </div>
 
         {/* CARD 3: Prioritas Utama & Highlight Penanganan Operasional */}
-        <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-3 border-b border-slate-200">
-            <h4 className="font-extrabold text-slate-900 text-sm leading-tight">
+            <h4 className="font-semibold text-slate-900 text-sm leading-tight">
               Prioritas &amp; Highlight Penanganan
             </h4>
-            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 self-start sm:self-auto shrink-0">
+            <span className="text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 self-start sm:self-auto shrink-0">
               Needs Follow-Up
             </span>
           </div>
@@ -1200,8 +1184,8 @@ export default function DashboardPage() {
               priorityTasks.map((task: any) => (
                 <div key={task.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border shrink-0 ${task.status === 'Open'
+                    <span className="text-xs font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md border shrink-0 ${task.status === 'Open'
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         : task.status === 'On Progress'
                           ? 'bg-amber-100 text-amber-800 border-amber-300'
@@ -1210,15 +1194,15 @@ export default function DashboardPage() {
                       {task.status}
                     </span>
                   </div>
-                  <p className="font-extrabold text-slate-900 text-xs leading-snug line-clamp-2">{task.kegiatan}</p>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-200">
+                  <p className="font-semibold text-slate-900 text-xs leading-snug line-clamp-2">{task.kegiatan}</p>
+                  <div className="flex items-center justify-between text-xs text-slate-600 font-semibold pt-1 border-t border-slate-200">
                     <span className="truncate">PIC: <strong>{task.picNama}</strong></span>
                     <span className="shrink-0 font-bold text-slate-700">{task.startDate}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-500 font-medium text-center py-4">Seluruh aktivitas berjalan sesuai target SLA.</p>
+              <p className="text-xs text-slate-600 font-medium text-center py-4">Seluruh aktivitas berjalan sesuai target SLA.</p>
             )}
           </div>
         </div>

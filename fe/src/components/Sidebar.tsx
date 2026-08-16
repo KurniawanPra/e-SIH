@@ -15,7 +15,8 @@ import {
   LogOut,
   AlertTriangle,
   ListFilter,
-  ShieldCheck
+  ShieldCheck,
+  CalendarClock
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 import ModalPortal from '@/components/ModalPortal'
@@ -40,7 +41,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: programKerjaLabel, path: '/dashboard/master/programs', icon: FolderKanban },
     { name: activitiesLabel, path: '/dashboard/weekly', icon: ListChecks },
-    { name: proyekLabel, path: '/dashboard/monthly', icon: FolderKanban },
+    { name: proyekLabel, path: '/dashboard/monthly', icon: CalendarClock },
   ]
 
   return (
@@ -59,14 +60,14 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {/* Logo Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-300">
           <Link href="/dashboard" className="flex items-center gap-3 no-underline">
-            <img src="/esih-logo.png" alt="e-SIH Logo" className="w-9 h-9 rounded-xl object-cover shadow-2xs neu-inset p-0.5" />
+            <img src="/esih-logo.png" alt="e-SIH Logo" className="w-9 h-9 rounded-xl object-cover shadow-xs neu-inset p-0.5" />
             <div className="leading-tight">
-              <span className="font-black text-slate-900 text-sm block">e-SIH</span>
-              <span className="text-[11px] text-slate-500 font-bold tracking-wide">INL Operation</span>
+              <span className="font-bold text-slate-900 text-sm block">e-SIH</span>
+              <span className="text-xs text-slate-600 font-bold tracking-wide">INL Operation</span>
             </div>
           </Link>
           {/* Close button on mobile only */}
-          <button onClick={onToggle} className="lg:hidden p-2 rounded-xl neu-btn text-slate-600 cursor-pointer" aria-label="Tutup Sidebar">
+          <button onClick={onToggle} className="lg:hidden p-2 rounded-lg neu-btn text-slate-600 cursor-pointer" aria-label="Tutup Sidebar">
             <X size={18} />
           </button>
         </div>
@@ -74,7 +75,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         {/* Navigation Area */}
         <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin">
           <div>
-            <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Menu Utama</p>
+            <p className="text-xs font-semibold text-slate-600 px-3 mb-2.5">Menu Utama</p>
             <ul className="space-y-2">
               {navItems.map(item => {
                 const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
@@ -87,12 +88,12 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                       href={item.path}
                       onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                       className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${active
-                          ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
+                          ? 'neu-active-green font-semibold text-white'
                           : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
                         }`}
                     >
                       <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-white' : 'text-slate-600'} />
-                      <span className={active ? 'text-white font-black' : 'text-slate-700 font-bold'}>{item.name}</span>
+                      <span className={active ? 'text-white font-bold' : 'text-slate-700 font-bold'}>{item.name}</span>
                     </Link>
                   </li>
                 )
@@ -102,7 +103,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
           {/* Master Data Section (Admin & System Config) */}
           <div>
-            <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest px-3 mb-2.5">Master Data</p>
+            <p className="text-xs font-semibold text-slate-600 px-3 mb-2.5">Master Data</p>
             {(() => {
               const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
               const isMasterActive = normalizedPath.includes('/master') && !normalizedPath.includes('/master/programs')
@@ -111,13 +112,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                   <button
                     onClick={() => setMasterOpen(!masterOpen)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isMasterActive
-                        ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/40'
+                        ? 'neu-active-green font-semibold text-white'
                         : 'neu-btn text-slate-700 hover:text-slate-900'
                       }`}
                   >
                     <span className="flex items-center gap-3">
                       <FolderKanban size={18} strokeWidth={isMasterActive ? 2.5 : 1.8} className={isMasterActive ? 'text-white' : 'text-slate-600'} />
-                      <span className={isMasterActive ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Data</span>
+                      <span className={isMasterActive ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Kelola Data</span>
                     </span>
                     {masterOpen ? <ChevronDown size={14} className={isMasterActive ? 'text-white' : ''} /> : <ChevronRight size={14} className={isMasterActive ? 'text-white' : ''} />}
                   </button>
@@ -129,13 +130,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                           href="/dashboard/master/program-kerja"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                           className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/program-kerja')
-                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              ? 'neu-active-green font-semibold text-white'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                             }`}
                         >
                           <span className="flex items-center gap-2">
                             <FolderKanban size={15} className={normalizedPath.includes('/master/program-kerja') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/program-kerja') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Program Kerja</span>
+                            <span className={normalizedPath.includes('/master/program-kerja') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Program Kerja</span>
                           </span>
                         </Link>
                       </li>
@@ -144,13 +145,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                           href="/dashboard/master/users"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                           className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/users')
-                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              ? 'neu-active-green font-semibold text-white'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                             }`}
                         >
                           <span className="flex items-center gap-2">
                             <Users size={15} className={normalizedPath.includes('/master/users') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/users') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Kelola Users</span>
+                            <span className={normalizedPath.includes('/master/users') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Kelola Users</span>
                           </span>
                         </Link>
                       </li>
@@ -159,13 +160,13 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                           href="/dashboard/master/roles"
                           onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
                           className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/roles')
-                              ? 'neu-active-green font-black text-white border-2 border-emerald-300 shadow-sm'
+                              ? 'neu-active-green font-semibold text-white'
                               : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
                             }`}
                         >
                           <span className="flex items-center gap-2">
                             <ShieldCheck size={15} className={normalizedPath.includes('/master/roles') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/roles') ? 'text-white font-black' : 'text-slate-700 font-bold'}>Hak Akses</span>
+                            <span className={normalizedPath.includes('/master/roles') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Hak Akses</span>
                           </span>
                         </Link>
                       </li>
@@ -181,10 +182,10 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         <div className="p-3.5 border-t border-slate-300 neu-inset space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="min-w-0 pr-2">
-              <p className="text-xs font-black text-slate-900 truncate">{user?.name || 'Kurniawan Pralambang'}</p>
-              <p className="text-[11px] text-slate-500 font-semibold truncate">{user?.employee?.jabatan || 'Kepala Unit Organisasi Sub Bagian Sistem & IT'}</p>
+              <p className="text-xs font-bold text-slate-900 truncate">{user?.name || 'Pengguna'}</p>
+              <p className="text-xs text-slate-600 font-semibold truncate">{user?.employee?.jabatan || 'Staff'}</p>
             </div>
-            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border shrink-0 ${isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-md border shrink-0 ${isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
               }`}>
               {isAdmin ? 'ADMIN' : 'USER'}
             </span>
@@ -192,7 +193,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
 
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-extrabold text-xs transition-colors cursor-pointer shadow-2xs neu-btn"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold text-xs transition-colors cursor-pointer shadow-xs neu-btn"
             title="Hapus sesi & logout"
           >
             <LogOut size={15} />
@@ -205,12 +206,12 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
       {showLogoutModal && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
-            <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
               <div className="p-5 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto neu-btn">
                   <AlertTriangle size={24} />
                 </div>
-                <h3 className="font-black text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
+                <h3 className="font-bold text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
                 <p className="text-xs text-slate-600 font-medium">
                   Apakah Anda yakin ingin mengakhiri sesi login saat ini dan keluar dari aplikasi <strong className="text-slate-900">e-SIH Operation</strong>?
                 </p>
@@ -218,7 +219,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
               <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
                   onClick={() => setShowLogoutModal(false)}
-                  className="px-4 py-2 rounded-xl neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  className="px-4 py-2 rounded-lg neu-btn font-bold text-xs text-slate-700 cursor-pointer"
                 >
                   Batal
                 </button>
@@ -230,7 +231,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
                     } catch { }
                     window.location.href = '/'
                   }}
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
                 >
                   Ya, Keluar Sesi
                 </button>

@@ -68,7 +68,7 @@ function CallbackContent() {
               <AlertCircle size={32} />
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-1">Autentikasi Gagal</h3>
-            <p className="text-xs text-slate-500 mb-6">{error}</p>
+            <p className="text-xs text-slate-600 mb-6">{error}</p>
             <button
               type="button"
               className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
@@ -81,7 +81,7 @@ function CallbackContent() {
           <>
             <div className="spinner mx-auto mb-4" />
             <h3 className="text-lg font-bold text-slate-900 mb-1">Menyiapkan Sesi</h3>
-            <p className="text-xs text-slate-500">Memverifikasi identitas Anda dengan Portal SSO...</p>
+            <p className="text-xs text-slate-600">Memverifikasi identitas Anda dengan Portal SSO...</p>
           </>
         )}
       </div>

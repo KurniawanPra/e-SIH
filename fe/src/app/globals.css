@@ -144,39 +144,7 @@ body {
   }
 }
 
-/* ===== Page & Element Entrance Animations ===== */
-
-/* Page transition on route change (opacity-only to prevent CSS fixed stacking context trap for modals) */
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-page-enter {
-  animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Staggered fade-in-up (cards, list items) */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* ===== Interaction Animations ===== */
 
 /* Modal overlay fade (backdrop) */
 @keyframes overlayFade {
@@ -196,21 +164,6 @@ body {
 /* Modal panel zoom-in (used by all modals via animate-zoom-in) */
 .animate-zoom-in {
   animation: zoomIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Sidebar slide-in on mobile open */
-@keyframes sidebarIn {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-.animate-sidebar-in {
-  animation: sidebarIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Dropdown / submenu expansion */
@@ -233,55 +186,14 @@ body {
 /* Respect users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
 
-  .animate-page-enter,
-  .animate-fade-in-up,
   .animate-overlay-fade,
   .animate-zoom-in,
-  .animate-sidebar-in,
   .animate-dropdown-in,
-  .animate-marquee,
   .modal-backdrop,
   .modal-content,
   .chart-tooltip-zoom {
     animation: none !important;
   }
-}
-
-/* Realistic Progressive Edge Blur with Smooth Transition */
-.edge-blur-left {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3.5rem;
-  background: linear-gradient(to right, rgba(0, 104, 55, 0.28) 0%, rgba(0, 104, 55, 0.1) 50%, transparent 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
-  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
-  pointer-events: none;
-  z-index: 10;
-  border-top-left-radius: 0.75rem;
-  border-bottom-left-radius: 0.75rem;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.edge-blur-right {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 3.5rem;
-  background: linear-gradient(to left, rgba(0, 104, 55, 0.28) 0%, rgba(0, 104, 55, 0.1) 50%, transparent 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
-  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
-  pointer-events: none;
-  z-index: 10;
-  border-top-right-radius: 0.75rem;
-  border-bottom-right-radius: 0.75rem;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Tooltip zoom animation */
@@ -301,141 +213,101 @@ body {
   }
 }
 
-/* Neumorphism Design System */
+/* Enterprise Flat Design System */
 .neu-header {
-  background: #f1f5f9;
-  box-shadow: 0 4px 12px rgba(203, 213, 225, 0.6), inset 0 -2px 4px rgba(255, 255, 255, 0.8);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   border-bottom: 1px solid #e2e8f0;
 }
 
 .neu-sidebar {
-  background: #f1f5f9;
-  box-shadow: 6px 0 16px rgba(203, 213, 225, 0.7);
+  background: #ffffff;
   border-right: 1px solid #e2e8f0;
 }
 
 .neu-btn {
-  background: #f1f5f9;
-  box-shadow: 4px 4px 8px #cbd5e1, -4px -4px 8px #ffffff;
-  transition: all 0.2s ease-in-out;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .neu-btn:hover {
-  box-shadow: 2px 2px 5px #cbd5e1, -2px -2px 5px #ffffff;
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .neu-btn:active {
-  box-shadow: inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff;
+  background: #f1f5f9;
 }
 
 .neu-inset {
-  background: #f1f5f9;
-  box-shadow: inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff;
+  background: #f8fafc;
+  box-shadow: none;
 }
 
 .neu-input {
-  background: #f8fafc;
-  box-shadow: inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
-  transition: all 0.2s ease-in-out;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .neu-input:focus {
-  box-shadow: inset 2px 2px 4px #cbd5e1, inset -2px -2px 4px #ffffff, 0 0 0 2px rgba(0, 104, 55, 0.2);
   border-color: #006837;
+  box-shadow: 0 0 0 2px rgba(0, 104, 55, 0.2);
 }
 
 .neu-select {
-  background: #f8fafc;
-  box-shadow: 3px 3px 7px #cbd5e1, -3px -3px 7px #ffffff;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
-  transition: all 0.2s ease-in-out;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .neu-select:focus {
-  box-shadow: inset 2px 2px 4px #cbd5e1, inset -2px -2px 4px #ffffff, 0 0 0 2px rgba(0, 104, 55, 0.2);
   border-color: #006837;
+  box-shadow: 0 0 0 2px rgba(0, 104, 55, 0.2);
 }
 
 .neu-active-green {
-  background: linear-gradient(145deg, #00743e, #00562e);
+  background: #006837;
   color: #ffffff;
-  border: 2.5px solid #4ade80 !important;
-  box-shadow: 4px 4px 10px rgba(0, 104, 55, 0.35), inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.4);
+  border: 1px solid #006837;
+  box-shadow: none;
 }
 
 .neu-sidebar-active {
   background: #f0fdf4 !important;
   color: #006837 !important;
-  border: 2.5px solid #006837 !important;
-  box-shadow: 0 4px 12px rgba(0, 104, 55, 0.22), inset 0 1px 2px #ffffff !important;
+  border-left: 3px solid #006837 !important;
+  box-shadow: none !important;
 }
 
-.neu-[badge] {
-  background: #f1f5f9;
-  box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
-}
-
-/* Outlined Neumorphic Action Buttons with Smooth Hover Fill Animations */
 .neu-btn-brand {
-  background: #f8fafc !important;
-  color: #006837 !important;
-  border: 2px solid #006837 !important;
-  box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #006837 !important;
+  color: #ffffff !important;
+  border: 1px solid #006837 !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
 }
 
 .neu-btn-brand:hover {
-  background: #006837 !important;
+  background: #065f46 !important;
   color: #ffffff !important;
-  transform: translateY(-2px);
-  box-shadow: 4px 6px 14px rgba(0, 104, 55, 0.35);
-}
-
-.neu-btn-brand:active {
-  transform: translateY(0);
-  box-shadow: 2px 2px 5px rgba(0, 104, 55, 0.25);
+  border-color: #065f46 !important;
 }
 
 .neu-btn-emerald {
-  background: #f8fafc !important;
-  color: #047857 !important;
-  border: 2px solid #047857 !important;
-  box-shadow: 3px 3px 6px #cbd5e1, -3px -3px 6px #ffffff;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #047857 !important;
+  color: #ffffff !important;
+  border: 1px solid #047857 !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
 }
 
 .neu-btn-emerald:hover {
-  background: #047857 !important;
+  background: #065f46 !important;
   color: #ffffff !important;
-  transform: translateY(-2px);
-  box-shadow: 4px 6px 14px rgba(4, 120, 87, 0.35);
-}
-
-.neu-btn-emerald:active {
-  transform: translateY(0);
-  box-shadow: 2px 2px 5px rgba(4, 120, 87, 0.25);
-}
-
-/* Continuous Running Marquee Animation */
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-marquee {
-  display: inline-flex;
-  white-space: nowrap;
-  animation: marquee 60s linear infinite;
-}
-
-.animate-marquee:hover {
-  animation-play-state: paused;
+  border-color: #065f46 !important;
 }
 
 /* Spinner */
