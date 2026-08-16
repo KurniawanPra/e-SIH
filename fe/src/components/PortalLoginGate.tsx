@@ -1,14 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Image from 'next/image'
+import { useState } from 'react'
 import { openPortal } from '@/lib/api'
-import { LogIn, AlertTriangle, Info, Lock } from 'lucide-react'
+import { LogIn, AlertTriangle, Info, Lock, ShieldCheck } from 'lucide-react'
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'e-SIH'
 const appDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()
-  || 'System Highlight Report & Activity Tracking - PT Industri Nabati Lestari'
-const appLogoUrl = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '/esih-logo.png'
+  || 'Operational IT Report & Activity Tracking — PT Industri Nabati Lestari'
 const portalName = process.env.NEXT_PUBLIC_PORTAL_NAME?.trim() || 'InTes / Portal SSO'
 const portalAccountName = process.env.NEXT_PUBLIC_PORTAL_ACCOUNT_NAME?.trim() || 'Portal INL'
 
@@ -27,19 +25,8 @@ const accessSteps = [
   },
 ]
 
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join('')
-}
-
 export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
-  const [logoFailed, setLogoFailed] = useState(false)
   const [configError, setConfigError] = useState('')
-  const initials = useMemo(() => getInitials(appName), [])
 
   async function handleLogin() {
     try {
@@ -50,77 +37,86 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center p-4 bg-slate-50">
-      <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="px-6 pt-6 pb-3 flex items-center justify-between border-b border-slate-100">
-          <div>
-            <span className="font-semibold text-lg text-brand-700 flex items-center gap-2">
+    <div className="min-h-dvh flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
+      {/* Background Decorative Radial */}
+      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-emerald-100/40 blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden relative z-10">
+        {/* Top Accent Header */}
+        <div className="px-6 pt-5 pb-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-white border border-emerald-200/80 p-0.5 shadow-2xs flex items-center justify-center shrink-0">
               <img
                 src="/esih-logo.png"
-                alt="Logo e-SIH"
-                className="w-7 h-7 rounded-lg object-cover border border-emerald-200"
+                alt="e-SIH Logo"
+                className="w-full h-full object-contain"
               />
-              {appName}
-            </span>
-            <p className="text-xs text-slate-600 mt-1">Masuk menggunakan akun SSO perusahaan</p>
+            </div>
+            <div>
+              <span className="font-extrabold text-slate-900 text-sm block leading-tight">
+                {appName}
+              </span>
+              <span className="text-[10px] text-slate-500 font-semibold block leading-tight">
+                PT Industri Nabati Lestari
+              </span>
+            </div>
           </div>
+
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold shadow-2xs">
+            <ShieldCheck size={13} className="text-emerald-600" />
+            SSO Terintegrasi
+          </span>
         </div>
 
-        {/* Body */}
-        <div className="p-6">
+        {/* Card Body */}
+        <div className="p-6 sm:p-8">
+          {/* Main Logo & Title Hero */}
           <div className="text-center mb-6">
-            <div className="inline-flex p-3 rounded-2xl bg-slate-50 border border-slate-100 mb-3">
-              {logoFailed ? (
-                <div className="w-16 h-16 rounded-xl bg-brand-700 text-white font-bold text-xl flex items-center justify-center">
-                  {initials}
-                </div>
-              ) : (
-                <Image
-                  src={appLogoUrl}
-                  alt={`Logo ${appName}`}
-                  width={64}
-                  height={64}
-                  priority
-                  unoptimized
-                  onError={() => setLogoFailed(true)}
-                />
-              )}
+            <div className="inline-flex p-3 rounded-3xl bg-emerald-50/70 border border-emerald-200/80 shadow-sm mb-4">
+              <img
+                src="/esih-logo.png"
+                alt={`Logo ${appName}`}
+                className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-2xl drop-shadow-sm"
+              />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-1">{appName}</h2>
-            <p className="text-xs text-slate-600 max-w-xs mx-auto">{appDescription}</p>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-1">{appName}</h2>
+            <p className="text-xs font-semibold text-slate-600 max-w-sm mx-auto leading-relaxed">
+              {appDescription}
+            </p>
           </div>
 
           {(configError || notice) && (
-            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 text-red-700 text-xs font-medium mb-5 border border-red-200">
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-red-50 text-red-700 text-xs font-medium mb-5 border border-red-200">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <div>{configError || notice}</div>
             </div>
           )}
 
+          {/* Login Button */}
           <button
             type="button"
             onClick={handleLogin}
-            className="w-full py-3.5 px-4 rounded-xl bg-brand-700 text-white font-bold text-sm hover:bg-brand-800 transition-colors shadow-md shadow-brand-700/20 flex items-center justify-center gap-2 mb-6 cursor-pointer"
+            className="w-full py-3.5 px-4 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm transition-all shadow-md shadow-emerald-700/25 hover:shadow-lg hover:shadow-emerald-700/30 flex items-center justify-center gap-2 mb-6 cursor-pointer"
           >
             <LogIn size={18} />
             Masuk via {portalAccountName}
           </button>
 
-          {/* Access steps */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-            <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Info size={14} className="text-brand-700" /> Alur Masuk SSO
+          {/* SSO Process Stepper */}
+          <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Info size={14} className="text-emerald-700" /> Alur Masuk SSO
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {accessSteps.map((step, index) => (
-                <div className="flex items-start gap-2" key={step.title}>
-                  <span className="w-5 h-5 rounded-full bg-brand-700 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs" key={step.title}>
+                  <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {index + 1}
                   </span>
                   <div>
-                    <strong className="block text-xs text-slate-800 leading-tight">{step.title}</strong>
-                    <span className="text-xs text-slate-600 leading-tight block mt-0.5">{step.description}</span>
+                    <strong className="block text-[11px] font-bold text-slate-900 leading-tight">{step.title}</strong>
+                    <span className="text-[10px] text-slate-500 font-medium leading-tight block mt-0.5">{step.description}</span>
                   </div>
                 </div>
               ))}
@@ -129,8 +125,8 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center text-xs text-slate-600 flex items-center justify-center gap-1">
-          <Lock size={12} /> Keamanan terjamin oleh {portalName}
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 text-center text-xs font-medium text-slate-500 flex items-center justify-center gap-1.5">
+          <Lock size={12} className="text-slate-400" /> Keamanan sesi terenkripsi &amp; terjamin oleh {portalName}
         </div>
       </div>
     </div>

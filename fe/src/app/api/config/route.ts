@@ -73,7 +73,7 @@ export async function GET() {
     backendDriver,
     appName: getEnv('NEXT_PUBLIC_APP_NAME', 'Aplikasi e-SIH'),
     appDescription: getEnv('NEXT_PUBLIC_APP_DESCRIPTION', 'Aplikasi mengelola project management.'),
-    appLogoUrl: getEnv('NEXT_PUBLIC_APP_LOGO_URL', '/app-logo.svg'),
+    appLogoUrl: getEnv('NEXT_PUBLIC_APP_LOGO_URL', '/esih-logo.png'),
     portalName: getEnv('NEXT_PUBLIC_PORTAL_NAME', 'InTes / Portal SSO'),
     portalAccountName: getEnv('NEXT_PUBLIC_PORTAL_ACCOUNT_NAME', 'Portal INL'),
   })

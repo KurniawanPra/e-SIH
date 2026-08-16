@@ -85,8 +85,15 @@ function CallbackContent() {
           </>
         ) : (
           <>
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200/80 p-2 mx-auto mb-4 flex items-center justify-center shadow-xs">
+              <img
+                src="/esih-logo.png"
+                alt="e-SIH Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="spinner mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Menyiapkan Sesi</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Menyiapkan Sesi e-SIH</h3>
             <p className="text-xs text-slate-600">Memverifikasi identitas Anda dengan Portal SSO...</p>
           </>
         )}

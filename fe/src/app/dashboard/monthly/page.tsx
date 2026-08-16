@@ -28,6 +28,7 @@ import {
 import ModalPortal from '@/components/ModalPortal'
 import { useYear } from '@/context/YearContext'
 import { exportSubItemToExcel } from '@/lib/excelExport'
+import { isSamePerson } from '@/lib/utils'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -132,6 +133,28 @@ export default function MonthlyActivitiesPage() {
   }, [selectedYear])
 
   const [selectedBagian, setSelectedBagian] = useState<string>('ALL')
+
+  const inferBagian = (h: any): string => {
+    const existing = (h?.bagian || '').trim().toUpperCase()
+    if (existing) return existing
+
+    const text = `${h?.item || ''} ${h?.namePic || ''} ${h?.description || ''} ${h?.remarks || ''}`.toUpperCase()
+    if (/HSSE|HSE|SAFETY|K3|DAMKAR|SECURITY|CLEANING|JUMAT BERSIH/.test(text)) return 'HSSE'
+    if (/IT |SMARTWB|RFID|SAP|HARDWARE|SERVER|ISP|CCTV|PATCH|DATA CENTER|NETWORK/.test(text)) return 'IT'
+    if (/SISTEM|SDM|SEKPER|KPBN|PROSES BISNIS|ISO|AUDIT|HALAL/.test(text)) return 'SISTEM'
+
+    // Cocokkan nama PIC ke daftar user untuk infer unit.
+    const pics = (h?.namePic || '').split(/[/,;]+/).map((n: string) => n.trim()).filter(Boolean)
+    const matched = userList.find((u: any) =>
+      pics.some((n: string) => isSamePerson({ name: u.nama }, { name: n })),
+    )
+    if (matched?.unit) {
+      if (/hsse|hse|safety|k3|mr/i.test(matched.unit)) return 'HSSE'
+      if (/it|sistem|teknologi|informasi/i.test(matched.unit)) return 'IT'
+    }
+
+    return ''
+  }
 
   const filteredHighlights = useMemo(() => {
     let list = highlights
@@ -241,7 +264,7 @@ export default function MonthlyActivitiesPage() {
     setForm({
       bulan: h.bulan,
       tahun: h.tahun,
-      bagian: h.bagian ? h.bagian.toUpperCase() : (masterBagian[0]?.kode || 'SISTEM'),
+      bagian: inferBagian(h) || (masterBagian[0]?.kode || 'SISTEM'),
       item: h.item || '',
       description: h.description || '',
       actionToBeTaken: h.actionToBeTaken || '',
