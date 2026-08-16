@@ -29,146 +29,6 @@ import ModalPortal from '@/components/ModalPortal'
 import { useYear } from '@/context/YearContext'
 import { exportSubItemToExcel } from '@/lib/excelExport'
 
-function PicSearchDropdown({
-  userList,
-  selectedPics,
-  onTogglePic,
-}: {
-  userList: any[]
-  selectedPics: string[]
-  onTogglePic: (email: string) => void
-}) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchPic, setSearchPic] = useState('')
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  const filteredUsers = useMemo(() => {
-    if (!searchPic.trim()) return userList
-    const q = searchPic.toLowerCase()
-    return userList.filter(
-      u => u.nama?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.jabatan?.toLowerCase().includes(q)
-    )
-  }, [userList, searchPic])
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  return (
-    <div ref={containerRef} className="relative w-full">
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm flex items-center justify-between cursor-pointer hover:border-brand-400 shadow-xs transition-all"
-      >
-        <span className="text-slate-700 font-bold text-xs flex items-center gap-2">
-          <Search size={14} className="text-slate-600" />
-          {selectedPics.length === 0
-            ? '- Cari & Pilih Penanggung Jawab (PIC) -'
-            : `${selectedPics.length} PIC Dipilih`}
-        </span>
-        <ChevronDown size={16} className={`text-slate-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </div>
-
-      {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-[9999] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xl space-y-2 max-h-64 flex flex-col">
-          <div className="relative shrink-0">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-            <input
-              type="text"
-              autoFocus
-              placeholder="Ketik nama atau email PIC..."
-              value={searchPic}
-              onChange={e => setSearchPic(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
-            />
-          </div>
-
-          <div className="overflow-y-auto flex-1 space-y-1 pr-1 custom-scrollbar">
-            {filteredUsers.length === 0 ? (
-              <div className="p-3 text-center text-xs text-slate-600 font-medium">Tidak ada PIC yang cocok</div>
-            ) : (
-              filteredUsers.map(u => {
-                const isSelected = selectedPics.includes(u.email)
-                return (
-                  <div
-                    key={u.email}
-                    onClick={() => {
-                      onTogglePic(u.email)
-                    }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-brand-50 border border-brand-200 text-brand-900 font-semibold'
-                        : 'hover:bg-slate-100 text-slate-700 font-medium'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div
-                        className={`w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700'
-                        }`}
-                      >
-                        {u.nama?.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="truncate min-w-0">
-                        <p className="truncate font-bold">{u.nama}</p>
-                        {u.jabatan && <p className="text-xs text-slate-600 truncate">{u.jabatan}</p>}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <span className="text-brand-600 font-bold text-xs shrink-0 flex items-center gap-1">
-                        <Check size={14} /> Terpilih
-                      </span>
-                    )}
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Selected Badges List */}
-      <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-2.5 min-h-10 items-center">
-        {selectedPics.length === 0 ? (
-          <span className="text-xs text-slate-600 font-semibold italic">
-            Belum ada PIC dipilih. Klik dropdown di atas untuk mencari dan memilih.
-          </span>
-        ) : (
-          selectedPics.map(email => {
-            const u = userList.find(x => x.email === email)
-            const nameDisplay = u?.nama || email
-            return (
-              <span
-                key={email}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500 bg-brand-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs"
-              >
-                <span className="w-4 h-4 rounded-full bg-white/25 flex items-center justify-center text-xs font-bold">
-                  {nameDisplay.charAt(0).toUpperCase()}
-                </span>
-                {nameDisplay}
-                <button
-                  type="button"
-                  onClick={() => onTogglePic(email)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-white/20 transition cursor-pointer text-white/80 hover:text-white"
-                  title="Hapus PIC"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )
-          })
-        )}
-      </div>
-    </div>
-  )
-}
-
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -177,13 +37,13 @@ const STATUS_COLORS: Record<string, string> = {
   Open: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   'On Progress': 'bg-amber-100 text-amber-800 border-amber-300',
   Closed: 'bg-slate-200 text-slate-700 border-slate-300',
-  Cancelled: 'bg-slate-100 text-slate-600 border-slate-300',
+  Cancelled: 'bg-red-100 text-red-800 border-red-300',
 }
 
 const emptyForm = {
   bulan: new Date().getMonth() + 1,
   tahun: new Date().getFullYear(),
-  bagian: 'Sistem',
+  bagian: 'SISTEM',
   item: '',
   description: '',
   actionToBeTaken: '',
@@ -214,7 +74,6 @@ export default function MonthlyActivitiesPage() {
 
   const [programs, setPrograms] = useState<any[]>([])
   const [userList, setUserList] = useState<any[]>([])
-  const [selectedPics, setSelectedPics] = useState<string[]>([])
   const [masterBagian, setMasterBagian] = useState<any[]>([])
 
   useEffect(() => {
@@ -228,10 +87,6 @@ export default function MonthlyActivitiesPage() {
       ])
     })
   }, [])
-
-  const togglePic = (email: string) => {
-    setSelectedPics(prev => prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email])
-  }
 
   const groupedPrograms = useMemo(() => {
     const map = new Map<string, any[]>()
@@ -276,51 +131,51 @@ export default function MonthlyActivitiesPage() {
       .catch(() => setYearHighlights([]))
   }, [selectedYear])
 
-  const stats = useMemo(() => {
-    const total = highlights.length
-    const open = highlights.filter(h => h.status === 'Open').length
-    const progress = highlights.filter(h => h.status === 'On Progress').length
-    const closed = highlights.filter(h => h.status === 'Closed').length
-    const cancelled = highlights.filter(h => h.status === 'Cancelled').length
-    const closure = total > 0 ? Math.round((closed / total) * 100) : 0
-
-    const bulanan: Record<number, { total: number; closure: number }> = {}
-    for (let m = 1; m <= 12; m++) {
-      const items = yearHighlights.filter(h => h.bulan === m)
-      const c = items.filter(h => h.status === 'Closed').length
-      bulanan[m] = {
-        total: items.length,
-        closure: items.length > 0 ? Math.round((c / items.length) * 100) : 0,
-      }
-    }
-    return { total, open, progress, closed, cancelled, closure, bulanan }
-  }, [highlights, yearHighlights])
-
   const [selectedBagian, setSelectedBagian] = useState<string>('ALL')
 
   const filteredHighlights = useMemo(() => {
     let list = highlights
 
     if (selectedBagian !== 'ALL') {
-      const bq = selectedBagian.toLowerCase()
+      const bq = selectedBagian.trim().toUpperCase()
       list = list.filter(h => {
-        if (h.bagian) return h.bagian.toLowerCase() === bq
-        const text = `${h.item} ${h.namePic} ${h.description} ${h.remarks}`.toLowerCase()
-        if (bq === 'hsse') return text.includes('hsse') || text.includes('security') || text.includes('cleaning') || text.includes('jumat bersih')
-        if (bq === 'it') return text.includes('it') || text.includes('smartwb') || text.includes('rfid') || text.includes('sap') || text.includes('hardware')
-        if (bq === 'sistem') return text.includes('sistem') || text.includes('sdm') || text.includes('sekper') || text.includes('kpbn') || text.includes('proses bisnis') || text.includes('iso')
-        return true
+        const itemBagian = (h.bagian || '').trim().toUpperCase()
+        if (itemBagian) {
+          if (itemBagian === bq) return true
+          if (bq === 'SISTEM' && (itemBagian.includes('SISTEM') || itemBagian === 'BAG-SISTEM')) return true
+          if (bq === 'IT' && (itemBagian === 'IT' || itemBagian.includes('IT') || itemBagian === 'BAG-IT')) return true
+          if (bq === 'HSSE' && (itemBagian.includes('HSSE') || itemBagian.includes('HSE') || itemBagian === 'BAG-HSSE')) return true
+          return itemBagian.includes(bq) || bq.includes(itemBagian)
+        }
+        // Fallback detection from text / item / pic if bagian is not yet set
+        const text = `${h.item || ''} ${h.namePic || ''} ${h.description || ''} ${h.remarks || ''}`.toUpperCase()
+        if (bq === 'HSSE') return text.includes('HSSE') || text.includes('HSE') || text.includes('SECURITY') || text.includes('CLEANING') || text.includes('JUMAT BERSIH') || text.includes('DAMKAR') || text.includes('K3')
+        if (bq === 'IT') return text.includes('IT') || text.includes('SMARTWB') || text.includes('RFID') || text.includes('SAP') || text.includes('HARDWARE') || text.includes('SERVER') || text.includes('ISP') || text.includes('CCTV') || text.includes('PATCH')
+        if (bq === 'SISTEM') return text.includes('SISTEM') || text.includes('SDM') || text.includes('SEKPER') || text.includes('KPBN') || text.includes('PROSES BISNIS') || text.includes('ISO') || text.includes('AUDIT') || text.includes('HALAL')
+        return false
       })
     }
 
     if (search.trim()) {
       const q = search.toLowerCase()
-      list = list.filter(h =>
-        h.item?.toLowerCase().includes(q) ||
-        h.description?.toLowerCase().includes(q) ||
-        h.namePic?.toLowerCase().includes(q) ||
-        h.remarks?.toLowerCase().includes(q)
-      )
+      list = list.filter(h => {
+        const haystack = [
+          h.item,
+          h.description,
+          h.namePic,
+          h.remarks,
+          h.bagian,
+          h.status,
+          h.targetDate,
+          h.closedDate,
+          h.startDate,
+          h.createdAt ? String(h.createdAt).slice(0, 10) : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q)
+      })
     }
 
     if (startDateFilter || endDateFilter) {
@@ -335,6 +190,26 @@ export default function MonthlyActivitiesPage() {
 
     return list
   }, [highlights, search, selectedBagian, startDateFilter, endDateFilter])
+
+  const stats = useMemo(() => {
+    const total = filteredHighlights.length
+    const open = filteredHighlights.filter(h => h.status === 'Open').length
+    const progress = filteredHighlights.filter(h => h.status === 'On Progress').length
+    const closed = filteredHighlights.filter(h => h.status === 'Closed').length
+    const cancelled = filteredHighlights.filter(h => h.status === 'Cancelled').length
+    const closure = total > 0 ? Math.round((closed / total) * 100) : 0
+
+    const bulanan: Record<number, { total: number; closure: number }> = {}
+    for (let m = 1; m <= 12; m++) {
+      const items = yearHighlights.filter(h => h.bulan === m)
+      const c = items.filter(h => h.status === 'Closed').length
+      bulanan[m] = {
+        total: items.length,
+        closure: items.length > 0 ? Math.round((c / items.length) * 100) : 0,
+      }
+    }
+    return { total, open, progress, closed, cancelled, closure, bulanan }
+  }, [filteredHighlights, yearHighlights])
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -357,8 +232,7 @@ export default function MonthlyActivitiesPage() {
 
   const openAddModal = (bulan = selectedMonth, tahun = selectedYear) => {
     setEditingId(null)
-    setForm({ ...emptyForm, bulan, tahun })
-    setSelectedPics([])
+    setForm({ ...emptyForm, bulan, tahun, bagian: selectedBagian !== 'ALL' ? selectedBagian : (masterBagian[0]?.kode || 'SISTEM') })
     setShowModal(true)
   }
 
@@ -367,7 +241,7 @@ export default function MonthlyActivitiesPage() {
     setForm({
       bulan: h.bulan,
       tahun: h.tahun,
-      bagian: h.bagian || 'Sistem',
+      bagian: h.bagian ? h.bagian.toUpperCase() : (masterBagian[0]?.kode || 'SISTEM'),
       item: h.item || '',
       description: h.description || '',
       actionToBeTaken: h.actionToBeTaken || '',
@@ -378,17 +252,6 @@ export default function MonthlyActivitiesPage() {
       status: h.status || 'On Progress',
       remarks: h.remarks || ''
     })
-    let picEmails = Array.isArray(h.pics) && h.pics.length > 0
-      ? h.pics.map((p: any) => p?.email).filter(Boolean)
-      : []
-    
-    // Fallback: match by user name if pics array is empty
-    if (picEmails.length === 0 && h.namePic) {
-      picEmails = userList
-        .filter(u => u.nama && h.namePic.toLowerCase().includes(u.nama.toLowerCase()))
-        .map(u => u.email)
-    }
-    setSelectedPics(picEmails)
     setShowModal(true)
   }
 
@@ -396,16 +259,7 @@ export default function MonthlyActivitiesPage() {
     if (!form.item.trim()) return
     setSubmitting(true)
     try {
-      const selectedUserObjs = userList.filter(u => selectedPics.includes(u.email))
-      const pics = selectedUserObjs.map(u => ({ name: u.nama, email: u.email }))
-      const formattedNamePic = selectedUserObjs.length > 0
-        ? selectedUserObjs.map(u => u.nama).join(' / ')
-        : (form.namePic || 'SDM / IT')
-
-      const payload: any = { ...form, namePic: formattedNamePic, pics }
-      if (pics.length === 0 && editingId) {
-        delete payload.pics
-      }
+      const payload: any = { ...form }
       if (editingId) {
         await api.put(`/api/esih/highlights/${editingId}`, payload)
       } else {
@@ -522,11 +376,10 @@ export default function MonthlyActivitiesPage() {
                     setSelectedMonth(month)
                     setView('table')
                   }}
-                  className={`group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
-                    isCurrent
+                  className={`group relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${isCurrent
                       ? 'border-brand-500 bg-brand-50'
                       : 'border-slate-200 bg-white hover:border-brand-300'
-                  }`}
+                    }`}
                 >
                   {isCurrent && (
                     <span className="absolute right-2 top-2 rounded-md bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white">
@@ -586,9 +439,9 @@ export default function MonthlyActivitiesPage() {
               </div>
 
               {/* Cancelled */}
-              <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
-                <span className="text-slate-600">Cancelled</span>
-                <span className="font-bold text-slate-700 text-sm">{stats.cancelled}</span>
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-red-50 border border-red-200">
+                <span className="text-red-700">Cancelled</span>
+                <span className="font-bold text-red-900 text-sm">{stats.cancelled}</span>
               </div>
 
               {/* Closure (%) */}
@@ -599,277 +452,282 @@ export default function MonthlyActivitiesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-              {userRole === 'ADMIN' && (
-                <button
-                  onClick={() => setView('cards')}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-xs"
-                  title="Kembali ke pilihan bulan"
-                >
-                  <ArrowLeft size={15} /> Pilih Bulan Lain
-                </button>
-              )}
-              <select
-                value={selectedMonth}
-                onChange={e => setSelectedMonth(Number(e.target.value))}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700"
-              >
-                {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={e => setSelectedYear(Number(e.target.value))}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700"
-              >
-                {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
-              <select
-                value={selectedBagian}
-                onChange={e => setSelectedBagian(e.target.value)}
-                className="rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-sm font-bold text-brand-800 outline-none cursor-pointer"
-                title="Filter berdasarkan Bagian"
-              >
-                <option value="ALL">Semua Bagian</option>
-                {masterBagian.filter(b => b.isActive).map(b => (
-                  <option key={b.id} value={b.kode || b.nama}>
-                    {b.nama} ({b.kode})
-                  </option>
-                ))}
-              </select>
-
-              {/* Filter Range Tanggal */}
-              <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300">
-                <span className="text-xs font-semibold text-slate-700 px-1 flex items-center gap-1">
-                  <Calendar size={13} className="text-brand-600 shrink-0" /> Range:
-                </span>
-                <input
-                  type="date"
-                  value={startDateFilter}
-                  onChange={e => setStartDateFilter(e.target.value)}
-                  className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
-                  title="Tanggal Awal"
-                />
-                <span className="text-xs font-bold text-slate-600">s/d</span>
-                <input
-                  type="date"
-                  value={endDateFilter}
-                  onChange={e => setEndDateFilter(e.target.value)}
-                  className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
-                  title="Tanggal Akhir"
-                />
-                {(startDateFilter || endDateFilter) && (
+          <div className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            {/* Row 1: Filters (Month, Year, Bagian, Date Range) & Action Buttons */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                {userRole === 'ADMIN' && (
                   <button
-                    onClick={() => {
-                      setStartDateFilter('')
-                      setEndDateFilter('')
-                    }}
-                    className="p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
-                    title="Reset Filter Range Tanggal"
+                    onClick={() => setView('cards')}
+                    className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-xs"
+                    title="Kembali ke pilihan bulan"
                   >
-                    <X size={13} />
+                    <ArrowLeft size={15} /> Pilih Bulan Lain
                   </button>
                 )}
-              </div>
-
-              <div className="relative flex-1 min-w-[180px]">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Cari item, PIC, deskripsi..."
-                  className="w-full rounded-xl border border-slate-300 py-2 pl-8 pr-3 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Export Excel & Tambah Highlight buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleExportExcel}
-                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3 py-2 text-xs font-bold hover:bg-emerald-100 shadow-xs cursor-pointer"
-                title="Export Data ke Excel Format Document INL (1.jpeg)"
-              >
-                <FileSpreadsheet size={15} /> Export Excel
-              </button>
-              <button
-                onClick={() => openAddModal()}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm cursor-pointer"
-              >
-                <Plus size={15} /> Tambah Highlight
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto print:overflow-visible">
-            <table className="w-full min-w-max text-left text-sm">
-              <thead>
-                <tr className="border-b-2 border-slate-300 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  <th className="px-2.5 py-3 text-center w-10">No</th>
-                  <th className="px-2.5 py-3 min-w-44">Item</th>
-                  <th className="px-2.5 py-3 min-w-72">Description</th>
-                  <th className="px-2.5 py-3 min-w-36">Name PIC</th>
-                  <th className="px-2.5 py-3 w-28">Target Date</th>
-                  <th className="px-2.5 py-3 w-28">Closed Date</th>
-                  <th className="px-2.5 py-3 w-28 text-left">Status</th>
-                  <th className="px-2.5 py-3 min-w-48">Remarks</th>
-                  <th className="px-2.5 py-3 w-24 text-left print:hidden">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredHighlights.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-12 text-center">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
-                        <FileSpreadsheet size={24} />
-                      </div>
-                      <p className="mt-2 text-sm font-semibold text-slate-600">
-                        Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
-                      </p>
-                      <button
-                        onClick={() => openAddModal()}
-                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors shadow-2xs cursor-pointer"
-                      >
-                        <Plus size={14} />
-                        <span>Tambah Highlight Pertama</span>
-                      </button>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedHighlights.map((h, idx) => (
-                    <tr key={h.id} className="border-b border-slate-100 align-top hover:bg-slate-50">
-                      <td className="px-2.5 py-3 text-center font-bold text-slate-600">{startIndex + idx + 1}</td>
-                      <td className="px-2.5 py-3 font-bold text-slate-800 whitespace-pre-wrap">
-                        {h.bagian && (
-                          <span className={`inline-block mr-1.5 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide ${
-                            h.bagian === 'HSSE' ? 'bg-sky-100 text-sky-800 border border-sky-300' : h.bagian === 'IT' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}>
-                            {h.bagian}
-                          </span>
-                        )}
-                        {h.item}
-                      </td>
-                      <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap">{h.description || '-'}</td>
-                      <td className="px-2.5 py-3 text-slate-700 font-semibold">{h.namePic || '-'}</td>
-                      <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.targetDate || '-'}</td>
-                      <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.closedDate || '-'}</td>
-                      <td className="px-2.5 py-3 text-left">
-                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
-                          {h.status}
-                        </span>
-                      </td>
-                      <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap font-medium">{h.remarks || '-'}</td>
-                      <td className="px-2.5 py-3 text-left print:hidden">
-                        <div className="flex items-center justify-start gap-1 whitespace-nowrap">
-                          <button
-                            onClick={() => openEditModal(h)}
-                            title="Update Status"
-                            className="rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs px-2.5 py-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
-                          >
-                            <RefreshCw size={13} /> Update Status
-                          </button>
-                          <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-xl p-1.5 text-red-600 hover:bg-red-50 cursor-pointer">
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ===== PAGINATION BAR ===== */}
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 text-xs font-semibold text-slate-600 print:hidden">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span>
-                Menampilkan <strong className="text-slate-900">{filteredHighlights.length > 0 ? startIndex + 1 : 0}</strong>–<strong className="text-slate-900">{endIndex}</strong> dari <strong className="text-slate-900">{filteredHighlights.length}</strong> data
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-600">Tampilkan:</span>
                 <select
-                  value={itemsPerPage}
-                  onChange={e => {
-                    setItemsPerPage(Number(e.target.value))
-                    setCurrentPage(1)
-                  }}
-                  className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                  value={selectedMonth}
+                  onChange={e => setSelectedMonth(Number(e.target.value))}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
                 >
-                  <option value={5}>5 / hal</option>
-                  <option value={10}>10 / hal</option>
-                  <option value={20}>20 / hal</option>
-                  <option value={50}>50 / hal</option>
-                  <option value={100}>100 / hal</option>
+                  {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                 </select>
-              </div>
-            </div>
+                <select
+                  value={selectedYear}
+                  onChange={e => setSelectedYear(Number(e.target.value))}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                >
+                  {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select
+                  value={selectedBagian}
+                  onChange={e => setSelectedBagian(e.target.value)}
+                  className="rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-xs sm:text-sm font-bold text-brand-800 outline-none cursor-pointer"
+                  title="Filter berdasarkan Bagian"
+                >
+                  <option value="ALL">Semua Bagian</option>
+                  {masterBagian.filter(b => b.isActive).map(b => (
+                    <option key={b.id} value={b.kode || b.nama}>
+                      {b.nama} ({b.kode})
+                    </option>
+                  ))}
+                </select>
 
-            {filteredHighlights.length > 0 && (
-              <div className="flex items-center gap-2.5 flex-wrap">
-                {/* Direct Page Input Number */}
-                {totalPages > 1 && (
-                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">
-                    <span className="text-xs font-bold text-slate-600">Ke Halaman:</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={totalPages}
-                      value={currentPage}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10)
-                        if (!isNaN(val)) {
-                          const target = Math.max(1, Math.min(val, totalPages))
-                          setCurrentPage(target)
-                        }
+                {/* Filter Range Tanggal */}
+                <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300">
+                  <span className="text-xs font-semibold text-slate-700 px-1 flex items-center gap-1">
+                    <Calendar size={13} className="text-brand-600 shrink-0" /> Range:
+                  </span>
+                  <input
+                    type="date"
+                    value={startDateFilter}
+                    onChange={e => setStartDateFilter(e.target.value)}
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
+                    title="Tanggal Awal"
+                  />
+                  <span className="text-xs font-bold text-slate-600">s/d</span>
+                  <input
+                    type="date"
+                    value={endDateFilter}
+                    onChange={e => setEndDateFilter(e.target.value)}
+                    className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
+                    title="Tanggal Akhir"
+                  />
+                  {(startDateFilter || endDateFilter) && (
+                    <button
+                      onClick={() => {
+                        setStartDateFilter('')
+                        setEndDateFilter('')
                       }}
-                      className="w-12 px-1.5 py-0.5 text-center font-semibold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
-                    />
-                    <span className="text-xs font-bold text-slate-600">/ {totalPages}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                  >
-                    <ChevronLeft size={14} /> Prev
-                  </button>
-                  
-                  <div className="flex items-center gap-1 px-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-7 h-7 rounded-xl text-xs font-bold transition cursor-pointer ${
-                          currentPage === page
-                            ? 'bg-brand-600 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage >= totalPages}
-                    className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
+                      className="p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
+                      title="Reset Filter Range Tanggal"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
+
+              {/* Export Excel & Tambah Highlight buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3 py-2 text-xs font-bold hover:bg-emerald-100 shadow-xs cursor-pointer"
+                  title="Export Data ke Excel Format Document INL (1.jpeg)"
+                >
+                  <FileSpreadsheet size={15} /> Export Excel
+                </button>
+                <button
+                  onClick={() => openAddModal()}
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm cursor-pointer"
+                >
+                  <Plus size={15} /> Tambah Highlight
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: Search Bar Full Width */}
+            <div className="relative w-full">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari item, PIC, deskripsi..."
+                className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3.5 text-xs sm:text-sm font-medium focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none bg-slate-50/50 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div className="overflow-x-auto w-full min-w-0 print:overflow-visible">
+              <table className="w-full min-w-max text-left text-sm">
+                <thead>
+                  <tr className="border-b-2 border-slate-300 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <th className="px-2.5 py-3 text-center w-10">No</th>
+                    <th className="px-2.5 py-3 min-w-44">Item</th>
+                    <th className="px-2.5 py-3 min-w-72">Description</th>
+                    <th className="px-2.5 py-3 min-w-36">Name PIC</th>
+                    <th className="px-2.5 py-3 w-28">Target Date</th>
+                    <th className="px-2.5 py-3 w-28">Closed Date</th>
+                    <th className="px-2.5 py-3 w-28 text-left">Status</th>
+                    <th className="px-2.5 py-3 min-w-48">Remarks</th>
+                    <th className="px-2.5 py-3 w-24 text-left print:hidden">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHighlights.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
+                          <FileSpreadsheet size={24} />
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-slate-600">
+                          Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
+                        </p>
+                        <button
+                          onClick={() => openAddModal()}
+                          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors shadow-2xs cursor-pointer"
+                        >
+                          <Plus size={14} />
+                          <span>Tambah Highlight Pertama</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedHighlights.map((h, idx) => (
+                      <tr key={h.id} className="border-b border-slate-100 align-top hover:bg-slate-50">
+                        <td className="px-2.5 py-3 text-center font-bold text-slate-600">{startIndex + idx + 1}</td>
+                        <td className="px-2.5 py-3 font-bold text-slate-800 whitespace-pre-wrap">
+                          {h.bagian && (
+                            <span className={`inline-block mr-1.5 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide border ${
+                              h.bagian.toUpperCase().includes('HSSE')
+                                ? 'bg-sky-50 text-sky-800 border-sky-200'
+                                : h.bagian.toUpperCase().includes('IT')
+                                ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                : 'bg-amber-50 text-amber-800 border-amber-200'
+                            }`}>
+                              {h.bagian}
+                            </span>
+                          )}
+                          {h.item}
+                        </td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap">{h.description || '-'}</td>
+                        <td className="px-2.5 py-3 text-slate-700 font-semibold">{h.namePic || '-'}</td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.targetDate || '-'}</td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.closedDate || '-'}</td>
+                        <td className="px-2.5 py-3 text-left">
+                          <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
+                            {h.status}
+                          </span>
+                        </td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap font-medium">{h.remarks || '-'}</td>
+                        <td className="px-2.5 py-3 text-left print:hidden">
+                          <div className="flex items-center justify-start gap-1 whitespace-nowrap">
+                            <button
+                              onClick={() => openEditModal(h)}
+                              title="Update Status"
+                              className="rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs px-2.5 py-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
+                            >
+                              <RefreshCw size={13} /> Update Status
+                            </button>
+                            <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-xl p-1.5 text-red-600 hover:bg-red-50 cursor-pointer">
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ===== PAGINATION BAR ===== */}
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 text-xs font-semibold text-slate-600 print:hidden">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span>
+                  Menampilkan <strong className="text-slate-900">{filteredHighlights.length > 0 ? startIndex + 1 : 0}</strong>–<strong className="text-slate-900">{endIndex}</strong> dari <strong className="text-slate-900">{filteredHighlights.length}</strong> data
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-600">|</span>
+                  <span className="text-slate-600">Tampilkan:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={e => {
+                      setItemsPerPage(Number(e.target.value))
+                      setCurrentPage(1)
+                    }}
+                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                  >
+                    <option value={5}>5 / hal</option>
+                    <option value={10}>10 / hal</option>
+                    <option value={20}>20 / hal</option>
+                    <option value={50}>50 / hal</option>
+                    <option value={100}>100 / hal</option>
+                  </select>
+                </div>
+              </div>
+
+              {filteredHighlights.length > 0 && (
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {/* Direct Page Input Number */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">
+                      <span className="text-xs font-bold text-slate-600">Ke Halaman:</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        value={currentPage}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10)
+                          if (!isNaN(val)) {
+                            const target = Math.max(1, Math.min(val, totalPages))
+                            setCurrentPage(target)
+                          }
+                        }}
+                        className="w-12 px-1.5 py-0.5 text-center font-semibold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
+                      />
+                      <span className="text-xs font-bold text-slate-600">/ {totalPages}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      <ChevronLeft size={14} /> Prev
+                    </button>
+
+                    <div className="flex items-center gap-1 px-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-7 h-7 rounded-xl text-xs font-bold transition cursor-pointer ${currentPage === page
+                              ? 'bg-brand-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage >= totalPages}
+                      className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* ===== ADD / EDIT MODAL ===== */}
       {showModal && (
@@ -937,12 +795,14 @@ export default function MonthlyActivitiesPage() {
                   <div className="md:col-span-4">
                     <label className="block">
                       <span className="mb-1.5 block text-xs font-semibold text-slate-600">
-                        Penanggung Jawab (PIC) - bisa lebih dari satu (Master Data User)
+                        Penanggung Jawab (PIC) - teks bebas, pisahkan dengan &quot;/&quot; jika lebih dari satu
                       </span>
-                      <PicSearchDropdown
-                        userList={userList}
-                        selectedPics={selectedPics}
-                        onTogglePic={togglePic}
+                      <input
+                        type="text"
+                        value={form.namePic}
+                        onChange={e => setForm({ ...form, namePic: e.target.value })}
+                        placeholder="Contoh: Oka / HSSE / SDM"
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
                       />
                     </label>
                   </div>

@@ -14,7 +14,7 @@ const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().default(''),
   SESSION_SECRET_HEX: z.string().regex(/^[a-fA-F0-9]{64}$/, 'harus berupa 64 karakter hex'),
   COOKIE_NAME: z.string().min(1).default('target_session'),
-  COOKIE_MAX_AGE_SECONDS: z.coerce.number().int().positive().default(1800),
+  COOKIE_MAX_AGE_SECONDS: z.coerce.number().int().positive().default(86400), // 1 hari (24 jam = 86400 detik)
   COOKIE_SECURE: z.enum(['true', 'false']).optional(),
   ALLOW_INSECURE_HTTP: z.enum(['true', 'false']).default('false'),
 }).superRefine((env, context) => {

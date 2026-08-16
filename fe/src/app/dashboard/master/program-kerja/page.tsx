@@ -403,17 +403,19 @@ export default function MasterProgramKerjaPage() {
                                 </td>
                                 <td className="py-3 px-3.5 text-left">
                                   <span
-                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${
-                                      sub.status === 'Closed'
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : sub.status === 'On Progress'
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                        : 'bg-red-50 text-red-600 border-red-200'
-                                    }`}
-                                  >
-                                    {sub.status === 'Closed' ? <CheckCircle2 size={11} /> : <Clock size={11} />}
-                                    <span className="whitespace-nowrap">{sub.status}</span>
-                                  </span>
+                                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${
+                                       sub.status === 'Cancelled'
+                                         ? 'bg-red-50 text-red-700 border-red-200'
+                                         : sub.status === 'Closed'
+                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                         : sub.status === 'On Progress'
+                                         ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                         : 'bg-sky-50 text-sky-700 border-sky-200'
+                                     }`}
+                                   >
+                                     {sub.status === 'Closed' ? <CheckCircle2 size={11} /> : sub.status === 'Cancelled' ? <AlertCircle size={11} /> : <Clock size={11} />}
+                                     <span className="whitespace-nowrap">{sub.status}</span>
+                                   </span>
                                 </td>
                                 <td className="py-3 px-3.5">
                                   <div className="flex items-center gap-2">

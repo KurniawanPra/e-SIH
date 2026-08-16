@@ -8,6 +8,7 @@ import {
   Search,
   CheckCircle2,
   Clock,
+  XCircle,
   User,
   Calendar,
   FolderKanban,
@@ -150,8 +151,8 @@ function CustomStatusDropdown({
     { value: 'ALL', label: 'Semua Status', color: 'bg-slate-100 text-slate-700 border-slate-300' },
     { value: 'Closed', label: 'Closed (Selesai)', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
     { value: 'On Progress', label: 'On Progress (Berjalan)', color: 'bg-amber-100 text-amber-800 border-amber-300' },
-    { value: 'Open', label: 'Open (Belum Dimulai)', color: 'bg-red-100 text-red-800 border-red-300' },
-    { value: 'Cancelled', label: 'Cancelled (Dibatalkan)', color: 'bg-slate-100 text-slate-600 border-slate-300' }
+    { value: 'Open', label: 'Open (Belum Dimulai)', color: 'bg-sky-100 text-sky-800 border-sky-300' },
+    { value: 'Cancelled', label: 'Cancelled (Dibatalkan)', color: 'bg-red-100 text-red-800 border-red-300' }
   ]
 
   const currentStatus = statuses.find((s) => s.value === value) || statuses[0]
@@ -167,7 +168,7 @@ function CustomStatusDropdown({
         className="w-full px-3.5 py-2 rounded-xl neu-select text-xs font-bold text-slate-900 flex items-center justify-between gap-2 bg-white text-left cursor-pointer outline-none"
       >
         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold border ${currentStatus.color}`}>
-          {currentStatus.value === 'Closed' ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+          {currentStatus.value === 'Closed' ? <CheckCircle2 size={11} /> : currentStatus.value === 'Cancelled' ? <XCircle size={11} /> : <Clock size={11} />}
           {currentStatus.label}
         </span>
         <ChevronDown size={14} className={`text-slate-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -579,14 +580,16 @@ export default function AllActivitiesPage() {
                     <td className="py-4 px-4 text-center">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${
-                          a.status === 'On Progress'
+                          a.status === 'Cancelled'
+                            ? 'bg-red-100 text-red-800 border-red-300'
+                            : a.status === 'On Progress'
                             ? 'bg-amber-100 text-amber-800 border-amber-300'
                             : a.status === 'Open'
                             ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                             : 'bg-slate-200 text-slate-700 border-slate-300'
                         }`}
                       >
-                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Cancelled' ? <XCircle size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         {a.status}
                       </span>
                     </td>
@@ -656,7 +659,9 @@ export default function AllActivitiesPage() {
                 </span>
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border shrink-0 ${
-                    a.status === 'On Progress'
+                    a.status === 'Cancelled'
+                      ? 'bg-red-100 text-red-800 border-red-300'
+                      : a.status === 'On Progress'
                       ? 'bg-amber-100 text-amber-800 border-amber-300'
                       : a.status === 'Open'
                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300'

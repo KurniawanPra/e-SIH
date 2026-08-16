@@ -2,7 +2,7 @@
 node_modules/
 **/node_modules/
 
-# Build outputs
+# Build & compiled outputs
 .next/
 **/.next/
 out/
@@ -14,7 +14,7 @@ dist/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 
-# Environment variables
+# Environment & local config variables
 .env
 .env.local
 .env.development.local
@@ -23,37 +23,43 @@ tsconfig.tsbuildinfo
 *.env
 !*.env.example
 
-# Databases & Local data
+# Databases & local data
 dev.db
 *.sqlite
 *.sqlite-journal
 
-# Logs
+# Logs & debugging
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS files
+# OS & system files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Non-backend/frontend directories & tooling metadata
-legacy/
-postman/
-referensi/
-graphify-out/
-.claude/
+# Non-be/fe Tooling, IDE, and AI Agent metadata directories & files
+anti-slop/
+antislop.toml
 .opencode/
+.commandcode/
+.claude/
 .agents/
 .windsurf/
 .gstack/
 .idea/
 .vscode/
-AGENTS.md
-agents.md
+.cursor/
+graphify-out/
 skills-lock.json
 **/skills-lock.json
 
-# Non-backend/frontend root files
+# Reference, legacy, and non-code docs outside be & fe
+legacy/
+postman/
+referensi/
 esih-architecture.png
+AGENTS.md
+agents.md
+DESIGN.md

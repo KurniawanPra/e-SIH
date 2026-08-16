@@ -116,6 +116,29 @@ api.interceptors.request.use(async (reqConfig) => {
   return reqConfig
 })
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      typeof window !== 'undefined' &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 401
+    ) {
+      localStorage.removeItem('esih_token')
+      localStorage.removeItem('esih_user')
+
+      const path = window.location.pathname
+      const isAuthPage = path === '/' || path.startsWith('/sso-callback')
+      const isRedirecting = sessionStorage.getItem('esih_auth_redirect')
+      if (!isAuthPage && !isRedirecting) {
+        sessionStorage.setItem('esih_auth_redirect', '1')
+        window.location.href = '/'
+      }
+    }
+    return Promise.reject(error)
+  },
+)
+
 export function getResolvedBackendDriver(): BackendDriver {
   const raw = (runtimeConfig.backendDriver || process.env.NEXT_PUBLIC_BACKEND_DRIVER || 'fastify')
     .toString()
@@ -174,20 +197,14 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         localStorage.setItem('esih_user', JSON.stringify(user))
       } else {
         localStorage.removeItem('esih_user')
+        localStorage.removeItem('esih_token')
       }
     }
     return user
-  } catch (err) {
+  } catch {
     if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('esih_user')
-      if (cached) {
-        try {
-          return JSON.parse(cached)
-        } catch {
-          // ignore
-        }
-      }
       localStorage.removeItem('esih_user')
+      localStorage.removeItem('esih_token')
     }
     return null
   }

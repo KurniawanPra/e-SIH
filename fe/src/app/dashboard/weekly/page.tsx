@@ -6,6 +6,7 @@ import {
   Plus,
   Pencil,
   X,
+  XCircle,
   Clock,
   CheckCircle2,
   Calendar,
@@ -28,6 +29,7 @@ import ModalPortal from '@/components/ModalPortal'
 import { exportTableToExcel3 } from '@/lib/excelExport'
 import { useYear } from '@/context/YearContext'
 import { useToast } from '@/context/ToastContext'
+import { isSamePerson } from '@/lib/utils'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -232,19 +234,17 @@ export default function WeeklyActivitiesPage() {
 
       // Staff Role Filter: If non-admin user, only show activities created by/assigned to current user
       if (user?.role === 'USER' && user?.name) {
-        const picLower = (a.picNama || '').toLowerCase()
-        const userLower = user.name.toLowerCase()
-        const emailLower = (user.email || '').toLowerCase()
-        const picEmailLower = (a.picEmail || '').toLowerCase()
-        const isMatchName = picLower.includes(userLower)
-        const isMatchEmail = Boolean(emailLower && picEmailLower && picEmailLower.includes(emailLower))
-        if (!isMatchName && !isMatchEmail) return false
+        const my = { name: user.name, email: user.email }
+        if (!isSamePerson(my, { name: a.picNama?.split('/')[0]?.trim(), email: a.picEmail })) {
+          return false
+        }
       }
 
       // User Filter
       if (userFilter !== 'ALL') {
         const picName = a.picNama?.split('/')[0]?.trim() || ''
-        if (picName.toLowerCase() !== userFilter.toLowerCase()) return false
+        const picEmail = (a.picEmail || '').trim()
+        if (!isSamePerson({ name: userFilter }, { name: picName, email: picEmail })) return false
       }
 
       // Status Filter
@@ -742,9 +742,9 @@ export default function WeeklyActivitiesPage() {
               <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
                 <span className="text-xs font-bold text-slate-700">Aktivitas #{a.no || a.id}</span>
                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${
-                  a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                  a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                 }`}>
-                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Cancelled' ? <XCircle size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                   {a.status}
                 </span>
               </div>
@@ -879,9 +879,9 @@ export default function WeeklyActivitiesPage() {
                     {/* Status (Align start & no-wrap) */}
                     <td className="py-4 px-4 text-left">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${
-                        a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                        a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                       }`}>
-                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Cancelled' ? <XCircle size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         <span className="whitespace-nowrap">{a.status}</span>
                       </span>
                     </td>

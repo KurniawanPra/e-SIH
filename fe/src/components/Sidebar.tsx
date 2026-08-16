@@ -66,19 +66,27 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
         }`}
       >
         {/* Logo Header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-slate-200">
-          <Link href="/dashboard" className="flex items-center gap-2.5 no-underline">
-            <span className="w-7 h-7 rounded bg-brand-700 text-white flex items-center justify-center font-bold text-xs">
-              SIH
-            </span>
-            <div className="leading-tight">
-              <span className="font-bold text-slate-900 text-sm block">e-SIH</span>
-              <span className="text-[10px] text-slate-500 block">PT INL Operation</span>
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-200 bg-white">
+          <Link href="/dashboard" className="flex items-center gap-3 no-underline group min-w-0">
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-2xs shrink-0 flex items-center justify-center bg-emerald-50 border border-emerald-200/80">
+              <img
+                src="/esih-logo.png"
+                alt="e-SIH Logo"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+            </div>
+            <div className="leading-tight min-w-0">
+              <span className="font-extrabold text-slate-900 text-sm block tracking-tight truncate">
+                e-SIH
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 block truncate">
+                Operational IT Report
+              </span>
             </div>
           </Link>
           <button
             onClick={onToggle}
-            className="lg:hidden p-1 rounded text-slate-500 hover:bg-slate-100"
+            className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Tutup Sidebar"
           >
             <X size={18} />

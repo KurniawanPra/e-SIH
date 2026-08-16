@@ -80,6 +80,7 @@ model Highlight {
   closedDate      String?
   status          String    @default("Open") // "Open", "On Progress", "Closed", "Cancelled"
   remarks         String?
+  bagian          String? // Sistem / IT / HSSE (untuk filter & badge highlight)
   authorId        String?
   programId       String? // sub-program (mis. IT Development) tujuan program highlight
   pics            Json?    // daftar PIC lebih dari 1: [{ name, email }]
@@ -90,6 +91,31 @@ model Highlight {
 
   @@index([bulan, tahun])
   @@index([programId])
+}
+
+// Master Bagian / Unit untuk pilihan highlight & filter
+model ref_Bagian {
+  id        String   @id
+  kode      String
+  nama      String
+  deskripsi String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("ref_Bagian")
+}
+
+// Override lokal untuk role & penugasan program user (sumber data user tetap Portal SSO)
+model ref_UserOverride {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  role      String?
+  programIds Json?
+  isActive  Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ref_UserOverride")
 }
 
 // Notifikasi (mis. staff mengubah penugasan sub-program user → muncul di dashboard admin)

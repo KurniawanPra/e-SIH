@@ -7,6 +7,7 @@ import {
   Search,
   CheckCircle2,
   Clock,
+  XCircle,
   User,
   Calendar,
   FilterX,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 import ModalPortal from '@/components/ModalPortal'
+import { isSamePerson } from '@/lib/utils'
 
 export default function MyActivitiesPage() {
   const [user, setUser] = useState<SessionUser | null>(null)
@@ -87,10 +89,10 @@ export default function MyActivitiesPage() {
   // User's personal activities
   const myActivities = useMemo(() => {
     if (!user?.name) return activities
-    return activities.filter((a: any) => {
-      const picName = a.picNama?.split('/')[0]?.trim() || ''
-      return picName.toLowerCase() === user.name.toLowerCase()
-    })
+    const my = { name: user.name, email: user.email }
+    return activities.filter((a: any) =>
+      isSamePerson(my, { name: a.picNama?.split('/')[0]?.trim(), email: a.picEmail }),
+    )
   }, [activities, user])
 
   // Filtered by year, status, and search query
@@ -306,6 +308,7 @@ export default function MyActivitiesPage() {
             <option value="On Progress">On Progress (Berjalan)</option>
             <option value="Open">Open (Belum Dimulai)</option>
             <option value="Closed">Closed (Selesai)</option>
+            <option value="Cancelled">Cancelled (Dibatalkan)</option>
           </select>
 
           <select
@@ -371,9 +374,9 @@ export default function MyActivitiesPage() {
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.dueDate}</td>
                     <td className="py-4 px-4 text-left">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${
-                        a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                        a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                       }`}>
-                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                        {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Cancelled' ? <XCircle size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
                         <span className="whitespace-nowrap">{a.status}</span>
                       </span>
                     </td>
@@ -407,9 +410,9 @@ export default function MyActivitiesPage() {
             <div key={a.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border shrink-0 ${
-                  a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                  a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                 }`}>
-                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Cancelled' ? <XCircle size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                   {a.status}
                 </span>
                 <span className="text-xs font-mono font-bold text-slate-600">{startIndex + idx + 1}</span>
@@ -565,6 +568,7 @@ export default function MyActivitiesPage() {
                     <option value="Open">Open (Belum Dimulai)</option>
                     <option value="On Progress">On Progress (Berjalan)</option>
                     <option value="Closed">Closed (Selesai)</option>
+                    <option value="Cancelled">Cancelled (Dibatalkan)</option>
                   </select>
                 </div>
 
@@ -638,6 +642,7 @@ export default function MyActivitiesPage() {
                     <option value="Open">Open (Belum Dimulai)</option>
                     <option value="On Progress">On Progress (Berjalan)</option>
                     <option value="Closed">Closed (Selesai)</option>
+                    <option value="Cancelled">Cancelled (Dibatalkan)</option>
                   </select>
                 </div>
 

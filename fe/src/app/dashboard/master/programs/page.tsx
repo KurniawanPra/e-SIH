@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, getCurrentUser } from '@/lib/api'
 import { useYear } from '@/context/YearContext'
@@ -14,6 +14,7 @@ import {
   Search,
   CheckCircle2,
   Clock,
+  XCircle,
   Users,
   Layers,
   UserCheck,
@@ -28,11 +29,14 @@ import {
   FileSpreadsheet,
   FolderLock,
   AlertTriangle,
-  ShieldAlert
+  ShieldAlert,
+  ChevronDown,
+  Check
 } from 'lucide-react'
 import { exportSubItemToExcel, exportTableToExcel3 } from '@/lib/excelExport'
 import type { SessionUser } from '@/types/auth'
 import { useToast } from '@/context/ToastContext'
+import { isSamePerson } from '@/lib/utils'
 
 interface ActivityItem {
   id: string
@@ -94,6 +98,119 @@ const emptyActivityForm = {
   remarks: ''
 }
 
+function PicFilterSearchDropdown({
+  value,
+  onChange,
+  options,
+  currentUserName,
+}: {
+  value: string
+  onChange: (val: string) => void
+  options: string[]
+  currentUserName?: string | null
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim()
+    if (!q) return options
+    return options.filter((o) => o.toLowerCase().includes(q))
+  }, [options, query])
+
+  const displayLabel =
+    value === 'ALL'
+      ? 'Semua PIC'
+      : value === currentUserName
+        ? `${value} (Saya)`
+        : value
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen((v) => !v)}
+        className="inline-flex items-center justify-between gap-2 bg-white hover:bg-slate-50 px-3 py-2 rounded-xl border border-slate-300 shadow-2xs text-xs font-bold text-slate-800 transition-colors cursor-pointer min-w-[200px]"
+      >
+        <span className="flex items-center gap-1.5 truncate">
+          <UserCheck size={13} className="text-brand-700 shrink-0" />
+          <span className="truncate">PIC: {displayLabel}</span>
+        </span>
+        <ChevronDown size={14} className={`text-slate-500 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 top-full mt-1.5 z-[9999] w-72 max-w-[80vw] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xl space-y-2 animate-dropdown-in">
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari nama PIC..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
+            />
+          </div>
+
+          <div className="max-h-56 overflow-y-auto space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                onChange('ALL')
+                setIsOpen(false)
+                setQuery('')
+              }}
+              className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                value === 'ALL' ? 'bg-brand-50 text-brand-800' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Semua PIC
+            </button>
+
+            {filtered.length === 0 ? (
+              <div className="px-3 py-3 text-center text-xs text-slate-500 font-medium">
+                Tidak ada PIC cocok
+              </div>
+            ) : (
+              filtered.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt)
+                    setIsOpen(false)
+                    setQuery('')
+                  }}
+                  className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-between gap-2 ${
+                    value === opt ? 'bg-brand-50 text-brand-800' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="truncate">{opt}</span>
+                  {opt === currentUserName && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 shrink-0">
+                      Saya
+                    </span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DaftarProgramKerjaPage() {
   const { toast } = useToast()
   const { selectedYear } = useYear()
@@ -102,7 +219,8 @@ export default function DaftarProgramKerjaPage() {
   const [parents, setParents] = useState<ParentProgram[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED'>('ALL')
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'On Progress' | 'Open' | 'Closed' | 'Cancelled'>('ALL')
+  const [picFilter, setPicFilter] = useState<string>('ALL')
 
   // TABS STATE: Main Tab (Parent PK: e.g., 'PK-A') & Sub Tab (Child Item: e.g., 'ALL' or 'PROG-A1-2026')
   const [activeParentTab, setActiveParentTab] = useState<string>('PK-A')
@@ -214,10 +332,11 @@ export default function DaftarProgramKerjaPage() {
   // Check if non-admin user has NO assigned programs
   const userObj = useMemo(() => {
     if (isAdmin) return null
-    return usersList.find(
-      u =>
-        u.nama.toLowerCase() === currentUser?.name?.toLowerCase() ||
-        (currentUser?.email && u.email?.toLowerCase() === currentUser?.email?.toLowerCase())
+    return usersList.find((u) =>
+      isSamePerson(
+        { name: currentUser?.name, email: currentUser?.email },
+        { name: u.nama, email: u.email },
+      ),
     )
   }, [isAdmin, usersList, currentUser])
 
@@ -226,25 +345,15 @@ export default function DaftarProgramKerjaPage() {
     return ((userObj as any)?.programs || []).map((p: any) => String(p.programId || '')).filter(Boolean)
   }, [isAdmin, userObj])
 
-  // Flag: non-admin user with no program kerja assigned by admin
-  const hasNoAssignment = !isAdmin && currentUser !== null && usersList.length > 0 && assignedProgramIds.length === 0
+  // Flag: non-admin user with no program kerja assigned by admin.
+  // Sekarang semua program kerja tetap ditampilkan untuk user non-admin,
+  // sehingga aktivitas dari semua PIC bisa dipantau.
+  const hasNoAssignment = false
 
-  // Displayed Parent Programs (For non-admin, show parent programs assigned by admin)
+  // Displayed Parent Programs (semua program untuk admin dan user non-admin)
   const displayParents = useMemo(() => {
-    if (isAdmin) return parents
-    if (hasNoAssignment) return []
-
-    const filtered = parents.filter(p => {
-      const pId = String(p.id).toUpperCase()
-      const pKode = String(p.kode).toUpperCase()
-      return assignedProgramIds.some((id: string) => {
-        const upper = String(id).toUpperCase()
-        return upper === pId || upper === pKode || upper === `PK-${pKode}` || upper.startsWith(`${pKode}.`)
-      })
-    })
-
-    return filtered.length > 0 ? filtered : parents
-  }, [isAdmin, parents, hasNoAssignment, assignedProgramIds])
+    return parents
+  }, [parents])
 
   // Automatically ensure activeParentTab points to a valid assigned program
   useEffect(() => {
@@ -318,12 +427,12 @@ export default function DaftarProgramKerjaPage() {
 
     parents.forEach(p => {
       p.items?.forEach(sub => {
-        const hasMyActivity = (sub.activities || []).some(act => {
-          const names = (act.picNama || '').toLowerCase()
-          const myName = (currentUser?.name || '').toLowerCase()
-          const myEmail = (currentUser?.email || '').toLowerCase()
-          return (myName && names.includes(myName)) || (myEmail && (act.picEmail || '').toLowerCase().includes(myEmail))
-        })
+        const hasMyActivity = (sub.activities || []).some(act =>
+          isSamePerson(
+            { name: currentUser?.name, email: currentUser?.email },
+            { name: act.picNama?.split('/')[0]?.trim(), email: act.picEmail },
+          ),
+        )
         const isAssigned = assignedIds.includes(sub.id)
 
         if (hasMyActivity || isAssigned) {
@@ -365,6 +474,27 @@ export default function DaftarProgramKerjaPage() {
         (u.jabatan && u.jabatan.toLowerCase().includes(q))
     )
   }, [usersList, picSearchQuery])
+
+  // Daftar nama PIC untuk filter dropdown "Program Kerja Ku"
+  const picOptions = useMemo(() => {
+    const set = new Set<string>()
+    usersList.forEach((u) => {
+      if (u.nama) set.add(u.nama)
+    })
+    parents.forEach((p) => {
+      p.items?.forEach((sub) => {
+        sub.activities?.forEach((a) => {
+          if (a.picNama) {
+            a.picNama.split(/[/,;]+/).forEach((n) => {
+              const t = n.trim()
+              if (t) set.add(t)
+            })
+          }
+        })
+      })
+    })
+    return Array.from(set).sort()
+  }, [usersList, parents])
 
   const openAddModal = (subId?: string) => {
     if (!isAdmin) return
@@ -466,65 +596,78 @@ export default function DaftarProgramKerjaPage() {
   }
 
   const handleToggleActivityStatus = async (act: ActivityItem) => {
-    if (!isAdmin) return
     const nextStatus = act.status === 'Closed' ? 'On Progress' : 'Closed'
     const todayStr = new Date().toISOString().split('T')[0]
+    const nextClosedDate = nextStatus === 'Closed' ? todayStr : null
+
     try {
       await api.put(`/api/esih/activities/${act.id}`, {
         status: nextStatus,
-        closedDate: nextStatus === 'Closed' ? todayStr : null
+        closedDate: nextClosedDate
       })
-      toast.success(`Status aktivitas diubah menjadi ${nextStatus}`, 'Status Diperbarui')
+      toast.success(
+        `Status kegiatan "${act.kegiatan}" diubah ke "${nextStatus}"`,
+        nextStatus === 'Closed' ? 'Status: Closed (Selesai)' : 'Status: On Progress'
+      )
       fetchData()
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      toast.error('Gagal memperbarui status aktivitas', 'Terjadi Kesalahan')
+      toast.error(e.response?.data?.error || 'Gagal memperbarui status aktivitas', 'Terjadi Kesalahan')
     }
   }
 
   // Filter activities based on search, status filter, user assignment, and sub-program item ownership
   const filterActivities = (activities: ActivityItem[] = [], currentSub?: SubProgram) => {
-    return activities.filter(act => {
-      // 0. Sub-Item Ownership Check: Ensure activity strictly belongs to currentSub if provided
-      if (currentSub) {
-        if (act.idProgram) {
-          if (act.idProgram !== currentSub.id) return false
-        } else if (act.itemName) {
-          if (act.itemName.toLowerCase() !== currentSub.namaItem.toLowerCase()) return false
+    const statusPriority: Record<string, number> = {
+      'On Progress': 0,
+      'Open': 1,
+      'Closed': 2,
+      'Cancelled': 3,
+    }
+
+    return activities
+      .filter(act => {
+        // 0. Sub-Item Ownership Check: Ensure activity strictly belongs to currentSub if provided
+        if (currentSub) {
+          if (act.idProgram) {
+            if (act.idProgram !== currentSub.id) return false
+          } else if (act.itemName) {
+            if (act.itemName.toLowerCase() !== currentSub.namaItem.toLowerCase()) return false
+          }
         }
-      }
 
-      // 1. Search Filter
-      if (search.trim()) {
-        const q = search.toLowerCase()
-        const matchQ =
-          act.kegiatan?.toLowerCase().includes(q) ||
-          act.descriptionAction?.toLowerCase().includes(q) ||
-          act.picNama?.toLowerCase().includes(q) ||
-          act.itemName?.toLowerCase().includes(q) ||
-          act.remarks?.toLowerCase().includes(q)
-        if (!matchQ) return false
-      }
+        // 1. Search Filter
+        if (search.trim()) {
+          const q = search.toLowerCase()
+          const matchQ =
+            act.kegiatan?.toLowerCase().includes(q) ||
+            act.descriptionAction?.toLowerCase().includes(q) ||
+            act.picNama?.toLowerCase().includes(q) ||
+            act.itemName?.toLowerCase().includes(q) ||
+            act.remarks?.toLowerCase().includes(q)
+          if (!matchQ) return false
+        }
 
-      // 2. Status Filter
-      if (statusFilter === 'OPEN') {
-        if (act.status === 'Closed' || act.status === 'Cancelled') return false
-      } else if (statusFilter === 'CLOSED') {
-        if (act.status !== 'Closed' && act.status !== 'Cancelled') return false
-      }
+        // 2. Status Filter
+        if (statusFilter !== 'ALL' && act.status !== statusFilter) return false
 
-      // 3. User Role Filter: If staff (non-admin), only show activities where current user is PIC
-      if (!isAdmin && currentUser?.name) {
-        const myName = currentUser.name.toLowerCase()
-        const myEmail = (currentUser.email || '').toLowerCase()
-        const actPicNama = (act.picNama || '').toLowerCase()
-        const actPicEmail = (act.picEmail || '').toLowerCase()
-        const isMyActivity = actPicNama.includes(myName) || (myEmail && actPicEmail.includes(myEmail))
-        if (!isMyActivity) return false
-      }
+        // 3. PIC Filter
+        if (picFilter !== 'ALL') {
+          const matched = isSamePerson(
+            { name: picFilter },
+            { name: act.picNama?.split('/')[0]?.trim(), email: act.picEmail },
+          )
+          if (!matched) return false
+        }
 
-      return true
-    })
+        return true
+      })
+      .sort((a, b) => {
+        const pa = statusPriority[a.status] ?? 99
+        const pb = statusPriority[b.status] ?? 99
+        if (pa !== pb) return pa - pb
+        return new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime()
+      })
   }
 
   // Render PIC Badges distinguishing PIC Utama (1st) from PIC Pendukung (subsequent)
@@ -696,38 +839,35 @@ export default function DaftarProgramKerjaPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Filter Status Pills */}
-          <div className="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-xl border border-slate-200">
-            <button
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
-                }`}
-            >
-              Semua Status
-            </button>
-            <button
-              onClick={() => setStatusFilter('OPEN')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${statusFilter === 'OPEN' ? 'bg-amber-500 text-white shadow-xs font-bold' : 'text-amber-700 hover:bg-amber-100'
-                }`}
-            >
-              <Clock size={12} /> Masih Open
-            </button>
-            <button
-              onClick={() => setStatusFilter('CLOSED')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${statusFilter === 'CLOSED' ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'text-emerald-700 hover:bg-emerald-100'
-                }`}
-            >
-              <CheckCircle2 size={12} /> Sudah Close
-            </button>
-          </div>
+          {/* Filter PIC Dropdown Search */}
+          <PicFilterSearchDropdown
+            value={picFilter}
+            onChange={setPicFilter}
+            options={picOptions}
+            currentUserName={currentUser?.name}
+          />
+
+          {/* Filter Status Dropdown */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+            className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none cursor-pointer hover:bg-slate-50"
+          >
+            <option value="ALL">All Status</option>
+            <option value="On Progress">On Progress</option>
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
 
           {/* Reset Filter Button */}
-          {(search.trim() !== '' || statusFilter !== 'ALL' || activeSubTab !== 'ALL') && (
+          {(search.trim() !== '' || statusFilter !== 'ALL' || activeSubTab !== 'ALL' || picFilter !== 'ALL') && (
             <button
               onClick={() => {
                 setSearch('')
                 setStatusFilter('ALL')
                 setActiveSubTab('ALL')
+                setPicFilter('ALL')
               }}
               className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               title="Reset Seluruh Filter"
@@ -747,14 +887,12 @@ export default function DaftarProgramKerjaPage() {
             <span>
               {isAdmin
                 ? 'Semua Program Kerja Induk:'
-                : displayParents.length === 1
-                  ? 'Program Kerja Induk Penugasan Saya:'
-                  : 'Daftar Program Kerja Induk Saya (Pilih Program Kerja):'}
+                : 'Semua Program Kerja Induk:'}
             </span>
           </div>
           {!isAdmin && (
             <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-              {displayParents.length === 1 ? '1 Program Ditugaskan' : `${displayParents.length} Program Ditugaskan`}
+              {displayParents.length} Program Kerja
             </span>
           )}
         </div>
@@ -975,13 +1113,13 @@ export default function DaftarProgramKerjaPage() {
                         <th className="py-3 px-3.5 w-24">Closed Date</th>
                         <th className="py-3 px-3.5 w-32 text-left">Status</th>
                         <th className="py-3 px-3.5 min-w-[150px]">Remarks</th>
-                        {isAdmin && <th className="py-3 px-3.5 w-20 text-left">Aksi</th>}
+                        <th className="py-3 px-3.5 min-w-[130px] text-left">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {activities.length === 0 ? (
                         <tr>
-                          <td colSpan={isAdmin ? 9 : 8} className="py-8 text-center text-slate-600 font-semibold">
+                          <td colSpan={9} className="py-8 text-center text-slate-600 font-semibold">
                             Belum ada Project / Kegiatan tercatat di bawah sub-program {sub.kode} ({sub.namaItem}).
                           </td>
                         </tr>
@@ -1011,7 +1149,9 @@ export default function DaftarProgramKerjaPage() {
                               <td className="py-3.5 px-3.5 text-left">
                                 <div className="space-y-1">
                                   <span
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border whitespace-nowrap ${act.status === 'Closed'
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border whitespace-nowrap ${act.status === 'Cancelled'
+                                        ? 'bg-red-50 text-red-700 border-red-200'
+                                        : act.status === 'Closed'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : act.status === 'On Progress'
                                           ? 'bg-amber-50 text-amber-700 border-amber-200'
@@ -1020,6 +1160,8 @@ export default function DaftarProgramKerjaPage() {
                                   >
                                     {act.status === 'Closed' ? (
                                       <CheckCircle2 size={12} className="text-emerald-600" />
+                                    ) : act.status === 'Cancelled' ? (
+                                      <XCircle size={12} className="text-red-600" />
                                     ) : (
                                       <Clock size={12} className="text-amber-600" />
                                     )}
@@ -1043,29 +1185,41 @@ export default function DaftarProgramKerjaPage() {
                               <td className="py-3.5 px-3.5 text-slate-600 whitespace-pre-wrap">
                                 {act.remarks || '-'}
                               </td>
-                              {isAdmin && (
-                                <td className="py-3.5 px-3.5 text-left">
-                                  <div className="flex items-center justify-start gap-1">
-                                    <button
-                                      onClick={() => openEditModal(act)}
-                                      className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
-                                      title="Edit Project / Kegiatan"
-                                    >
-                                      <Pencil size={14} />
-                                    </button>
+                              <td className="py-3.5 px-3.5 text-left">
+                                <div className="flex items-center justify-start gap-1.5 flex-nowrap">
+                                  {/* Shortcut Status Button (On Progress <-> Closed) */}
+                                  {act.status === 'Closed' ? (
                                     <button
                                       onClick={() => handleToggleActivityStatus(act)}
-                                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${act.status === 'Closed'
-                                          ? 'text-amber-600 hover:bg-amber-50'
-                                          : 'text-emerald-600 hover:bg-emerald-50'
-                                        }`}
-                                      title={act.status === 'Closed' ? 'Tandai Kembali On Progress' : 'Tandai Selesai (Closed)'}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                      title="Klik untuk mengubah status kembali ke On Progress"
                                     >
-                                      {act.status === 'Closed' ? <Clock size={14} /> : <CheckCircle2 size={14} />}
+                                      <RotateCcw size={12} className="text-amber-700 shrink-0" />
+                                      <span>On Progress</span>
                                     </button>
-                                  </div>
-                                </td>
-                              )}
+                                  ) : (
+                                    <button
+                                      onClick={() => handleToggleActivityStatus(act)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                      title="Klik untuk mengubah status menjadi Selesai (Closed)"
+                                    >
+                                      <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
+                                      <span>Closed</span>
+                                    </button>
+                                  )}
+
+                                  {/* Edit Detail Button */}
+                                  {isAdmin && (
+                                    <button
+                                      onClick={() => openEditModal(act)}
+                                      className="p-1.5 rounded-lg text-slate-500 hover:text-brand-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer shrink-0"
+                                      title="Edit Project / Kegiatan"
+                                    >
+                                      <Pencil size={13} />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
                             </tr>
                           )
                         })
@@ -1365,7 +1519,7 @@ export default function DaftarProgramKerjaPage() {
                               autoFocus
                               value={picSearchQuery}
                               onChange={e => setPicSearchQuery(e.target.value)}
-                              placeholder="🔍 Cari nama, email, atau jabatan (misal: Fitri, Tommy, Staff)..."
+                              placeholder="Cari nama, email, atau jabatan (misal: Fitri, Tommy, Staff)..."
                               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
                             />
                             {picSearchQuery && (

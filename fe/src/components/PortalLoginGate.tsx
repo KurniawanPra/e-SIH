@@ -8,7 +8,7 @@ import { LogIn, AlertTriangle, Info, Lock } from 'lucide-react'
 const appName = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'e-SIH'
 const appDescription = process.env.NEXT_PUBLIC_APP_DESCRIPTION?.trim()
   || 'System Highlight Report & Activity Tracking - PT Industri Nabati Lestari'
-const appLogoUrl = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '/app-logo.svg'
+const appLogoUrl = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '/esih-logo.png'
 const portalName = process.env.NEXT_PUBLIC_PORTAL_NAME?.trim() || 'InTes / Portal SSO'
 const portalAccountName = process.env.NEXT_PUBLIC_PORTAL_ACCOUNT_NAME?.trim() || 'Portal INL'
 
@@ -56,7 +56,11 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
         <div className="px-6 pt-6 pb-3 flex items-center justify-between border-b border-slate-100">
           <div>
             <span className="font-semibold text-lg text-brand-700 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-brand-700 text-white flex items-center justify-center text-xs">SIH</span>
+              <img
+                src="/esih-logo.png"
+                alt="Logo e-SIH"
+                className="w-7 h-7 rounded-lg object-cover border border-emerald-200"
+              />
               {appName}
             </span>
             <p className="text-xs text-slate-600 mt-1">Masuk menggunakan akun SSO perusahaan</p>

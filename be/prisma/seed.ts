@@ -91,13 +91,14 @@ async function main() {
   } catch (e) {}
 
   const staff = [
-    { name: 'Kurniawan Pralambang', email: 'kurniawan@inl.co.id', jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT', unit: 'IT & Sistem Operational', role: 'ADMIN' },
-    { name: 'Herbina', email: 'herbina@inl.co.id', jabatan: 'Staff IT Development', unit: 'IT & Sistem Operational', role: 'USER' },
-    { name: 'Fitri', email: 'fitri@inl.co.id', jabatan: 'Staff System Analyst', unit: 'IT & Sistem Operational', role: 'USER' },
-    { name: 'Agung', email: 'agung@inl.co.id', jabatan: 'Staff Infrastructure & Network', unit: 'IT & Sistem Operational', role: 'USER' },
-    { name: 'Salman', email: 'salman@inl.co.id', jabatan: 'Staff Database Administrator', unit: 'IT & Sistem Operational', role: 'USER' },
-    { name: 'Tommy', email: 'tommy@inl.co.id', jabatan: 'Staff IT Support & Operation', unit: 'IT & Sistem Operational', role: 'USER' },
-    { name: 'Aundry', email: 'aundry@inl.co.id', jabatan: 'Staff Quality Assurance', unit: 'IT & Sistem Operational', role: 'USER' },
+    { name: 'Oka Aritonang', email: 'okha.aritonang@gmail.com', jabatan: 'Kepala Sub Bagian Sistem dan IT', unit: 'Sub Bagian Sistem & IT', role: 'ADMIN' },
+    { name: 'RINKO', email: 'ayamsaya85@gmail.com', jabatan: 'IT Spesialist', unit: 'Seksi IT', role: 'USER' },
+    { name: 'Tomy Inri Akbar Lingga', email: 'tomy.troller@gmail.com', jabatan: 'Asisten IT', unit: 'Seksi IT', role: 'USER' },
+    { name: 'Developer 1', email: 'developer@developer.com', jabatan: 'IT Dev', unit: 'Seksi IT', role: 'USER' },
+    { name: 'Salman Jaya Sempurna', email: 'salmanichigo@gmail.com', jabatan: 'Admin Network & Data Center', unit: 'Seksi IT', role: 'USER' },
+    { name: 'AUNDRY HERMAWAN', email: 'aundry@inl.co.id', jabatan: 'Admin Network & Data Center', unit: 'Seksi IT', role: 'USER' },
+    { name: 'Herbina Silaban', email: 'herbina.silaban@gmail.com', jabatan: 'Asisten MR & HSSE', unit: 'Seksi MR & HSSE', role: 'USER' },
+    { name: 'Fitri Febriadi Turnip', email: 'fitriturnip@gmail.com', jabatan: 'Asisten MR & HSSE', unit: 'Seksi MR & HSSE', role: 'USER' },
   ]
 
   for (const u of staff) {
@@ -119,8 +120,8 @@ async function main() {
   let globalNo = 1
 
   const getPicItemsPool = (picName: string, year: number) => {
-    // Program Kerja B: Sustainable & Operations (Herbina)
-    if (['Herbina'].includes(picName)) {
+    // Program Kerja B: Sustainable & Operations (Herbina Silaban)
+    if (['Herbina', 'Herbina Silaban'].includes(picName)) {
       return [
         { progId: `PROG-B1-${year}`, item: 'Audit Internal, Audit Eksternal & Management Review', kat: `B. DRIVING SUSTAINABLE & RESPONSIBLE OPERATIONS`, task: 'Audit Internal Kepatuhan ISO 9001:2015', action: 'Pemeriksaan dokumen SOP operational pabrik' },
         { progId: `PROG-B2-${year}`, item: 'Inspeksi & Monitoring Supplier (Vendor)', kat: `B. DRIVING SUSTAINABLE & RESPONSIBLE OPERATIONS`, task: 'Inspeksi Kepatuhan Supplier Bahan Baku', action: 'Verifikasi sertifikat keberlanjutan vendor CPO & Kernel' },
@@ -128,21 +129,20 @@ async function main() {
       ]
     }
 
-    // Program Kerja C: HSE / Safety & Environment / HSSE (Agung & Fitri)
-    if (['Agung', 'Fitri'].includes(picName)) {
+    // Program Kerja C: HSE / Safety & Environment / HSSE (Fitri Febriadi Turnip)
+    if (['Fitri', 'Fitri Febriadi Turnip', 'Agung'].includes(picName)) {
       return [
         { progId: `PROG-C1-${year}`, item: 'Emergency Preparedness & HSE Training', kat: `C. HEALTH, SAFETY AND ENVIRONMENT (HSE)`, task: 'Simulasi Tanggap Darurat & Drill Pemadam Kebakaran', action: 'Pelaksanaan drill tanggap darurat karyawan area refinery' },
         { progId: `PROG-C2-${year}`, item: 'Risk Management & HSE Inspection', kat: `C. HEALTH, SAFETY AND ENVIRONMENT (HSE)`, task: 'Inspeksi Potensi Bahaya & APD', action: 'Inspeksi rutin ketersediaan APD dan fasilitas K3 pabrik' },
-        { progId: `PROG-C3-${year}`, item: 'HSE Report & Healthy Living Moment', kat: `C. HEALTH, SAFETY AND ENVIRONMENT (HSE)`, task: 'Penyusunan Laporan K3 Bulanan', action: 'Pelaporan indikator K3 bulanan dan pelaksanaan program kesehatan' }
+        { progId: `PROG-C3-${year}`, item: 'Waste Management & Environment Compliance', kat: `C. HEALTH, SAFETY AND ENVIRONMENT (HSE)`, task: 'Pengujian Mutu Air Limbah & Emisi Udara', action: 'Pengambilan sampel limbah WWTP dan pelaporan RKL-RPL' }
       ]
     }
 
-    // Program Kerja A: Digital & IT Operations (Kurniawan, Fitri, Tommy, Salman, Aundry)
+    // Program Kerja A: Digital & IT Systems (RINKO, Tomy, Salman, Developer 1, Aundry, Oka)
     return [
-      { progId: `PROG-A1-${year}`, item: 'IT Development', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Development module RFID Timbangan SmartWB Phase', action: 'Integrasi sistem RFID dengan database timbangan digital & AI CCTV' },
-      { progId: `PROG-A1-${year}`, item: 'IT Development', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Migrasi Portal SSO dan Fastify Backend v4', action: 'Sinkronisasi token SSO dengan aplikasi e-SIH & SmartWB' },
-      { progId: `PROG-A2-${year}`, item: 'IT Network & Infrastructure', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Pemasangan Access Point Jaringan Pabrik Sei Mangkei', action: 'Konfigurasi Mikrotik Router & Failover ISP utama' },
-      { progId: `PROG-A3-${year}`, item: 'IT Administration & Tagihan', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Pembayaran Lisensi SAP & Microsoft 365', action: 'Verifikasi invoice vendor IT dan pencairan pembayaran' }
+      { progId: `PROG-A1-${year}`, item: 'Digitalisasi Operasional Pabrik & SmartWB', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Implementasi & Pemeliharaan Sistem SmartWB', action: 'Monitoring pembacaan sensor load cell dan kalibrasi sistem timbangan' },
+      { progId: `PROG-A2-${year}`, item: 'Otomatisasi Sistem Pelaporan & Dashboard ERP', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Pengembangan Modul Pelaporan Dashboard Executive', action: 'Integrasi query database dan sinkronisasi data transaksi SAP' },
+      { progId: `PROG-A3-${year}`, item: 'Infrastruktur Jaringan & Keamanan Data Center', kat: `A. ENABLING DIGITAL AND RELIABLE OPERATION`, task: 'Maintenance Server, Switch Core & Backup Database', action: 'Pengecekan temperatur data center dan backup harian snapshot VM' }
     ]
   }
 
@@ -311,9 +311,9 @@ async function main() {
     }
   }
 
-  // --- Seed Kurniawan Pralambang (2026) ---
-  console.log('Generating Kurniawan Pralambang activities for 2026...')
-  createPicData('Kurniawan Pralambang', 'kurniawan@inl.co.id', 2026, {
+  // --- Seed RINKO / Kurniawan Pralambang (2026) ---
+  console.log('Generating RINKO activities for 2026...')
+  createPicData('RINKO', 'ayamsaya85@gmail.com', 2026, {
     1: { closed: 18, progress: 2, open: 1 },
     2: { closed: 29, progress: 3, open: 1 },
     3: { closed: 54, progress: 4, open: 2 },
@@ -328,9 +328,9 @@ async function main() {
     12: { closed: 30, progress: 6, open: 3 },
   })
 
-  // --- Seed Herbina (2026) ---
-  console.log('Generating Herbina activities for 2026...')
-  createPicData('Herbina', 'herbina@inl.co.id', 2026, {
+  // --- Seed Herbina Silaban (2026) ---
+  console.log('Generating Herbina Silaban activities for 2026...')
+  createPicData('Herbina Silaban', 'herbina.silaban@gmail.com', 2026, {
     1: { closed: 14, progress: 2, open: 1 },
     2: { closed: 29, progress: 3, open: 1 },
     3: { closed: 54, progress: 4, open: 2 },
@@ -345,9 +345,9 @@ async function main() {
     12: { closed: 26, progress: 5, open: 3 },
   })
 
-  // --- Seed Fitri (2026) ---
-  console.log('Generating Fitri activities for 2026...')
-  createPicData('Fitri', 'fitri@inl.co.id', 2026, {
+  // --- Seed Fitri Febriadi Turnip (2026) ---
+  console.log('Generating Fitri Febriadi Turnip activities for 2026...')
+  createPicData('Fitri Febriadi Turnip', 'fitriturnip@gmail.com', 2026, {
     1: { closed: 15, progress: 2 },
     2: { closed: 22, progress: 3 },
     3: { closed: 28, progress: 4 },
@@ -362,37 +362,42 @@ async function main() {
     12: { closed: 22, progress: 4 },
   })
 
-  // --- Seed Agung, Salman, Tommy, Aundry (2026) ---
+  // --- Seed Tomy, Salman, Developer 1, Aundry, Oka (2026) ---
   console.log('Generating other staff activities for 2026...')
-  createPicData('Agung', 'agung@inl.co.id', 2026, {
-    1: { closed: 10 }, 2: { closed: 15 }, 3: { closed: 20 }, 4: { closed: 18 },
-    5: { closed: 22 }, 6: { closed: 19 }, 7: { closed: 17 }, 8: { closed: 14, progress: 2 },
-    9: { closed: 15 }, 10: { closed: 18 }, 11: { closed: 16 }, 12: { closed: 20 }
+  createPicData('Tomy Inri Akbar Lingga', 'tomy.troller@gmail.com', 2026, {
+    1: { closed: 12 }, 2: { closed: 18 }, 3: { closed: 22 }, 4: { closed: 19 },
+    5: { closed: 24 }, 6: { closed: 20 }, 7: { closed: 18 }, 8: { closed: 16, progress: 2 },
+    9: { closed: 18 }, 10: { closed: 20 }, 11: { closed: 19 }, 12: { closed: 22 }
   })
-  createPicData('Salman', 'salman@inl.co.id', 2026, {
+  createPicData('Salman Jaya Sempurna', 'salmanichigo@gmail.com', 2026, {
     1: { closed: 8 }, 2: { closed: 12 }, 3: { closed: 18 }, 4: { closed: 15 },
     5: { closed: 19 }, 6: { closed: 16 }, 7: { closed: 15 }, 8: { closed: 12, progress: 2 },
     9: { closed: 14 }, 10: { closed: 16 }, 11: { closed: 15 }, 12: { closed: 18 }
   })
-  createPicData('Tommy', 'tommy@inl.co.id', 2026, {
-    1: { closed: 6 }, 2: { closed: 10 }, 3: { closed: 15 }, 4: { closed: 12 },
-    5: { closed: 14 }, 6: { closed: 13 }, 7: { closed: 12 }, 8: { closed: 10, progress: 1 },
-    9: { closed: 11 }, 10: { closed: 14 }, 11: { closed: 13 }, 12: { closed: 15 }
+  createPicData('Developer 1', 'developer@developer.com', 2026, {
+    1: { closed: 10 }, 2: { closed: 14 }, 3: { closed: 18 }, 4: { closed: 16 },
+    5: { closed: 20 }, 6: { closed: 18 }, 7: { closed: 16 }, 8: { closed: 14, progress: 3 },
+    9: { closed: 16 }, 10: { closed: 18 }, 11: { closed: 17 }, 12: { closed: 20 }
   })
-  createPicData('Aundry', 'aundry@inl.co.id', 2026, {
+  createPicData('AUNDRY HERMAWAN', 'aundry@inl.co.id', 2026, {
     1: { closed: 5 }, 2: { closed: 8 }, 3: { closed: 12 }, 4: { closed: 10 },
     5: { closed: 11 }, 6: { closed: 10 }, 7: { closed: 9 }, 8: { closed: 8, progress: 1 },
     9: { closed: 9 }, 10: { closed: 12 }, 11: { closed: 10 }, 12: { closed: 13 }
   })
+  createPicData('Oka Aritonang', 'okha.aritonang@gmail.com', 2026, {
+    1: { closed: 6 }, 2: { closed: 9 }, 3: { closed: 14 }, 4: { closed: 12 },
+    5: { closed: 15 }, 6: { closed: 12 }, 7: { closed: 11 }, 8: { closed: 10, progress: 2 },
+    9: { closed: 11 }, 10: { closed: 14 }, 11: { closed: 13 }, 12: { closed: 15 }
+  })
 
   // --- Seed Historical Activities for 2025 ---
   console.log('Generating historical activities for 2025...')
-  createPicData('Kurniawan Pralambang', 'kurniawan@inl.co.id', 2025, {
+  createPicData('RINKO', 'ayamsaya85@gmail.com', 2025, {
     1: { closed: 10 }, 2: { closed: 12 }, 3: { closed: 15 }, 4: { closed: 14 },
     5: { closed: 16 }, 6: { closed: 18 }, 7: { closed: 15 }, 8: { closed: 20 },
     9: { closed: 18 }, 10: { closed: 22 }, 11: { closed: 20 }, 12: { closed: 25 }
   })
-  createPicData('Herbina', 'herbina@inl.co.id', 2025, {
+  createPicData('Herbina Silaban', 'herbina.silaban@gmail.com', 2025, {
     1: { closed: 8 }, 2: { closed: 10 }, 3: { closed: 12 }, 4: { closed: 11 },
     5: { closed: 14 }, 6: { closed: 15 }, 7: { closed: 12 }, 8: { closed: 16 },
     9: { closed: 14 }, 10: { closed: 18 }, 11: { closed: 15 }, 12: { closed: 20 }
@@ -407,29 +412,31 @@ async function main() {
 
   // --- Seed Monthly Highlight Reports (2026) ---
   console.log('Seeding monthly highlight reports (2026)...')
-  const highlightSamples: Array<{ bulan: number; item: string; description: string; actionToBeTaken: string; namePic: string; targetDate: string; status: string; remarks: string; closedDate?: string }> = [
+  const highlightSamples: Array<{ bulan: number; item: string; description: string; actionToBeTaken: string; namePic: string; targetDate: string; status: string; remarks: string; closedDate?: string; bagian: string }> = [
     // Januari
     {
       bulan: 1,
       item: 'Kick-off Digitalisasi SmartWB & Evaluasi Sistem ERP',
       description: 'Penyusunan blueprint arsitektur sistem SmartWB dan evaluasi kebutuhan lisensi pengguna.',
       actionToBeTaken: 'Finalisasi kebutuhan server dan pembagian task developer IT.',
-      namePic: 'Kurniawan Pralambang / Fitri',
+      namePic: 'RINKO / Fitri Febriadi Turnip',
       targetDate: '2026-01-25',
       status: 'Closed',
       closedDate: '2026-01-24',
       remarks: 'Penyusunan blueprint selesai dan disetujui Kabag.',
+      bagian: 'IT',
     },
     {
       bulan: 1,
       item: 'Audit Internal Kepatuhan ISO 9001:2015 Periode Q1',
       description: 'Pemeriksaan dokumen SOP operational pabrik Sei Mangkei.',
       actionToBeTaken: 'Penyusunan laporan temuan audit dan distribusi rekomendasi perbaikan.',
-      namePic: 'Herbina',
+      namePic: 'Herbina Silaban',
       targetDate: '2026-01-30',
       status: 'Closed',
       closedDate: '2026-01-29',
       remarks: 'Temuan audit telah diselesaikan oleh masing-masing unit.',
+      bagian: 'SISTEM',
     },
     // Februari
     {
@@ -437,22 +444,24 @@ async function main() {
       item: 'Upgrade Bandwidth Failover ISP Pabrik',
       description: 'Peningkatan kapasitas bandwidth jaringan backup ISP dari 50Mbps ke 100Mbps.',
       actionToBeTaken: 'Instalasi router mikrotik baru dan pengujian failover otomatis.',
-      namePic: 'Agung / Tommy',
+      namePic: 'Tomy Inri Akbar Lingga / Salman Jaya Sempurna',
       targetDate: '2026-02-20',
       status: 'Closed',
       closedDate: '2026-02-18',
       remarks: 'Koneksi failover berjalan stabil tanpa lag.',
+      bagian: 'IT',
     },
     {
       bulan: 2,
       item: 'Persiapan Audit Sertifikasi Halal BPJPH',
       description: 'Verifikasi dokumen bahan baku dan sistem jaminan produk halal (SJPH).',
       actionToBeTaken: 'Pendampingan auditor eksternal selama inspeksi pabrik.',
-      namePic: 'Herbina',
+      namePic: 'Herbina Silaban',
       targetDate: '2026-02-28',
       status: 'Closed',
       closedDate: '2026-02-27',
       remarks: 'Sertifikat Halal diterbitkan resmi.',
+      bagian: 'SISTEM',
     },
     // Maret
     {
@@ -460,11 +469,12 @@ async function main() {
       item: 'Pengembangan Modul AI CCTV Vehicle Counting',
       description: 'Pelatihan model AI untuk mendeteksi jenis kendaraan tangki CPO.',
       actionToBeTaken: 'Integrasi modul AI dengan antrean timbangan digital.',
-      namePic: 'Kurniawan Pralambang / Salman',
+      namePic: 'RINKO / Salman Jaya Sempurna',
       targetDate: '2026-03-25',
       status: 'Closed',
       closedDate: '2026-03-24',
       remarks: 'Akurasi deteksi AI mencapai 96.5%.',
+      bagian: 'IT',
     },
     // April
     {
@@ -472,11 +482,12 @@ async function main() {
       item: 'Pelatihan Tanggap Darurat & Drill Damkar Pabrik',
       description: 'Simulasi penanganan keadaan darurat kebakaran untuk seluruh karyawan refinery.',
       actionToBeTaken: 'Pengujian fungsi hydrant dan APAR di titik vital operasional.',
-      namePic: 'Agung / Fitri',
+      namePic: 'Fitri Febriadi Turnip',
       targetDate: '2026-04-18',
       status: 'Closed',
       closedDate: '2026-04-18',
       remarks: 'Seluruh karyawan lulus pengujian simulasi.',
+      bagian: 'HSSE',
     },
     // Mei
     {
@@ -484,11 +495,12 @@ async function main() {
       item: 'Renewal Lisensi Software & Database Security Patch',
       description: 'Pembaruan lisensi antivirus enterprise dan patching kerentanan database SQL.',
       actionToBeTaken: 'Penerapan patch keamanan pada server staging dan produksi.',
-      namePic: 'Salman / Tommy',
+      namePic: 'Salman Jaya Sempurna / Tomy Inri Akbar Lingga',
       targetDate: '2026-05-15',
       status: 'Closed',
       closedDate: '2026-05-14',
       remarks: 'Patching sukses tanpa downtime.',
+      bagian: 'IT',
     },
     // Juni
     {
@@ -496,11 +508,12 @@ async function main() {
       item: 'Audit Kesiapsiagaan Sistem Keamanan Informasi (ISO 27001)',
       description: 'Review kebijakan privasi data dan hak akses akun karyawan.',
       actionToBeTaken: 'Pemberlakuan Multi-Factor Authentication (MFA) pada portal internal.',
-      namePic: 'Kurniawan Pralambang / Aundry',
+      namePic: 'RINKO / AUNDRY HERMAWAN',
       targetDate: '2026-06-28',
       status: 'Closed',
       closedDate: '2026-06-25',
       remarks: 'MFA telah aktif untuk seluruh pengguna admin.',
+      bagian: 'IT',
     },
     // Juli
     {
@@ -508,11 +521,12 @@ async function main() {
       item: 'Inspeksi & Evaluasi Kinerja Vendor IT Hardware',
       description: 'Penilaian SLA perbaikan perangkat komputer dan jaringan dari vendor mitra.',
       actionToBeTaken: 'Penyusunan skor vendor dan rekomendasi kontrak perpanjangan.',
-      namePic: 'Herbina / Tommy',
+      namePic: 'Herbina Silaban / Tomy Inri Akbar Lingga',
       targetDate: '2026-07-22',
       status: 'Closed',
       closedDate: '2026-07-21',
       remarks: 'Evaluasi vendor selesai tepat waktu.',
+      bagian: 'IT',
     },
     // Agustus (Highlight Report INLHO/REP-F/-021)
     {
@@ -520,72 +534,79 @@ async function main() {
       item: 'Rencana Pindah ke KPBN',
       description: 'Sudah konfirmasi ke bagian Asset KPBN rencana Kamis mau bertemu dengan Pak Erwin Kasubag Optimalisasi Asset Jam 10 di KPBN Medan.\nSelanjutnya kamis siang Rencana Mau bertemu dengan Buk Rizky dikandir N3 bagian Pertahanan mengenai bagaimana prosedur proses pelepasan Mess Gedung medan',
       actionToBeTaken: '',
-      namePic: 'Oka / SDM / Sekper',
+      namePic: 'Oka Aritonang / SDM / Sekper',
       targetDate: '2026-08-21',
       status: 'Open',
       remarks: 'Hasil analisa sudah selesai, Memo sudah diserahkan ke bagian Sekper agar diriview.',
+      bagian: 'SISTEM',
     },
     {
       bulan: 8,
       item: 'Seleksi security Sei Mangkei',
       description: 'Seleksi nya akan dilakukan dgn 2 Opsi:\nOpsi 1. Minta bantuan tool Security yang pemenang\nOpsi 2. Internal INL. Sebagai catatan : Setelah pemenang ditentukan minggu ini',
       actionToBeTaken: '',
-      namePic: 'Oka / HSSE',
+      namePic: 'Oka Aritonang / HSSE',
       targetDate: '2026-08-25',
       status: 'Open',
       remarks: '- Pemenang sudah ditetapkan,\n- Seleksi atas personil lama akan selesai tgl. 12 Jul 24.\n- Setelah itu akan ditetapkan personil baru\n\n(Nama-nama security, foto serta pengalaman security sei mangkei untuk diseleksi terlampir)',
+      bagian: 'HSSE',
     },
     {
       bulan: 8,
       item: 'Sertifikasi ISCC SBE',
       description: 'Meeting internal HSSE mengenai peluang Sertifikasi ISCC SBE peluang penurunan Harga SBE sekarang Rp.380/kg turun menjadi Rp.250/kg sekitar Rp.150.\nNamun masih butuh studi, dalam minggu ini akan clear',
       actionToBeTaken: '',
-      namePic: 'Oka / HSSE',
+      namePic: 'Oka Aritonang / HSSE',
       targetDate: '2026-08-20',
       status: 'Open',
       remarks: 'Meeting dengan Mega grand terkait tindaklanjut ISCC SBE menetapkan kerjasama tgl. 11 serta akhir Jul ada kunjungan ke dumai.',
+      bagian: 'HSSE',
     },
     {
       bulan: 8,
       item: 'Perbantuan/ Pemanfaatan untuk personil cleaning area Refinery',
       description: 'Pemanfaatan Operator Loader untuk pengangkutan limbah SBE akan diperbantukan sebagai cleaning di sekitar Refinery.\nAnalisanya pekerjaan operator setelah angkut SBE tidak mempunyai kegiatan lagi. Sehingga diperbantukan/ dimanfaatkan sebagai tenaga cleaning.',
       actionToBeTaken: '',
-      namePic: 'Oka / SDM',
+      namePic: 'Oka Aritonang / SDM',
       targetDate: '2026-08-15',
       closedDate: '2026-08-15',
       status: 'Closed',
       remarks: 'Minggu ini akan terealisasi.',
+      bagian: 'HSSE',
     },
     {
       bulan: 8,
       item: 'Kegiatan Jumat Bersih',
       description: 'Jumat ini akan dilakukan Jumat bersih area sekitar Pump House dan Refinery.',
       actionToBeTaken: '',
-      namePic: 'Oka',
+      namePic: 'Oka Aritonang',
       targetDate: '2026-08-14',
       closedDate: '2026-08-14',
       status: 'Closed',
       remarks: 'Memo akan di share',
+      bagian: 'HSSE',
     },
     {
       bulan: 8,
       item: 'Review proses bisnis project Management',
       description: 'Review proses bisnis project Management sudah dibahas secara internal dengan Pak Ipan dan Tim Andika.\nAda penambahan terkait pengawasan dan Monitoring setiap Project.',
       actionToBeTaken: '',
-      namePic: 'Oka',
+      namePic: 'Oka Aritonang',
       targetDate: '2026-08-28',
       status: 'Open',
       remarks: 'On Progress.\nSosialisasi akan dilakukan minggu depan',
+      bagian: 'SISTEM',
     },
     {
       bulan: 8,
       item: 'Review Proses Bisnis Marketing dan sales',
       description: 'Review Proses Bisnis Marketing dan sales sudah dilakukan dan telah direview oleh Pak Mehaga, saran Pak mehaga agar direview Tim risiko manajemen sebelum ke tim BCG.',
       actionToBeTaken: '',
-      namePic: 'Oka',
+      namePic: 'Oka Aritonang',
       targetDate: '2026-08-29',
       status: 'Open',
       remarks: 'On Progress.\nAkan diskusi dengan Tim MR',
+      bagian: 'SISTEM',
     },
     // September
     {
@@ -593,10 +614,11 @@ async function main() {
       item: 'Migrasi Server Cloud Staging ke Data Center Lokal',
       description: 'Persiapan migrasi server cloud untuk pemenuhan kepatuhan privasi data lokal.',
       actionToBeTaken: 'Penyusunan alur sinkronisasi data dan pengujian latensi.',
-      namePic: 'Salman / Tommy',
+      namePic: 'Salman Jaya Sempurna / Tomy Inri Akbar Lingga',
       targetDate: '2026-09-25',
       status: 'On Progress',
       remarks: 'Tahap konfigurasi firewall dan pengujian koneksi.',
+      bagian: 'IT',
     },
     // Oktober
     {
@@ -604,10 +626,11 @@ async function main() {
       item: 'Inspeksi Fasilitas K3 & Sertifikasi Alat Berat',
       description: 'Pemeriksaan rutin kelayakan operasional forklift dan boiler pabrik.',
       actionToBeTaken: 'Pengajuan perpanjangan sertifikat ke Disnaker.',
-      namePic: 'Agung / Fitri',
+      namePic: 'Fitri Febriadi Turnip',
       targetDate: '2026-10-20',
       status: 'Open',
       remarks: 'Pemeriksaan fisik dijadwalkan minggu kedua.',
+      bagian: 'HSSE',
     },
     // November
     {
@@ -615,10 +638,11 @@ async function main() {
       item: 'Penyusunan RKAP Program Kerja Sistem & IT Tahun 2027',
       description: 'Perencanaan anggaran dan daftar target pengembangan IT untuk tahun depan.',
       actionToBeTaken: 'Rapat konsolidasi kebutuhan perangkat lunak dan infrastruktur.',
-      namePic: 'Kurniawan Pralambang / Herbina',
+      namePic: 'RINKO / Herbina Silaban',
       targetDate: '2026-11-28',
       status: 'Open',
       remarks: 'Draf awal RKAP sedang disusun.',
+      bagian: 'IT',
     },
     // Desember
     {
@@ -626,10 +650,11 @@ async function main() {
       item: 'Evaluasi Tahunan & Closing Audit Kinerja SDM & IT',
       description: 'Laporan pencapaian KPI bulanan dan penyelesaian seluruh highlight report 2026.',
       actionToBeTaken: 'Ekspor laporan rekapitulasi eksekutif akhir tahun.',
-      namePic: 'Kurniawan Pralambang / Herbina / Fitri',
+      namePic: 'RINKO / Herbina Silaban / Fitri Febriadi Turnip',
       targetDate: '2026-12-25',
       status: 'Open',
       remarks: 'Persiapan rekapitulasi data akhir tahun.',
+      bagian: 'SISTEM',
     },
   ]
   for (const [i, h] of highlightSamples.entries()) {

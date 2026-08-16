@@ -44,8 +44,8 @@ function normalizeProgramIds(rawList: any[]): string[] {
   const set = new Set<string>()
   rawList.forEach(item => {
     const val = String(typeof item === 'string' ? item : item?.programId || '').toUpperCase().trim()
-    if (val === 'PK-A' || val === 'A' || val.startsWith('A.') || val.includes('DIGITAL') || val.includes('1') || val.includes('2') || val.includes('3') || val.includes('4') || val.includes('5') || val.includes('6')) {
-      if (val === 'PK-A' || val === 'A' || val.startsWith('A.') || val.includes('DIGITAL')) set.add('PK-A')
+    if (val === 'PK-A' || val === 'A' || val.startsWith('A.') || val.includes('DIGITAL')) {
+      set.add('PK-A')
     }
     if (val === 'PK-B' || val === 'B' || val.startsWith('B.') || val.includes('SUSTAINABLE')) set.add('PK-B')
     if (val === 'PK-C' || val === 'C' || val.startsWith('C.') || val.includes('HSE') || val.includes('SAFETY')) set.add('PK-C')
