@@ -215,10 +215,18 @@ export default function MonthlyActivitiesPage() {
   const [programs, setPrograms] = useState<any[]>([])
   const [userList, setUserList] = useState<any[]>([])
   const [selectedPics, setSelectedPics] = useState<string[]>([])
+  const [masterBagian, setMasterBagian] = useState<any[]>([])
 
   useEffect(() => {
     api.get('/api/esih/programs').then(r => setPrograms(r.data.data || [])).catch(() => setPrograms([]))
     api.get('/api/esih/users').then(r => setUserList(r.data.data || [])).catch(() => setUserList([]))
+    api.get('/api/esih/master/bagian').then(r => setMasterBagian(r.data.data || [])).catch(() => {
+      setMasterBagian([
+        { id: 'bag-sistem', kode: 'SISTEM', nama: 'Sub Bagian Sistem', isActive: true },
+        { id: 'bag-it', kode: 'IT', nama: 'Sub Bagian IT', isActive: true },
+        { id: 'bag-hsse', kode: 'HSSE', nama: 'Sub Bagian HSSE', isActive: true },
+      ])
+    })
   }, [])
 
   const togglePic = (email: string) => {
@@ -621,12 +629,14 @@ export default function MonthlyActivitiesPage() {
                 value={selectedBagian}
                 onChange={e => setSelectedBagian(e.target.value)}
                 className="rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-sm font-bold text-brand-800 outline-none cursor-pointer"
-                title="Filter berdasarkan Bagian (Sistem, IT, HSSE)"
+                title="Filter berdasarkan Bagian"
               >
-                <option value="ALL">Semua Bagian (Sistem, IT, HSSE)</option>
-                <option value="Sistem">Sub Bagian Sistem</option>
-                <option value="IT">Sub Bagian IT</option>
-                <option value="HSSE">Sub Bagian HSSE</option>
+                <option value="ALL">Semua Bagian</option>
+                {masterBagian.filter(b => b.isActive).map(b => (
+                  <option key={b.id} value={b.kode || b.nama}>
+                    {b.nama} ({b.kode})
+                  </option>
+                ))}
               </select>
 
               {/* Filter Range Tanggal */}
@@ -702,9 +712,9 @@ export default function MonthlyActivitiesPage() {
                   <th className="px-2.5 py-3 min-w-36">Name PIC</th>
                   <th className="px-2.5 py-3 w-28">Target Date</th>
                   <th className="px-2.5 py-3 w-28">Closed Date</th>
-                  <th className="px-2.5 py-3 w-28 text-center">Status</th>
+                  <th className="px-2.5 py-3 w-28 text-left">Status</th>
                   <th className="px-2.5 py-3 min-w-48">Remarks</th>
-                  <th className="px-2.5 py-3 w-24 text-center print:hidden">Aksi</th>
+                  <th className="px-2.5 py-3 w-24 text-left print:hidden">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -717,8 +727,12 @@ export default function MonthlyActivitiesPage() {
                       <p className="mt-2 text-sm font-semibold text-slate-600">
                         Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
                       </p>
-                      <button onClick={() => openAddModal()} className="mt-3 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700">
-                        Tambah Highlight Pertama
+                      <button
+                        onClick={() => openAddModal()}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Plus size={14} />
+                        <span>Tambah Highlight Pertama</span>
                       </button>
                     </td>
                   </tr>
@@ -740,14 +754,14 @@ export default function MonthlyActivitiesPage() {
                       <td className="px-2.5 py-3 text-slate-700 font-semibold">{h.namePic || '-'}</td>
                       <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.targetDate || '-'}</td>
                       <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.closedDate || '-'}</td>
-                      <td className="px-2.5 py-3 text-center">
-                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
+                      <td className="px-2.5 py-3 text-left">
+                        <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
                           {h.status}
                         </span>
                       </td>
                       <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap font-medium">{h.remarks || '-'}</td>
-                      <td className="px-2.5 py-3 print:hidden">
-                        <div className="flex justify-center gap-1 whitespace-nowrap">
+                      <td className="px-2.5 py-3 text-left print:hidden">
+                        <div className="flex items-center justify-start gap-1 whitespace-nowrap">
                           <button
                             onClick={() => openEditModal(h)}
                             title="Update Status"
@@ -907,13 +921,15 @@ export default function MonthlyActivitiesPage() {
                     <label className="block">
                       <span className="mb-1 block text-xs font-semibold text-slate-600">Bagian *</span>
                       <select
-                        value={form.bagian || 'Sistem'}
+                        value={form.bagian || (masterBagian[0]?.kode || 'SISTEM')}
                         onChange={e => setForm({ ...form, bagian: e.target.value })}
                         className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 font-bold focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none cursor-pointer bg-white"
                       >
-                        <option value="Sistem">Sub Bagian Sistem</option>
-                        <option value="IT">Sub Bagian IT</option>
-                        <option value="HSSE">Sub Bagian HSSE</option>
+                        {masterBagian.filter(b => b.isActive).map(b => (
+                          <option key={b.id} value={b.kode}>
+                            {b.nama} ({b.kode})
+                          </option>
+                        ))}
                       </select>
                     </label>
                   </div>

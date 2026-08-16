@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { api, getCurrentUser } from '@/lib/api'
 import { useYear } from '@/context/YearContext'
 import ModalPortal from '@/components/ModalPortal'
@@ -16,7 +17,7 @@ import {
   Users,
   Layers,
   UserCheck,
-  Crown,
+  BadgeCheck,
   Filter,
   FilterX,
   RotateCcw,
@@ -24,10 +25,14 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FolderLock,
+  AlertTriangle,
+  ShieldAlert
 } from 'lucide-react'
 import { exportSubItemToExcel, exportTableToExcel3 } from '@/lib/excelExport'
 import type { SessionUser } from '@/types/auth'
+import { useToast } from '@/context/ToastContext'
 
 interface ActivityItem {
   id: string
@@ -73,6 +78,7 @@ interface UserOption {
   nama: string
   email: string
   jabatan?: string
+  role?: string
 }
 
 const emptyActivityForm = {
@@ -89,6 +95,7 @@ const emptyActivityForm = {
 }
 
 export default function DaftarProgramKerjaPage() {
+  const { toast } = useToast()
   const { selectedYear } = useYear()
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null)
   const [usersList, setUsersList] = useState<UserOption[]>([])
@@ -120,7 +127,8 @@ export default function DaftarProgramKerjaPage() {
   const [picDropdownOpen, setPicDropdownOpen] = useState(false)
   const [picSearchQuery, setPicSearchQuery] = useState('')
 
-  const isAdmin = currentUser?.role === 'ADMIN' || !currentUser?.role
+  const router = useRouter()
+  const isAdmin = currentUser?.role === 'ADMIN'
 
   useEffect(() => {
     getCurrentUser()
@@ -129,11 +137,11 @@ export default function DaftarProgramKerjaPage() {
           setCurrentUser(u)
         }
       })
-      .catch(() => {})
+      .catch(() => { })
 
     api.get('/api/esih/users')
       .then(res => setUsersList(res.data.data || []))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const fetchData = async () => {
@@ -203,12 +211,60 @@ export default function DaftarProgramKerjaPage() {
     }
   }
 
+  // Check if non-admin user has NO assigned programs
+  const userObj = useMemo(() => {
+    if (isAdmin) return null
+    return usersList.find(
+      u =>
+        u.nama.toLowerCase() === currentUser?.name?.toLowerCase() ||
+        (currentUser?.email && u.email?.toLowerCase() === currentUser?.email?.toLowerCase())
+    )
+  }, [isAdmin, usersList, currentUser])
+
+  const assignedProgramIds = useMemo(() => {
+    if (isAdmin) return []
+    return ((userObj as any)?.programs || []).map((p: any) => String(p.programId || '')).filter(Boolean)
+  }, [isAdmin, userObj])
+
+  // Flag: non-admin user with no program kerja assigned by admin
+  const hasNoAssignment = !isAdmin && currentUser !== null && usersList.length > 0 && assignedProgramIds.length === 0
+
+  // Displayed Parent Programs (For non-admin, show parent programs assigned by admin)
+  const displayParents = useMemo(() => {
+    if (isAdmin) return parents
+    if (hasNoAssignment) return []
+
+    const filtered = parents.filter(p => {
+      const pId = String(p.id).toUpperCase()
+      const pKode = String(p.kode).toUpperCase()
+      return assignedProgramIds.some((id: string) => {
+        const upper = String(id).toUpperCase()
+        return upper === pId || upper === pKode || upper === `PK-${pKode}` || upper.startsWith(`${pKode}.`)
+      })
+    })
+
+    return filtered.length > 0 ? filtered : parents
+  }, [isAdmin, parents, hasNoAssignment, assignedProgramIds])
+
+  // Automatically ensure activeParentTab points to a valid assigned program
+  useEffect(() => {
+    if (displayParents.length > 0) {
+      if (!displayParents.some(p => p.id === activeParentTab)) {
+        const firstParent = displayParents[0]
+        setActiveParentTab(firstParent.id)
+        if (firstParent.items && firstParent.items.length > 0) {
+          setActiveSubTab(firstParent.items[0].id)
+        }
+      }
+    }
+  }, [displayParents, activeParentTab])
+
   // Selected Parent Object
   const currentParent = useMemo(() => {
-    return parents.find(p => p.id === activeParentTab) || parents[0]
-  }, [parents, activeParentTab])
+    return displayParents.find(p => p.id === activeParentTab) || displayParents[0] || (parents.length > 0 ? parents[0] : null)
+  }, [displayParents, activeParentTab, parents])
 
-  // Sub-items of current active Parent
+  // Sub-items of current active Parent (shows all sub-items under the selected parent program)
   const currentSubItems = useMemo(() => {
     return currentParent?.items || []
   }, [currentParent])
@@ -240,6 +296,53 @@ export default function DaftarProgramKerjaPage() {
     return list
   }, [parents])
 
+  // For non-admin (Staff): filter to only sub-programs that belong to the user (assigned in master roles or containing user's activities)
+  const mySubPrograms = useMemo(() => {
+    if (isAdmin) return []
+    const list: {
+      id: string
+      programKerjaId: string
+      kode: string
+      namaItem: string
+      parentKode: string
+      parentNama: string
+      subProgram: SubProgram
+    }[] = []
+
+    const userObj = usersList.find(
+      u =>
+        u.nama.toLowerCase() === currentUser?.name?.toLowerCase() ||
+        (currentUser?.email && u.email?.toLowerCase() === currentUser?.email?.toLowerCase())
+    )
+    const assignedIds: string[] = ((userObj as any)?.programs || []).map((p: any) => p.programId).filter(Boolean)
+
+    parents.forEach(p => {
+      p.items?.forEach(sub => {
+        const hasMyActivity = (sub.activities || []).some(act => {
+          const names = (act.picNama || '').toLowerCase()
+          const myName = (currentUser?.name || '').toLowerCase()
+          const myEmail = (currentUser?.email || '').toLowerCase()
+          return (myName && names.includes(myName)) || (myEmail && (act.picEmail || '').toLowerCase().includes(myEmail))
+        })
+        const isAssigned = assignedIds.includes(sub.id)
+
+        if (hasMyActivity || isAssigned) {
+          list.push({
+            id: sub.id,
+            programKerjaId: p.id,
+            kode: sub.kode,
+            namaItem: sub.namaItem,
+            parentKode: p.kode,
+            parentNama: p.namaProgram,
+            subProgram: sub
+          })
+        }
+      })
+    })
+
+    return list
+  }, [isAdmin, parents, usersList, currentUser])
+
   const filteredSubProgramsForModal = useMemo(() => {
     if (!subProgramSearchQuery.trim()) return allSubPrograms
     const q = subProgramSearchQuery.toLowerCase()
@@ -269,9 +372,8 @@ export default function DaftarProgramKerjaPage() {
     setSubProgramDropdownOpen(false)
     setSubProgramSearchQuery('')
     setPicDropdownOpen(false)
-    setPicSearchQuery('')
-    const defaultPicName = currentUser?.name || 'Kurniawan Pralambang'
-    const defaultPicEmail = currentUser?.email || 'kurniawan@inl.co.id'
+    const defaultPicName = currentUser?.name || usersList.find(u => u.role === 'ADMIN')?.nama || 'Oka Aritonang'
+    const defaultPicEmail = currentUser?.email || usersList.find(u => u.role === 'ADMIN')?.email || 'oka@inl.co.id'
     const initialPics = [{ nama: defaultPicName, email: defaultPicEmail }]
     const chosenSubId = subId || (activeSubTab !== 'ALL' ? activeSubTab : currentSubItems[0]?.id || allSubPrograms[0]?.id || '')
 
@@ -319,50 +421,64 @@ export default function DaftarProgramKerjaPage() {
 
   const handleSubmitActivity = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isAdmin) {
-      alert('Hanya Admin yang dapat mengubah data')
+    if (!isAdmin) return
+    if (!activityForm.kegiatan || !activityForm.idProgram) {
+      toast.warning('Kegiatan dan Sub-Program Kerja wajib diisi!', 'Form Belum Lengkap')
       return
     }
-    if (!activityForm.kegiatan.trim()) {
-      alert('Nama Kegiatan wajib diisi')
-      return
-    }
-    if (selectedPics.length === 0) {
-      alert('Minimal 1 PIC (PIC Utama) wajib dipilih dari dropdown')
-      return
-    }
-    setSubmitting(true)
+
     try {
+      setSubmitting(true)
+      const primaryEmail = selectedPics[0]?.email || activityForm.picEmail || ''
+      const payload = {
+        ...activityForm,
+        picEmail: primaryEmail
+      }
+
       if (editingActivityId) {
-        await api.put(`/api/esih/activities/${editingActivityId}`, activityForm)
+        await api.put(`/api/esih/activities/${editingActivityId}`, payload)
+        toast.success('Aktivitas program kerja berhasil diperbarui', 'Sukses Diperbarui')
       } else {
-        await api.post('/api/esih/activities', activityForm)
+        await api.post('/api/esih/activities', payload)
+        toast.success('Aktivitas program kerja baru berhasil ditambahkan', 'Sukses Ditambahkan')
       }
       setShowModal(false)
       fetchData()
-    } catch {
-      alert('Gagal menyimpan Kegiatan Program Kerja')
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.response?.data?.error || 'Gagal menyimpan aktivitas', 'Terjadi Kesalahan')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const toggleActivityStatus = async (act: ActivityItem) => {
-    if (!isAdmin) {
-      alert('Hanya Admin yang dapat mengubah status')
-      return
+  const handleDeleteActivity = async (id: string, nama: string) => {
+    if (!isAdmin) return
+    if (!confirm(`Yakin ingin menghapus aktivitas "${nama}"?`)) return
+    try {
+      await api.delete(`/api/esih/activities/${id}`)
+      toast.success(`Aktivitas "${nama}" berhasil dihapus`, 'Aktivitas Dihapus')
+      fetchData()
+    } catch (e) {
+      console.error(e)
+      toast.error('Gagal menghapus aktivitas', 'Terjadi Kesalahan')
     }
+  }
+
+  const handleToggleActivityStatus = async (act: ActivityItem) => {
+    if (!isAdmin) return
     const nextStatus = act.status === 'Closed' ? 'On Progress' : 'Closed'
     const todayStr = new Date().toISOString().split('T')[0]
     try {
       await api.put(`/api/esih/activities/${act.id}`, {
-        ...act,
         status: nextStatus,
         closedDate: nextStatus === 'Closed' ? todayStr : null
       })
+      toast.success(`Status aktivitas diubah menjadi ${nextStatus}`, 'Status Diperbarui')
       fetchData()
     } catch (e) {
       console.error(e)
+      toast.error('Gagal memperbarui status aktivitas', 'Terjadi Kesalahan')
     }
   }
 
@@ -396,6 +512,17 @@ export default function DaftarProgramKerjaPage() {
       } else if (statusFilter === 'CLOSED') {
         if (act.status !== 'Closed' && act.status !== 'Cancelled') return false
       }
+
+      // 3. User Role Filter: If staff (non-admin), only show activities where current user is PIC
+      if (!isAdmin && currentUser?.name) {
+        const myName = currentUser.name.toLowerCase()
+        const myEmail = (currentUser.email || '').toLowerCase()
+        const actPicNama = (act.picNama || '').toLowerCase()
+        const actPicEmail = (act.picEmail || '').toLowerCase()
+        const isMyActivity = actPicNama.includes(myName) || (myEmail && actPicEmail.includes(myEmail))
+        if (!isMyActivity) return false
+      }
+
       return true
     })
   }
@@ -417,7 +544,7 @@ export default function DaftarProgramKerjaPage() {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-xs font-bold text-amber-950 shadow-xs"
             title="PIC Utama (Penanggung Jawab Utama)"
           >
-            <Crown size={12} className="text-amber-600 shrink-0" />
+            <BadgeCheck size={13} className="text-amber-700 shrink-0" />
             <span>{primaryPic}</span>
             <span className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.5 rounded-md tracking-wide">
               Utama
@@ -451,18 +578,90 @@ export default function DaftarProgramKerjaPage() {
       const matchInCurrent = currentSubItems.find(s => s.id === activeSubTab)
       if (matchInCurrent) return matchInCurrent
       // Fallback: search across all parents
-      for (const p of parents) {
+      for (const p of displayParents) {
         const found = p.items?.find(s => s.id === activeSubTab)
         if (found) return found
       }
     }
     return currentSubItems[0] || null
-  }, [currentParent, currentSubItems, activeSubTab, parents])
+  }, [currentParent, currentSubItems, activeSubTab, displayParents])
 
   if (loading) {
     return (
       <div className="flex min-h-64 items-center justify-center">
         <span className="spinner" />
+      </div>
+    )
+  }
+
+  if (hasNoAssignment) {
+    return (
+      <div className="space-y-6 max-w-3xl py-2 sm:py-6">
+        {/* Main Heading with Red Warning Icon (No background shape) */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <AlertTriangle size={28} className="text-red-600 shrink-0" />
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Halo, {currentUser?.name || 'Pengguna'}
+            </h1>
+          </div>
+          <div className="space-y-1 pl-10">
+            <p className="text-xs font-bold text-red-600 uppercase tracking-wider">
+              Akses Program Kerja Belum Dikonfigurasi
+            </p>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Akun Anda saat ini belum memiliki penugasan <strong>Master Program Kerja</strong> dari Administrator e-SIH.
+            </p>
+          </div>
+        </div>
+
+        {/* User & Admin Details Table (Clean Flat Bordered List) */}
+        <div className="pl-10 space-y-4">
+          <div className="rounded-xl border border-slate-200 divide-y divide-slate-200 text-xs overflow-hidden max-w-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 bg-slate-50/70 gap-1">
+              <span className="font-semibold text-slate-500">Nama Pengguna:</span>
+              <span className="font-bold text-slate-900">{currentUser?.name || '-'}</span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 bg-white gap-1">
+              <span className="font-semibold text-slate-500">Jabatan &amp; Unit Kerja:</span>
+              <span className="font-semibold text-slate-800">
+                {currentUser?.employee?.jabatan || currentUser?.jabatan || 'Asisten IT'} ({/hsse|hse|safety|k3|mr/i.test(currentUser?.unit?.nama || currentUser?.employee?.unit?.nama || '') ? 'Seksi MR & HSSE' : (currentUser?.role === 'ADMIN' ? 'Sub Bagian Sistem & IT' : 'Seksi IT')})
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 bg-slate-50/70 gap-1">
+              <span className="font-semibold text-slate-500">Pengelola Sistem (Admin):</span>
+              <span className="font-semibold text-emerald-800">
+                Oka Aritonang (Kasubag Sistem &amp; IT)
+              </span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500 leading-relaxed max-w-xl">
+            Silakan hubungi Admin pengelola untuk mengaktifkan Program Kerja penugasan Anda pada menu <strong>Kelola Hak Akses &amp; Role</strong>.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                api.get('/api/esih/users').then(res => setUsersList(res.data.data || [])).catch(() => { })
+                fetchData()
+              }}
+              className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+            >
+              <RotateCcw size={14} />
+              <span>Cek Ulang Status Penugasan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-300 transition-colors cursor-pointer"
+            >
+              <span>Kembali ke Dashboard</span>
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -473,10 +672,12 @@ export default function DaftarProgramKerjaPage() {
       <div>
         <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
           <FolderKanban size={22} className="text-brand-600 shrink-0" />
-          Daftar Program Kerja
+          {isAdmin ? 'Daftar Program Kerja' : 'Program Kerja Ku'}
         </h1>
         <p className="text-xs font-medium text-slate-600 mt-0.5">
-          Kelola Project &amp; Kegiatan berdasarkan Tab Program Kerja Induk (A, B, C) dan Sub-Item Program Kerja ({selectedYear}).
+          {isAdmin
+            ? `Kelola Project & Kegiatan berdasarkan Tab Program Kerja Induk (A, B, C) dan Sub-Item Program Kerja (${selectedYear}).`
+            : `Daftar Sub-Program Kerja & Aktivitas Operasional yang ditugaskan kepada Anda (${selectedYear}).`}
         </p>
       </div>
 
@@ -499,25 +700,22 @@ export default function DaftarProgramKerjaPage() {
           <div className="flex items-center gap-1.5 shrink-0 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               Semua Status
             </button>
             <button
               onClick={() => setStatusFilter('OPEN')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                statusFilter === 'OPEN' ? 'bg-amber-500 text-white shadow-xs font-bold' : 'text-amber-700 hover:bg-amber-100'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${statusFilter === 'OPEN' ? 'bg-amber-500 text-white shadow-xs font-bold' : 'text-amber-700 hover:bg-amber-100'
+                }`}
             >
               <Clock size={12} /> Masih Open
             </button>
             <button
               onClick={() => setStatusFilter('CLOSED')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                statusFilter === 'CLOSED' ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'text-emerald-700 hover:bg-emerald-100'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${statusFilter === 'CLOSED' ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'text-emerald-700 hover:bg-emerald-100'
+                }`}
             >
               <CheckCircle2 size={12} /> Sudah Close
             </button>
@@ -541,59 +739,110 @@ export default function DaftarProgramKerjaPage() {
         </div>
       </div>
 
-      {/* ROW 2: MAIN PARENT PROGRAM TABS (A, B, C) */}
-      <div className="space-y-1.5">
-        <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 px-1">
-          <FolderKanban size={14} className="text-brand-600" />
-          <span>Semua Program Kerja:</span>
+      {/* ROW 1: MAIN PARENT PROGRAM TABS (A, B, C) */}
+      <div className="space-y-2">
+        <div className="text-xs font-semibold text-slate-700 flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <FolderKanban size={14} className="text-emerald-700" />
+            <span>
+              {isAdmin
+                ? 'Semua Program Kerja Induk:'
+                : displayParents.length === 1
+                  ? 'Program Kerja Induk Penugasan Saya:'
+                  : 'Daftar Program Kerja Induk Saya (Pilih Program Kerja):'}
+            </span>
+          </div>
+          {!isAdmin && (
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
+              {displayParents.length === 1 ? '1 Program Ditugaskan' : `${displayParents.length} Program Ditugaskan`}
+            </span>
+          )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {parents.map(p => {
-            const isActive = p.id === activeParentTab
-            const subCount = p.items?.length || 0
-            return (
-              <button
-                key={p.id}
-                onClick={() => handleParentTabChange(p.id)}
-                className={`w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl transition-all cursor-pointer text-left ${
-                  isActive
-                    ? 'bg-white text-emerald-950 font-bold border border-emerald-600 shadow-sm'
-                    : 'bg-white text-slate-700 font-bold border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-sm shrink-0 border ${
-                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
-                  }`}>
-                    {p.kode}
+
+        {displayParents.length === 1 && !isAdmin ? (
+          /* Single Assigned Program Banner - Automatically Selected */
+          <div className="bg-white rounded-2xl border-2 border-emerald-500/70 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-linear-to-r from-emerald-50/60 via-white to-slate-50">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <span className="w-11 h-11 rounded-2xl bg-emerald-700 text-white font-mono font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
+                {displayParents[0].kode}
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+                    Program Kerja {displayParents[0].kode}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <div className={`text-xs font-bold tracking-tight leading-snug truncate ${isActive ? 'text-emerald-950' : 'text-slate-900'}`} title={p.namaProgram}>
-                      Program {p.kode}: {p.namaProgram}
-                    </div>
-                    <div className="text-xs font-semibold text-slate-600 truncate mt-0.5">
-                      {subCount} Sub-Program Item
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    Otomatis Aktif
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-900 truncate mt-0.5" title={displayParents[0].namaProgram}>
+                  {displayParents[0].namaProgram}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Memuat {displayParents[0].items?.length || 0} Sub-Item Program Kerja di bawah ini
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+              <div className="text-right">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Progress Capaian</span>
+                <span className="text-sm font-bold text-emerald-700">{displayParents[0].totalProgress}%</span>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-900 font-bold text-xs">
+                {displayParents[0].totalProgress}%
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Multiple Programs Tabs (or Admin View) */
+          <div className={`grid grid-cols-1 gap-3 ${displayParents.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'
+            }`}>
+            {displayParents.map(p => {
+              const isActive = p.id === currentParent?.id
+              const subCount = p.items?.length || 0
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handleParentTabChange(p.id)}
+                  className={`w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl transition-all cursor-pointer text-left ${isActive
+                      ? 'bg-white text-emerald-950 font-bold border-2 border-emerald-600 shadow-md ring-2 ring-emerald-500/20'
+                      : 'bg-white text-slate-700 font-bold border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-sm shrink-0 border ${isActive ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}>
+                      {p.kode}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-xs font-bold tracking-tight leading-snug truncate ${isActive ? 'text-emerald-950' : 'text-slate-900'}`} title={p.namaProgram}>
+                        Program {p.kode}: {p.namaProgram}
+                      </div>
+                      <div className="text-xs font-semibold text-slate-600 truncate mt-0.5">
+                        {subCount} Sub-Program Item
+                      </div>
                     </div>
                   </div>
-                </div>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border ${
-                  isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}>
-                  {p.totalProgress}%
-                </span>
-              </button>
-            )
-          })}
-        </div>
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border ${isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}>
+                    {p.totalProgress}%
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* 2. SUB-ITEM BUTTON TABS (Child Sub-Items under active Parent) */}
+      {/* ROW 2: SUB-ITEM BUTTON TABS (Child Sub-Items under active Parent) */}
       {currentParent && currentSubItems.length > 0 && (
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
               <Layers size={14} className="text-emerald-600" />
-              Pilih Sub-Item Program Kerja [{currentParent.kode}]:
+              {isAdmin ? `Pilih Sub-Item Program Kerja [${currentParent.kode}]:` : `Pilih Sub-Item Penugasan [${currentParent.kode}]:`}
             </span>
             <span className="text-xs font-bold text-slate-600">
               {currentSubItems.length} Sub-Item Tersedia
@@ -613,21 +862,18 @@ export default function DaftarProgramKerjaPage() {
                     setActiveSubTab(sub.id)
                     setSubPages({}) // Reset pagination to page 1 when switching sub-item
                   }}
-                  className={`px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-2.5 font-bold shrink-0 shadow-xs ${
-                    isActive
+                  className={`px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-2.5 font-bold shrink-0 shadow-xs ${isActive
                       ? 'bg-emerald-50 text-emerald-950 border border-emerald-600 font-semibold shadow-xs'
                       : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
+                    }`}
                 >
-                  <span className={`px-1.5 py-0.5 rounded text-xs font-mono font-bold border ${
-                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
-                  }`}>
+                  <span className={`px-1.5 py-0.5 rounded text-xs font-mono font-bold border ${isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-200'
+                    }`}>
                     {sub.kode}
                   </span>
                   <span className="font-semibold">{sub.namaItem}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-md font-semibold border ${
-                    isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
-                  }`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-md font-semibold border ${isActive ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}>
                     {filteredActs.length}
                   </span>
                 </button>
@@ -641,7 +887,9 @@ export default function DaftarProgramKerjaPage() {
       <div className="space-y-5">
         {!activeSubProgramObj ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-600 font-semibold text-sm">
-            Tidak ada Sub-Item Program Kerja untuk kelompok ini.
+            {!isAdmin
+              ? 'Belum ada Sub-Program Kerja atau Aktivitas yang ditugaskan kepada Anda pada tahun ini.'
+              : 'Tidak ada Sub-Program Kerja untuk kelompok ini.'}
           </div>
         ) : (
           (() => {
@@ -725,9 +973,9 @@ export default function DaftarProgramKerjaPage() {
                         <th className="py-3 px-3.5 min-w-[180px]">Nama PIC (Utama &amp; Pendukung)</th>
                         <th className="py-3 px-3.5 w-24">Target Date</th>
                         <th className="py-3 px-3.5 w-24">Closed Date</th>
-                        <th className="py-3 px-3.5 w-32">Status</th>
+                        <th className="py-3 px-3.5 w-32 text-left">Status</th>
                         <th className="py-3 px-3.5 min-w-[150px]">Remarks</th>
-                        {isAdmin && <th className="py-3 px-3.5 w-20 text-center">Aksi</th>}
+                        {isAdmin && <th className="py-3 px-3.5 w-20 text-left">Aksi</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -760,23 +1008,22 @@ export default function DaftarProgramKerjaPage() {
                               <td className="py-3.5 px-3.5 font-medium text-slate-700 whitespace-nowrap">
                                 {act.closedDate || '-'}
                               </td>
-                              <td className="py-3.5 px-3.5">
+                              <td className="py-3.5 px-3.5 text-left">
                                 <div className="space-y-1">
                                   <span
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${
-                                      act.status === 'Closed'
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border whitespace-nowrap ${act.status === 'Closed'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : act.status === 'On Progress'
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                        : 'bg-sky-50 text-sky-700 border-sky-200'
-                                    }`}
+                                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                          : 'bg-sky-50 text-sky-700 border-sky-200'
+                                      }`}
                                   >
                                     {act.status === 'Closed' ? (
                                       <CheckCircle2 size={12} className="text-emerald-600" />
                                     ) : (
                                       <Clock size={12} className="text-amber-600" />
                                     )}
-                                    {act.status}
+                                    <span className="whitespace-nowrap">{act.status}</span>
                                   </span>
                                   <div className="flex items-center gap-1 text-xs font-bold text-slate-600 mt-0.5">
                                     {isOpenStatus ? (
@@ -797,8 +1044,8 @@ export default function DaftarProgramKerjaPage() {
                                 {act.remarks || '-'}
                               </td>
                               {isAdmin && (
-                                <td className="py-3.5 px-3.5 text-center">
-                                  <div className="flex items-center justify-center gap-1">
+                                <td className="py-3.5 px-3.5 text-left">
+                                  <div className="flex items-center justify-start gap-1">
                                     <button
                                       onClick={() => openEditModal(act)}
                                       className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
@@ -807,12 +1054,11 @@ export default function DaftarProgramKerjaPage() {
                                       <Pencil size={14} />
                                     </button>
                                     <button
-                                      onClick={() => toggleActivityStatus(act)}
-                                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                        act.status === 'Closed'
+                                      onClick={() => handleToggleActivityStatus(act)}
+                                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${act.status === 'Closed'
                                           ? 'text-amber-600 hover:bg-amber-50'
                                           : 'text-emerald-600 hover:bg-emerald-50'
-                                      }`}
+                                        }`}
                                       title={act.status === 'Closed' ? 'Tandai Kembali On Progress' : 'Tandai Selesai (Closed)'}
                                     >
                                       {act.status === 'Closed' ? <Clock size={14} /> : <CheckCircle2 size={14} />}
@@ -978,9 +1224,8 @@ export default function DaftarProgramKerjaPage() {
                         </span>
                         <ChevronRight
                           size={16}
-                          className={`text-slate-600 shrink-0 transition-transform ${
-                            subProgramDropdownOpen ? 'rotate-90 text-brand-600' : ''
-                          }`}
+                          className={`text-slate-600 shrink-0 transition-transform ${subProgramDropdownOpen ? 'rotate-90 text-brand-600' : ''
+                            }`}
                         />
                       </button>
 
@@ -993,7 +1238,7 @@ export default function DaftarProgramKerjaPage() {
                               autoFocus
                               value={subProgramSearchQuery}
                               onChange={e => setSubProgramSearchQuery(e.target.value)}
-                              placeholder="🔍 Ketik nama/kode sub-program (misal: RFID, A.1, IT...)"
+                              placeholder="Ketik nama/kode sub-program (misal: RFID, A.1, IT...)"
                               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-8 text-xs font-bold text-slate-900 outline-none focus:border-brand-500 focus:bg-white"
                             />
                             {subProgramSearchQuery && (
@@ -1024,26 +1269,23 @@ export default function DaftarProgramKerjaPage() {
                                       setSubProgramDropdownOpen(false)
                                       setSubProgramSearchQuery('')
                                     }}
-                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                                      isSelected
+                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer flex items-center justify-between gap-2 ${isSelected
                                         ? 'bg-brand-600 text-white font-bold shadow-xs'
                                         : 'hover:bg-slate-100 text-slate-800 font-bold'
-                                    }`}
+                                      }`}
                                   >
                                     <div className="flex items-center gap-2 min-w-0">
                                       <span
-                                        className={`px-2 py-0.5 rounded text-xs font-mono font-bold shrink-0 ${
-                                          isSelected ? 'bg-brand-800 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200'
-                                        }`}
+                                        className={`px-2 py-0.5 rounded text-xs font-mono font-bold shrink-0 ${isSelected ? 'bg-brand-800 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                          }`}
                                       >
                                         {sp.kode}
                                       </span>
                                       <span className="truncate">{sp.namaItem}</span>
                                     </div>
                                     <span
-                                      className={`text-xs font-bold shrink-0 ${
-                                        isSelected ? 'text-brand-100' : 'text-slate-600'
-                                      }`}
+                                      className={`text-xs font-bold shrink-0 ${isSelected ? 'text-brand-100' : 'text-slate-600'
+                                        }`}
                                     >
                                       {sp.parentKode}
                                     </span>
@@ -1108,9 +1350,8 @@ export default function DaftarProgramKerjaPage() {
                         </span>
                         <ChevronRight
                           size={16}
-                          className={`text-slate-600 shrink-0 transition-transform ${
-                            picDropdownOpen ? 'rotate-90 text-brand-600' : ''
-                          }`}
+                          className={`text-slate-600 shrink-0 transition-transform ${picDropdownOpen ? 'rotate-90 text-brand-600' : ''
+                            }`}
                         />
                       </button>
 
@@ -1159,11 +1400,10 @@ export default function DaftarProgramKerjaPage() {
                                       setPicDropdownOpen(false)
                                       setPicSearchQuery('')
                                     }}
-                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2 ${
-                                      isAlreadySelected
+                                    className={`w-full p-2.5 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2 ${isAlreadySelected
                                         ? 'bg-slate-100 text-slate-600 cursor-not-allowed opacity-60'
                                         : 'hover:bg-brand-50 hover:text-brand-900 text-slate-800 font-bold cursor-pointer'
-                                    }`}
+                                      }`}
                                   >
                                     <div className="flex items-center gap-2 min-w-0">
                                       <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-800 font-bold flex items-center justify-center text-xs shrink-0">
@@ -1206,16 +1446,15 @@ export default function DaftarProgramKerjaPage() {
                           return (
                             <div
                               key={idx}
-                              className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
-                                isPrimary
+                              className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${isPrimary
                                   ? 'bg-amber-50/90 border-amber-300 text-amber-950 font-bold shadow-xs ring-1 ring-amber-300'
                                   : 'bg-white border-slate-200 text-slate-800 font-semibold'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
                                 {isPrimary ? (
                                   <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold text-xs shrink-0">
-                                    <Crown size={11} className="text-amber-700" /> PIC UTAMA
+                                    <BadgeCheck size={12} className="text-amber-800" /> PIC UTAMA
                                   </span>
                                 ) : (
                                   <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-xs shrink-0">

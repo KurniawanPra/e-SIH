@@ -110,19 +110,20 @@ export default fp(async function authPlugin(app) {
 
     if (!user && !config.isProduction) {
       user = {
-        sub: 'demo-admin-id',
-        email: 'kurniawan@inl.co.id',
-        employeeId: 'emp-admin',
-        name: 'Kurniawan Pralambang',
-        jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+        sub: '65518f57-35ea-43b2-af59-8e3ea489586b',
+        email: 'oka@inl.co.id',
+        employeeId: 'emp-admin-oka',
+        name: 'Oka Aritonang',
+        jabatan: 'Kepala Sub Bagian Sistem dan IT',
         role: 'ADMIN',
         employee: {
-          id: 'emp-admin',
-          namaLengkap: 'Kurniawan Pralambang',
-          jabatan: 'Kepala Unit Organisasi Sub Bagian Sistem & IT',
+          id: 'emp-admin-oka',
+          namaLengkap: 'Oka Aritonang',
+          jabatan: 'Kepala Sub Bagian Sistem dan IT',
+          unit: { id: 'u-it', kode: 'IT', nama: 'Sub Bagian Sistem & IT' }
         },
         grade: { id: 'g-1', kode: 'M1', label: 'Manager 1', level: 1 },
-        unit: { id: 'u-1', kode: 'IT', nama: 'IT & Sistem Operational' },
+        unit: { id: 'u-1', kode: 'IT', nama: 'Sistem & IT' },
         penempatanArea: { id: 'p-1', kode: 'HO', nama: 'Head Office' },
       }
       request.session.set('user', user)

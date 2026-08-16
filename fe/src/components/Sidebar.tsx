@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import {
   LayoutDashboard,
-  CalendarDays,
   FolderKanban,
   ListChecks,
   ChevronDown,
@@ -14,9 +13,9 @@ import {
   Users,
   LogOut,
   AlertTriangle,
-  ListFilter,
   ShieldCheck,
-  CalendarClock
+  CalendarClock,
+  Layers
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 import ModalPortal from '@/components/ModalPortal'
@@ -32,7 +31,7 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
   const [masterOpen, setMasterOpen] = useState(pathname.includes('/master'))
   const [showLogoutModal, setShowLogoutModal] = useState(false)
 
-  const isAdmin = user?.role === 'ADMIN' || !user?.role // default Kurniawan is admin
+  const isAdmin = user?.role === 'ADMIN'
   const programKerjaLabel = isAdmin ? 'Daftar Program Kerja' : 'Program Kerja Ku'
   const activitiesLabel = isAdmin ? 'Activities' : 'Activities Ku'
   const proyekLabel = 'Update Aktivitas'
@@ -44,56 +43,78 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
     { name: proyekLabel, path: '/dashboard/monthly', icon: CalendarClock },
   ]
 
+  const masterItems = [
+    { name: 'Program Kerja Induk', path: '/dashboard/master/program-kerja', icon: FolderKanban },
+    { name: 'Master Bagian', path: '/dashboard/master/bagian', icon: Layers },
+    { name: 'Kelola Users', path: '/dashboard/master/users', icon: Users },
+    { name: 'Hak Akses & Role', path: '/dashboard/master/roles', icon: ShieldCheck },
+  ]
+
   return (
     <>
-      {/* Overlay on mobile (fades in/out) */}
+      {/* Mobile Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
+        className={`fixed inset-0 bg-slate-900/30 z-40 lg:hidden transition-opacity ${
+          collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
         onClick={onToggle}
       />
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-dvh w-72 lg:w-64 neu-sidebar flex flex-col transition-transform duration-300 ease-out ${collapsed ? '-translate-x-full' : 'translate-x-0'
-          }`}
+        className={`fixed top-0 left-0 z-50 h-dvh w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out ${
+          collapsed ? '-translate-x-full' : 'translate-x-0'
+        }`}
       >
         {/* Logo Header */}
-        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-300">
-          <Link href="/dashboard" className="flex items-center gap-3 no-underline">
-            <img src="/esih-logo.png" alt="e-SIH Logo" className="w-9 h-9 rounded-xl object-cover shadow-xs neu-inset p-0.5" />
+        <div className="h-14 px-4 flex items-center justify-between border-b border-slate-200">
+          <Link href="/dashboard" className="flex items-center gap-2.5 no-underline">
+            <span className="w-7 h-7 rounded bg-brand-700 text-white flex items-center justify-center font-bold text-xs">
+              SIH
+            </span>
             <div className="leading-tight">
               <span className="font-bold text-slate-900 text-sm block">e-SIH</span>
-              <span className="text-xs text-slate-600 font-bold tracking-wide">INL Operation</span>
+              <span className="text-[10px] text-slate-500 block">PT INL Operation</span>
             </div>
           </Link>
-          {/* Close button on mobile only */}
-          <button onClick={onToggle} className="lg:hidden p-2 rounded-lg neu-btn text-slate-600 cursor-pointer" aria-label="Tutup Sidebar">
+          <button
+            onClick={onToggle}
+            className="lg:hidden p-1 rounded text-slate-500 hover:bg-slate-100"
+            aria-label="Tutup Sidebar"
+          >
             <X size={18} />
           </button>
         </div>
 
-        {/* Navigation Area */}
-        <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           <div>
-            <p className="text-xs font-semibold text-slate-600 px-3 mb-2.5">Menu Utama</p>
-            <ul className="space-y-2">
-              {navItems.map(item => {
-                const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
-                const active = item.path === '/dashboard'
-                  ? normalizedPath === '/dashboard'
-                  : normalizedPath.startsWith(item.path)
+            <span className="block px-2.5 mb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Menu
+            </span>
+            <ul className="space-y-1.5">
+              {navItems.map((item) => {
+                const normalizedPath =
+                  pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
+                const active =
+                  item.path === '/dashboard'
+                    ? normalizedPath === '/dashboard'
+                    : normalizedPath.startsWith(item.path)
+
                 return (
                   <li key={item.path}>
                     <Link
                       href={item.path}
-                      onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all no-underline ${active
-                          ? 'neu-active-green font-semibold text-white'
-                          : 'neu-btn font-bold text-slate-700 hover:text-slate-900'
-                        }`}
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle()
+                      }}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium no-underline transition-all border ${
+                        active
+                          ? 'bg-brand-50 text-brand-700 font-semibold border-brand-500 shadow-2xs'
+                          : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300'
+                      }`}
                     >
-                      <item.icon size={18} strokeWidth={active ? 2.5 : 1.8} className={active ? 'text-white' : 'text-slate-600'} />
-                      <span className={active ? 'text-white font-bold' : 'text-slate-700 font-bold'}>{item.name}</span>
+                      <item.icon size={16} className={active ? 'text-brand-700' : 'text-slate-500'} />
+                      <span>{item.name}</span>
                     </Link>
                   </li>
                 )
@@ -101,103 +122,94 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
             </ul>
           </div>
 
-          {/* Master Data Section (Admin & System Config) */}
-          <div>
-            <p className="text-xs font-semibold text-slate-600 px-3 mb-2.5">Master Data</p>
-            {(() => {
-              const normalizedPath = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
-              const isMasterActive = normalizedPath.includes('/master') && !normalizedPath.includes('/master/programs')
-              return (
-                <>
-                  <button
-                    onClick={() => setMasterOpen(!masterOpen)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isMasterActive
-                        ? 'neu-active-green font-semibold text-white'
-                        : 'neu-btn text-slate-700 hover:text-slate-900'
-                      }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <FolderKanban size={18} strokeWidth={isMasterActive ? 2.5 : 1.8} className={isMasterActive ? 'text-white' : 'text-slate-600'} />
-                      <span className={isMasterActive ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Kelola Data</span>
-                    </span>
-                    {masterOpen ? <ChevronDown size={14} className={isMasterActive ? 'text-white' : ''} /> : <ChevronRight size={14} className={isMasterActive ? 'text-white' : ''} />}
-                  </button>
+          {/* Master Data (Admin Only) */}
+          {isAdmin && (
+            <div>
+              <span className="block px-2.5 mb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                Pengaturan
+              </span>
+              {(() => {
+                const normalizedPath =
+                  pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname
+                const isMasterActive =
+                  normalizedPath.includes('/master') && !normalizedPath.includes('/master/programs')
 
-                  {masterOpen && (
-                    <ul className="ml-4 mt-2 space-y-1.5 border-l-2 border-slate-300 pl-2 animate-dropdown-in">
-                      <li>
-                        <Link
-                          href="/dashboard/master/program-kerja"
-                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/program-kerja')
-                              ? 'neu-active-green font-semibold text-white'
-                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                            }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <FolderKanban size={15} className={normalizedPath.includes('/master/program-kerja') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/program-kerja') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Program Kerja</span>
-                          </span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/dashboard/master/users"
-                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/users')
-                              ? 'neu-active-green font-semibold text-white'
-                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                            }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <Users size={15} className={normalizedPath.includes('/master/users') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/users') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Kelola Users</span>
-                          </span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/dashboard/master/roles"
-                          onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle() }}
-                          className={`block px-3 py-2 rounded-lg text-xs no-underline transition-all ${normalizedPath.includes('/master/roles')
-                              ? 'neu-active-green font-semibold text-white'
-                              : 'neu-btn text-slate-700 font-bold hover:text-slate-900'
-                            }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <ShieldCheck size={15} className={normalizedPath.includes('/master/roles') ? 'text-white' : ''} />
-                            <span className={normalizedPath.includes('/master/roles') ? 'text-white font-bold' : 'text-slate-700 font-bold'}>Hak Akses</span>
-                          </span>
-                        </Link>
-                      </li>
-                    </ul>
-                  )}
-                </>
-              )
-            })()}
-          </div>
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      onClick={() => setMasterOpen(!masterOpen)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+                        isMasterActive
+                          ? 'bg-brand-50 text-brand-700 font-semibold border-brand-500 shadow-2xs'
+                          : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <FolderKanban
+                          size={16}
+                          className={isMasterActive ? 'text-brand-700' : 'text-slate-500'}
+                        />
+                        <span>Master Data</span>
+                      </span>
+                      {masterOpen ? (
+                        <ChevronDown size={14} className="text-slate-400" />
+                      ) : (
+                        <ChevronRight size={14} className="text-slate-400" />
+                      )}
+                    </button>
+
+                    {masterOpen && (
+                      <ul className="ml-4 pl-2.5 border-l border-slate-200 space-y-1 pt-1">
+                        {masterItems.map((sub) => {
+                          const isSubActive = normalizedPath.includes(sub.path)
+                          return (
+                            <li key={sub.path}>
+                              <Link
+                                href={sub.path}
+                                onClick={() => {
+                                  if (typeof window !== 'undefined' && window.innerWidth < 1024) onToggle()
+                                }}
+                                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs no-underline transition-all border ${
+                                  isSubActive
+                                    ? 'text-brand-700 font-semibold bg-brand-50 border-brand-400 shadow-2xs'
+                                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300'
+                                }`}
+                              >
+                                <sub.icon
+                                  size={14}
+                                  className={isSubActive ? 'text-brand-700' : 'text-slate-400'}
+                                />
+                                <span>{sub.name}</span>
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </nav>
 
-        {/* Footer User Info & Role Badge & Full Width Logout */}
-        <div className="p-3.5 border-t border-slate-300 neu-inset space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 pr-2">
-              <p className="text-xs font-bold text-slate-900 truncate">{user?.name || 'Pengguna'}</p>
-              <p className="text-xs text-slate-600 font-semibold truncate">{user?.employee?.jabatan || 'Staff'}</p>
-            </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-md border shrink-0 ${isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
-              }`}>
-              {isAdmin ? 'ADMIN' : 'USER'}
-            </span>
+        {/* Footer User Info */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50 space-y-2.5">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-slate-900 truncate">
+              {user?.name || 'Pengguna'}
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">
+              {user?.employee?.jabatan || user?.jabatan || 'Staff'}
+            </p>
           </div>
-
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold text-xs transition-colors cursor-pointer shadow-xs neu-btn"
-            title="Hapus sesi & logout"
+            className="w-full flex items-center justify-start gap-2.5 px-3 py-2 rounded-lg border border-red-500 bg-red-500/10 hover:bg-red-500/20 text-red-700 font-semibold text-xs transition-colors cursor-pointer"
+            title="Keluar dari e-SIH"
           >
-            <LogOut size={15} />
-            <span>Hapus Sesi / Logout</span>
+            <LogOut size={15} className="text-red-600 shrink-0" />
+            <span>Keluar / Logout</span>
           </button>
         </div>
       </aside>
@@ -205,35 +217,32 @@ export default function Sidebar({ user, collapsed, onToggle }: SidebarProps) {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <ModalPortal>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center overflow-y-auto p-4 animate-overlay-fade">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden animate-zoom-in my-auto">
-              <div className="p-5 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto neu-btn">
-                  <AlertTriangle size={24} />
+          <div className="fixed inset-0 bg-slate-900/40 z-[99999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-lg w-full max-w-sm overflow-hidden my-auto">
+              <div className="p-5 text-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                  <AlertTriangle size={20} />
                 </div>
-                <h3 className="font-bold text-slate-900 text-base">Konfirmasi Keluar Sesi</h3>
-                <p className="text-xs text-slate-600 font-medium">
-                  Apakah Anda yakin ingin mengakhiri sesi login saat ini dan keluar dari aplikasi <strong className="text-slate-900">e-SIH Operation</strong>?
+                <h3 className="font-semibold text-slate-900 text-sm">Konfirmasi Keluar</h3>
+                <p className="text-xs text-slate-600">
+                  Apakah Anda yakin ingin keluar dari aplikasi e-SIH?
                 </p>
               </div>
-              <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+              <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
                   onClick={() => setShowLogoutModal(false)}
-                  className="px-4 py-2 rounded-lg neu-btn font-bold text-xs text-slate-700 cursor-pointer"
+                  className="px-3 py-1.5 rounded border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-100 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   onClick={async () => {
-                    try {
-                      const { api } = await import('@/lib/api')
-                      await api.post('/api/auth/logout')
-                    } catch { }
-                    window.location.href = '/'
+                    const { logoutSession } = await import('@/lib/api')
+                    await logoutSession()
                   }}
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
+                  className="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-medium cursor-pointer"
                 >
-                  Ya, Keluar Sesi
+                  Keluar
                 </button>
               </div>
             </div>

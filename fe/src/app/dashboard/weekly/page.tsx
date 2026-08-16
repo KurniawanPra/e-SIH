@@ -27,6 +27,7 @@ import type { SessionUser } from '@/types/auth'
 import ModalPortal from '@/components/ModalPortal'
 import { exportTableToExcel3 } from '@/lib/excelExport'
 import { useYear } from '@/context/YearContext'
+import { useToast } from '@/context/ToastContext'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -73,12 +74,13 @@ const weekLabel = (startDate?: string, dueDate?: string) => {
 }
 
 export default function WeeklyActivitiesPage() {
+  const { toast } = useToast()
   const [showFilters, setShowFilters] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
   const [usersList, setUsersList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<SessionUser | null>(null)
-  const isAdmin = user?.role === 'ADMIN' || !user?.role
+  const isAdmin = user?.role === 'ADMIN'
 
   // Month & Week Sprints Grouping
   const currentMonthIdx = new Date().getMonth() + 1
@@ -399,13 +401,15 @@ export default function WeeklyActivitiesPage() {
     try {
       if (editItem) {
         await api.put(`/api/esih/activities/${editItem.id}`, form)
+        toast.success('Laporan aktivitas mingguan berhasil diperbarui', 'Sukses Diperbarui')
       } else {
         await api.post('/api/esih/activities', form)
+        toast.success('Laporan aktivitas mingguan baru berhasil ditambahkan', 'Sukses Ditambahkan')
       }
       setShowModal(false)
       fetchAll()
     } catch {
-      alert('Gagal menyimpan data aktivitas')
+      toast.error('Gagal menyimpan data aktivitas', 'Terjadi Kesalahan')
     } finally {
       setSubmitting(false)
     }
@@ -422,10 +426,11 @@ export default function WeeklyActivitiesPage() {
         closedDate: statusForm.status === 'Closed' ? (statusForm.closedDate || today) : '',
         dueDate: statusForm.dueDate
       })
+      toast.success(`Status aktivitas berhasil diubah menjadi ${statusForm.status}`, 'Status Diperbarui')
       setShowStatusModal(false)
       fetchAll()
     } catch {
-      alert('Gagal memperbarui status aktivitas')
+      toast.error('Gagal memperbarui status aktivitas', 'Terjadi Kesalahan')
     } finally {
       setSubmitting(false)
     }
@@ -436,46 +441,50 @@ export default function WeeklyActivitiesPage() {
   return (
     <div className="space-y-5 pb-16 sm:pb-24">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <ListChecks className="text-brand-700" size={24} /> {isAdmin ? 'Activities' : 'Activities Ku'} (Laporan Aktivitas Mingguan)
-          </h2>
-          <p className="text-xs text-slate-600 font-medium mt-0.5">
-            Laporan pekerjaan yang dilakukan user dalam 1 minggu - dilacak dari Tanggal Start &amp; Due Date, plus waktu upload laporan
-          </p>
-        </div>
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+          <ListChecks className="text-brand-700" size={24} /> {isAdmin ? 'Activities' : 'Activities Ku'} (Laporan Aktivitas Mingguan)
+        </h2>
+        <p className="text-xs text-slate-600 font-medium mt-1">
+          Laporan pekerjaan yang dilakukan user dalam 1 minggu - dilacak dari Tanggal Start &amp; Due Date, plus waktu upload laporan
+        </p>
+      </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch gap-2.5 w-full sm:w-auto">
+      {/* Action Toolbar Row */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        {/* Left: Filter & Export Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex w-full items-center justify-center gap-2 font-semibold text-xs px-3.5 py-2.5 rounded-xl cursor-pointer transition-all sm:w-auto ${
+            className={`inline-flex items-center justify-center gap-2 font-semibold text-xs px-3.5 py-2 rounded-lg cursor-pointer transition-colors ${
               showFilters || (userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter)
-                ? 'bg-brand-50 text-brand-800 border border-brand-300 shadow-xs'
-                : 'neu-btn text-slate-700 hover:text-slate-900'
+                ? 'bg-brand-50 text-brand-800 border border-brand-300'
+                : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <ListFilter size={16} />
+            <ListFilter size={15} />
             <span>Filter Lanjutan &amp; Ekspor</span>
-            {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
-              <span className="w-2 h-2 rounded-full bg-brand-600 animate-pulse" />
-            )}
-            {showFilters ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
 
           <button
             onClick={handleExportExcel}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-4 py-2.5 cursor-pointer sm:w-auto shadow-xs transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs px-3.5 py-2 cursor-pointer shadow-2xs transition-colors"
             title="Export Data Aktivitas ke Excel"
           >
-            <FileSpreadsheet size={16} /> Export Excel
+            <FileSpreadsheet size={15} className="text-emerald-700" />
+            <span>Export Excel</span>
           </button>
+        </div>
 
+        {/* Right: Primary Action Button */}
+        <div>
           <button
             onClick={openAdd}
-            className="inline-flex w-full items-center justify-center gap-2 neu-btn-brand font-semibold rounded-lg cursor-pointer sm:w-auto"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-brand-700 hover:bg-brand-800 text-white font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-xs"
           >
-            <Plus size={16} /> Tambah Aktivitas
+            <Plus size={15} />
+            <span>Tambah Aktivitas</span>
           </button>
         </div>
       </div>
@@ -804,10 +813,10 @@ export default function WeeklyActivitiesPage() {
                 <th className="py-3.5 px-4 min-w-[180px]">Tindak Lanjut</th>
                 <th className="py-3.5 px-4 min-w-[180px]">Kendala</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
-                <th className="py-3.5 px-4 w-36 text-center">Status</th>
+                <th className="py-3.5 px-4 w-36 text-left">Status</th>
                 <th className="py-3.5 px-4 w-40">Penanggung Jawab (PIC)</th>
                 <th className="py-3.5 px-4 w-44">Waktu Upload Laporan</th>
-                <th className="py-3.5 px-4 w-36 text-right">Aksi</th>
+                <th className="py-3.5 px-4 w-36 text-left">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -849,7 +858,7 @@ export default function WeeklyActivitiesPage() {
                       {a.tindakLanjut ? (
                         <p className="text-xs text-slate-700 font-semibold leading-snug">{a.tindakLanjut}</p>
                       ) : (
-                        <span className="text-xs text-slate-300 font-medium">-</span>
+                        <span className="text-xs text-slate-900 font-bold">-</span>
                       )}
                     </td>
 
@@ -858,7 +867,7 @@ export default function WeeklyActivitiesPage() {
                       {a.kendala ? (
                         <p className="text-xs text-red-600 font-semibold leading-snug">{a.kendala}</p>
                       ) : (
-                        <span className="text-xs text-slate-300 font-medium">-</span>
+                        <span className="text-xs text-slate-900 font-bold">-</span>
                       )}
                     </td>
 
@@ -867,13 +876,13 @@ export default function WeeklyActivitiesPage() {
                       {a.startDate}
                     </td>
 
-                    {/* Status */}
-                    <td className="py-4 px-4 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                    {/* Status (Align start & no-wrap) */}
+                    <td className="py-4 px-4 text-left">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${
                         a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                       }`}>
                         {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                        {a.status}
+                        <span className="whitespace-nowrap">{a.status}</span>
                       </span>
                     </td>
 
@@ -894,9 +903,9 @@ export default function WeeklyActivitiesPage() {
                       </span>
                     </td>
 
-                    {/* 2 Actions Column: Update Status & Edit (NO DELETE) */}
-                    <td className="py-4 px-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                    {/* 2 Actions Column: Update Status & Edit (Align Start) */}
+                    <td className="py-4 px-4 text-left">
+                      <div className="flex items-center justify-start gap-1.5">
                         <button
                           onClick={() => openQuickStatus(a)}
                           className="px-2.5 py-1 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"

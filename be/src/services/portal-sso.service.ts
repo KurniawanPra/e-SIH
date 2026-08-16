@@ -39,23 +39,6 @@ export async function exchangePortalToken(
       signal: AbortSignal.timeout(10_000),
     })
   } catch {
-    if (config.nodeEnv === 'development') {
-      return {
-        id: 'dev-user-id',
-        sub: 'dev-user-id',
-        email: 'oka@inl.co.id',
-        name: 'Oka Aritonang',
-        isActive: true,
-        employeeId: 'emp-001',
-        jabatan: 'Kepala Sub Bagian Sistem & IT',
-        employee: {
-          id: 'emp-001',
-          namaLengkap: 'Oka Aritonang',
-          jabatan: 'Kepala Sub Bagian Sistem & IT',
-          unit: { nama: 'Sub Bagian Sistem & IT' }
-        }
-      } as unknown as SessionUser
-    }
     throw new SsoExchangeError('Portal SSO tidak dapat dihubungi', 503)
   }
 
@@ -73,13 +56,18 @@ export async function exchangePortalToken(
     throw new SsoExchangeError('Akun Portal tidak aktif atau belum terhubung ke employee', 403)
   }
 
-  // Verifikasi bahwa unit karyawan milik Sub Bagian Sistem & IT (atau seksi turunannya)
+  // Verifikasi bahwa unit karyawan milik Sub Bagian Sistem & IT atau MR & HSSE (atau seksi turunannya)
   const unitNama = employee.unit?.nama || ''
   const unitPath = employee.unit?.path || ''
-  const isItSubBagian = /sistem|it|teknologi|informasi/i.test(unitNama) || /sistem|it|teknologi|informasi/i.test(unitPath)
-  if (!isItSubBagian) {
-    throw new SsoExchangeError('Aplikasi e-SIH khusus untuk karyawan Sub Bagian Sistem & IT serta seksi turunannya', 403)
+  const isAuthorizedUnit = /sistem|it|teknologi|informasi|hsse|hse|safety|k3|mr/i.test(unitNama) || /sistem|it|teknologi|informasi|hsse|hse|safety|k3|mr/i.test(unitPath)
+  if (!isAuthorizedUnit) {
+    throw new SsoExchangeError('Aplikasi e-SIH khusus untuk karyawan Sub Bagian Sistem & IT, HSSE, serta seksi operasional terkait', 403)
   }
+
+  const empAny = employee as any
+  const rawJabatan = (typeof employee.jabatan === 'string' ? employee.jabatan : empAny?.jabatan?.nama) || empAny?.posisi?.nama || empAny?.posisi || ''
+  const jabatanLower = rawJabatan.toLowerCase()
+  const role = (jabatanLower.includes('kepala') || jabatanLower.includes('kasubag') || jabatanLower.includes('manager') || jabatanLower.includes('pimpinan')) ? 'ADMIN' : 'USER'
 
   // Portal adalah source of truth untuk identitas user + employee.
   // Snapshot ini masuk ke session, bukan ke tabel users aplikasi target.
@@ -88,7 +76,8 @@ export async function exchangePortalToken(
     email: portalUser.email,
     employeeId: employee.id,
     name: employee.namaLengkap,
-    jabatan: employee.jabatan ?? null,
+    jabatan: rawJabatan || null,
+    role,
     employee,
     grade: employee.grade ?? null,
     unit: employee.unit ?? null,

@@ -47,6 +47,12 @@ function CallbackContent() {
     activeExchanges.add(token)
     window.history.replaceState(null, '', '/sso-callback')
 
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('esih_token')
+      localStorage.removeItem('esih_user')
+      sessionStorage.clear()
+    }
+
     exchangeSsoToken(token)
       .then(() => {
         activeExchanges.delete(token)

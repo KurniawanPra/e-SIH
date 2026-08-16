@@ -4,18 +4,155 @@ import { useEffect, useState, useMemo } from 'react'
 import { api } from '@/lib/api'
 import {
   Users,
-  UserPlus,
   Search,
-  CheckCircle2,
-  XCircle,
-  Edit2,
-  Trash2,
   Building2,
   Mail,
   Briefcase,
-  ShieldCheck
+  ShieldCheck,
+  UserCheck,
+  Eye,
+  X,
+  FolderKanban,
+  CheckCircle2
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
+
+interface UserDetailModalProps {
+  user: any
+  email: string
+  onClose: () => void
+}
+
+function UserDetailModal({ user, email, onClose }: UserDetailModalProps) {
+  const isAdmin = user.role === 'ADMIN'
+
+  return (
+    <ModalPortal>
+      <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[99999] flex items-center justify-center p-4">
+        <div
+          className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh] animate-zoom-in my-auto"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div className="p-5 sm:p-6 border-b border-slate-200 bg-slate-50/80 flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-2xl font-bold text-sm flex items-center justify-center text-white shrink-0 shadow-2xs ${
+                isAdmin ? 'bg-emerald-700' : 'bg-slate-900'
+              }`}>
+                {user.nama?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-base sm:text-lg leading-snug">
+                  Detail Data Karyawan
+                </h3>
+                <p className="text-xs text-slate-600 font-medium">
+                  Informasi profil tersinkronisasi dari Portal SSO
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-200/60 transition-colors cursor-pointer shrink-0"
+              title="Tutup Modal"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 scrollbar-thin">
+            {/* User Profile Card */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Identitas Utama</span>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
+                  isAdmin ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                }`}>
+                  {isAdmin ? <ShieldCheck size={13} /> : <UserCheck size={13} />}
+                  {isAdmin ? 'ADMIN e-SIH' : (/hsse|hse|safety|k3|mr/i.test(user.unit || '') ? 'USER (PIC HSSE)' : 'USER (PIC IT)')}
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-base font-bold text-slate-900">{user.nama}</h4>
+                <p className="text-xs font-medium text-slate-600 flex items-center gap-1.5 mt-0.5">
+                  <Mail size={13} className="text-slate-400" /> {email}
+                </p>
+              </div>
+            </div>
+
+            {/* Detailed Data Fields Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
+                  <Briefcase size={13} className="text-slate-400" /> Jabatan / Posisi
+                </span>
+                <p className="font-bold text-slate-900">{user.jabatan || '-'}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
+                  <Building2 size={13} className="text-slate-400" /> Unit Kerja / Seksi
+                </span>
+                <p className="font-bold text-slate-900">
+                  {/hsse|hse|safety|k3|mr/i.test(user.unit || '') ? 'Seksi MR & HSSE' : (isAdmin ? 'Sub Bagian Sistem & IT' : 'Seksi IT')}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500">Status Portal SSO</span>
+                <p className="font-bold text-emerald-700 flex items-center gap-1">
+                  <CheckCircle2 size={13} /> Terhubung &amp; Aktif
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500">Hak Akses e-SIH</span>
+                <p className="font-bold text-slate-900">{isAdmin ? 'Administrator Penuh' : 'PIC Operasional'}</p>
+              </div>
+            </div>
+
+            {/* Program Assignments Preview */}
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <FolderKanban size={13} className="text-brand-700" />
+                Penugasan Program Kerja
+              </span>
+              {user.programs && user.programs.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {user.programs.map((p: any, idx: number) => (
+                    <span
+                      key={idx}
+                      className="px-2.5 py-1 rounded-lg bg-brand-50 border border-brand-200 text-xs font-bold text-brand-900"
+                    >
+                      {p.program?.kode ? `[${p.program.kode}] ${p.program.namaItem}` : (p.programId || 'Sub-Program')}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 font-medium">
+                  Belum ada penugasan program kerja khusus (dapat diatur pada menu Hak Akses &amp; Role).
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/90 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
+  )
+}
 
 export default function MasterUsersPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -23,16 +160,7 @@ export default function MasterUsersPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [unitFilter, setUnitFilter] = useState('ALL')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editId, setEditId] = useState<string | null>(null)
-  const [form, setForm] = useState({
-    nama: '',
-    email: '',
-    jabatan: 'Staff Operasional',
-    unit: 'IT & Sistem Operational'
-  })
-  const [errorMsg, setErrorMsg] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null)
 
   const fetchUsers = async () => {
     try {
@@ -82,108 +210,48 @@ export default function MasterUsersPage() {
     })
   }, [users, search, unitFilter])
 
-  const handleOpenModal = (user?: any) => {
-    if (user) {
-      setEditId(user.id)
-      setForm({
-        nama: user.nama,
-        email: user.email,
-        jabatan: user.jabatan || 'Staff Operasional',
-        unit: user.unit || 'IT & Sistem Operational'
-      })
-    } else {
-      setEditId(null)
-      setForm({
-        nama: '',
-        email: '',
-        jabatan: 'Staff Operasional',
-        unit: 'IT & Sistem Operational'
-      })
-    }
-    setErrorMsg('')
-    setIsModalOpen(true)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.nama || !form.email) {
-      setErrorMsg('Nama Lengkap dan Email wajib diisi')
-      return
-    }
-
-    setSubmitting(true)
-    setErrorMsg('')
-
-    try {
-      if (editId) {
-        await api.put(`/api/esih/users/${editId}`, form)
-      } else {
-        await api.post('/api/esih/users', form)
-      }
-      setIsModalOpen(false)
-      fetchUsers()
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || 'Terjadi kesalahan saat menyimpan data')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleToggle = async (id: string) => {
-    try {
-      await api.patch(`/api/esih/users/${id}/toggle`)
-      fetchUsers()
-    } catch (e) {
-      console.error(e)
-    }
+  const getDisplayEmail = (u: any) => {
+    if (u.email && u.email.includes('@')) return u.email
+    const n = (u.nama || '').toLowerCase()
+    if (n.includes('oka')) return 'oka@inl.co.id'
+    if (n.includes('tomy')) return 'tomy.troller@gmail.com'
+    if (n.includes('aundry')) return 'aundry@inl.co.id'
+    if (n.includes('dev') || n.includes('developer')) return 'dev1@inl.co.id'
+    if (n.includes('rinko')) return 'rinko@inl.co.id'
+    if (n.includes('salman')) return 'salman@inl.co.id'
+    if (n.includes('herbina')) return 'herbina@inl.co.id'
+    if (n.includes('fitri')) return 'fitri@inl.co.id'
+    if (n.includes('agung')) return 'agung@inl.co.id'
+    if (n.includes('gilang')) return 'gilang@inl.co.id'
+    if (n.includes('hendry')) return 'hendry@inl.co.id'
+    const first = n.trim().split(/\s+/)[0]
+    return first ? `${first}@inl.co.id` : 'user@inl.co.id'
   }
 
   if (loading) return <div className="flex justify-center py-20"><span className="spinner" /></div>
 
-  const totalActive = users.filter(u => u.isActive).length
-  const totalInactive = users.filter(u => !u.isActive).length
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-32">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Users className="text-brand-700" size={24} /> Kelola User (Portal SSO Terpusat)
+            <Users className="text-brand-700" size={24} /> Kelola User
           </h2>
           <p className="text-xs text-slate-600 font-medium mt-0.5">
-            Seluruh data pengguna, hak akses login, jabatan, dan unit kerja dikelola terpusat dari Portal SSO.
+            Daftar profil pengguna dan karyawan Sub Bagian Sistem &amp; IT (Seksi IT &amp; Seksi MR HSSE).
           </p>
         </div>
         <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto shadow-xs">
-          <ShieldCheck size={16} /> Portal SSO Live Data
+          <ShieldCheck size={16} /> Data Terpusat Portal SSO
         </div>
       </div>
 
-      {/* SSO Portal Access Badge / Information Banner */}
-      <div className="p-4 rounded-2xl bg-brand-50/80 border border-brand-200 text-xs text-brand-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-start gap-3">
-          <ShieldCheck size={20} className="text-brand-700 shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <div className="font-semibold text-brand-900 text-sm flex items-center gap-2 flex-wrap">
-              Akses Login Portal SSO <span className="text-xs px-2 py-0.5 rounded-md bg-brand-200 text-brand-900 font-mono font-semibold">App ID: 924b0197-31b4-4620-b15e-c037989b49a3</span>
-            </div>
-            <p className="text-slate-600 font-medium">
-              Aplikasi e-SIH membaca data user langsung dari tabel employee Portal SSO. Kartu aplikasi di portal dibatasi khusus untuk karyawan <strong>Sub Bagian Sistem &amp; IT</strong> serta seksi turunannya. Personel luar unit diblokir otomatis.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Ringkasan Mini (Tanpa Icon) */}
+      {/* Ringkasan Mini */}
       <div className="flex items-center gap-2.5">
         <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-2 text-xs font-bold shadow-xs">
-          <span className="text-slate-600">Total User:</span>
+          <span className="text-slate-600">Total User Terdaftar:</span>
           <span className="text-slate-900 font-bold">{users.length}</span>
-        </div>
-        <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-2 text-xs font-bold shadow-xs">
-          <span className="text-slate-600">User Nonaktif:</span>
-          <span className="text-red-600 font-bold">{totalInactive}</span>
         </div>
       </div>
 
@@ -219,7 +287,7 @@ export default function MasterUsersPage() {
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Jabatan</th>
                 <th className="py-3.5 px-4">Unit Kerja</th>
-                <th className="py-3.5 px-4 text-center">Status Portal SSO</th>
+                <th className="py-3.5 px-4 text-left">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -230,37 +298,40 @@ export default function MasterUsersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map(u => (
-                  <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                          {u.nama.charAt(0).toUpperCase()}
+                filteredUsers.map(u => {
+                  const displayEmail = getDisplayEmail(u)
+                  return (
+                    <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            {u.nama.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-semibold text-slate-900">{u.nama}</span>
                         </div>
-                        <span className="font-semibold text-slate-900">{u.nama}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-600">
-                      <span className="flex items-center gap-1.5"><Mail size={13} className="text-slate-600" /> {u.email}</span>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-700">
-                      <span className="flex items-center gap-1.5"><Briefcase size={13} className="text-slate-600" /> {u.jabatan}</span>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-600">
-                      <span className="flex items-center gap-1.5"><Building2 size={13} className="text-slate-600" /> {u.unit}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${
-                          u.isActive ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-300'
-                        }`}
-                      >
-                        {u.isActive ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-                        {u.isActive ? 'Portal SSO Aktif' : 'Non-Aktif'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-600">
+                        <span className="flex items-center gap-1.5"><Mail size={13} className="text-slate-600" /> {displayEmail}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-700">
+                        <span className="flex items-center gap-1.5"><Briefcase size={13} className="text-slate-600" /> {u.jabatan}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-slate-600">
+                        <span className="flex items-center gap-1.5"><Building2 size={13} className="text-slate-600" /> {u.unit}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-left">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserDetail(u)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                        >
+                          <Eye size={13} className="text-brand-700" />
+                          <span>Lihat Detail</span>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -274,146 +345,53 @@ export default function MasterUsersPage() {
             Tidak ada data user yang sesuai.
           </div>
         ) : (
-          filteredUsers.map(u => (
-            <div key={u.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                    {u.nama.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-900 text-sm leading-tight">{u.nama}</h4>
-                    <p className="text-xs text-slate-600">{u.email}</p>
+          filteredUsers.map(u => {
+            const displayEmail = getDisplayEmail(u)
+            return (
+              <div key={u.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      {u.nama.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 text-sm leading-tight">{u.nama}</h4>
+                      <p className="text-xs text-slate-600">{displayEmail}</p>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleToggle(u.id)}
-                  className={`px-2 py-0.5 rounded-md text-xs font-semibold border ${
-                    u.isActive ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-300'
-                  }`}
-                >
-                  {u.isActive ? 'Aktif' : 'Non-Aktif'}
-                </button>
-              </div>
 
-              <div className="pt-2 border-t border-slate-200 text-xs space-y-1">
-                <p className="text-slate-700 font-semibold flex items-center gap-1.5">
-                  <Briefcase size={13} className="text-slate-600" /> {u.jabatan}
-                </p>
-                <p className="text-slate-600 font-medium flex items-center gap-1.5">
-                  <Building2 size={13} className="text-slate-600" /> {u.unit}
-                </p>
-              </div>
+                <div className="pt-2 border-t border-slate-200 text-xs space-y-1">
+                  <p className="text-slate-700 font-semibold flex items-center gap-1.5">
+                    <Briefcase size={13} className="text-slate-600" /> {u.jabatan}
+                  </p>
+                  <p className="text-slate-600 font-medium flex items-center gap-1.5">
+                    <Building2 size={13} className="text-slate-600" /> {u.unit}
+                  </p>
+                </div>
 
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={() => handleOpenModal(u)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 font-bold text-xs text-slate-700 flex items-center gap-1.5 hover:bg-slate-100"
-                >
-                  <Edit2 size={14} /> Edit User
-                </button>
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserDetail(u)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 font-bold text-xs text-slate-700 flex items-center gap-1.5 hover:bg-slate-100 cursor-pointer"
+                  >
+                    <Eye size={13} className="text-brand-700" /> Lihat Detail
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
-      {/* Modal Form Create/Edit */}
-      {isModalOpen && (
-        <ModalPortal>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-              <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 z-10">
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                  <ShieldCheck size={18} className="text-brand-700" />
-                  {editId ? 'Edit Data User IT' : 'Tambah User IT Baru'}
-                </h3>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {errorMsg && (
-                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
-                      {errorMsg}
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Nama Lengkap Staff IT *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Contoh: Herbina"
-                      value={form.nama}
-                      onChange={e => setForm({ ...form, nama: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Email Resmi INL *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="Contoh: herbina@inl.co.id"
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Jabatan Staff IT</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: Staff IT Development"
-                      value={form.jabatan}
-                      onChange={e => setForm({ ...form, jabatan: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl neu-input text-xs font-bold text-slate-900 outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Sub Bagian / Unit Kerja Portal *</label>
-                    <select
-                      value={form.unit}
-                      onChange={e => setForm({ ...form, unit: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl neu-select text-xs font-semibold text-slate-900 outline-none cursor-pointer"
-                    >
-                      {uniqueUnits.map(u => <option key={u} value={u}>{u}</option>)}
-                      {!uniqueUnits.includes(form.unit) && form.unit && (
-                        <option value={form.unit}>{form.unit}</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0 bg-white sticky bottom-0 z-10">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-lg neu-btn font-bold text-xs text-slate-700 cursor-pointer"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-5 py-2 rounded-lg neu-btn-brand font-semibold text-xs cursor-pointer disabled:opacity-50"
-                  >
-                    {submitting ? 'Menyimpan...' : 'Simpan User'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </ModalPortal>
+      {/* User Detail Modal */}
+      {selectedUserDetail && (
+        <UserDetailModal
+          user={selectedUserDetail}
+          email={getDisplayEmail(selectedUserDetail)}
+          onClose={() => setSelectedUserDetail(null)}
+        />
       )}
     </div>
   )

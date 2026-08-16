@@ -7,7 +7,7 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
-    const backendUrl = (process.env.INTERNAL_BACKEND_URL || 'http://e-sih-be:3000').replace(/\/$/, '')
+    const backendUrl = (process.env.INTERNAL_BACKEND_URL || 'http://localhost:3015').replace(/\/$/, '')
     return [
       {
         source: '/api/auth/:path*',

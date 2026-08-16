@@ -342,8 +342,8 @@ export default function MyActivitiesPage() {
                 <th className="py-3.5 px-4 min-w-[380px]">Kegiatan</th>
                 <th className="py-3.5 px-4 w-32">Tanggal Start</th>
                 <th className="py-3.5 px-4 w-32">Due Date</th>
-                <th className="py-3.5 px-4 w-36 text-center">Status</th>
-                <th className="py-3.5 px-4 w-40">Aksi</th>
+                <th className="py-3.5 px-4 w-36 text-left">Status</th>
+                <th className="py-3.5 px-4 w-40 text-left">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -369,12 +369,12 @@ export default function MyActivitiesPage() {
                     </td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.startDate}</td>
                     <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">{a.dueDate}</td>
-                    <td className="py-4 px-4 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                    <td className="py-4 px-4 text-left">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${
                         a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
                       }`}>
                         {a.status === 'Closed' ? <CheckCircle2 size={13} /> : a.status === 'Open' ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                        {a.status}
+                        <span className="whitespace-nowrap">{a.status}</span>
                       </span>
                     </td>
                     <td className="py-4 px-4">

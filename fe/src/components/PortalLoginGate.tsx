@@ -97,7 +97,7 @@ export default function PortalLoginGate({ notice = '' }: { notice?: string }) {
           <button
             type="button"
             onClick={handleLogin}
-            className="w-full py-3.5 px-4 rounded-xl bg-brand-700 text-white font-bold text-sm hover:bg-brand-800 transition-colors shadow-md shadow-brand-700/20 flex items-center justify-center gap-2 mb-6"
+            className="w-full py-3.5 px-4 rounded-xl bg-brand-700 text-white font-bold text-sm hover:bg-brand-800 transition-colors shadow-md shadow-brand-700/20 flex items-center justify-center gap-2 mb-6 cursor-pointer"
           >
             <LogIn size={18} />
             Masuk via {portalAccountName}

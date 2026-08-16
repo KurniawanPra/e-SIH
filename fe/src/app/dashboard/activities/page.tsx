@@ -608,7 +608,7 @@ export default function AllActivitiesPage() {
                       {a.tindakLanjut ? (
                         <span className="leading-relaxed">{a.tindakLanjut}</span>
                       ) : (
-                        <span className="text-slate-600 font-bold">-</span>
+                        <span className="text-slate-900 font-bold text-xs">-</span>
                       )}
                     </td>
 
@@ -617,7 +617,7 @@ export default function AllActivitiesPage() {
                       {a.kendala ? (
                         <span className="leading-relaxed text-red-700 font-semibold">{a.kendala}</span>
                       ) : (
-                        <span className="text-slate-600 font-bold">-</span>
+                        <span className="text-slate-900 font-bold text-xs">-</span>
                       )}
                     </td>
 
@@ -626,7 +626,7 @@ export default function AllActivitiesPage() {
                       {a.remarks ? (
                         <span className="leading-relaxed">{a.remarks}</span>
                       ) : (
-                        <span className="text-slate-600 font-bold">-</span>
+                        <span className="text-slate-900 font-bold text-xs">-</span>
                       )}
                     </td>
                   </tr>

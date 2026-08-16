@@ -15,11 +15,13 @@ import {
   Trash2,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react'
 import ModalPortal from '@/components/ModalPortal'
 
 import { useYear } from '@/context/YearContext'
+import { useToast } from '@/context/ToastContext'
 
 interface SubItem {
   id?: string
@@ -37,15 +39,16 @@ interface ParentPK {
   namaProgram: string
   deskripsi?: string
   totalProgress: number
-  isActive: boolean
-  items?: SubItem[]
+  items: SubItem[]
+  isActive?: boolean
 }
 
-export default function ProgramKerjaPage() {
+export default function MasterProgramKerjaPage() {
+  const { toast } = useToast()
   const { selectedYear } = useYear()
   const [parents, setParents] = useState<ParentPK[]>([])
   const [loading, setLoading] = useState(true)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>('ALL')
   
   // Program Modal State
   const [showProgramModal, setShowProgramModal] = useState(false)
@@ -59,6 +62,21 @@ export default function ProgramKerjaPage() {
   const [subForm, setSubForm] = useState({ kode: '', namaItem: '', status: 'On Progress', progress: 0, keterangan: '' })
 
   const [submitting, setSubmitting] = useState(false)
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean
+    title: string
+    message: string
+    confirmLabel?: string
+    isDanger?: boolean
+    onConfirm: () => Promise<void> | void
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  })
 
   const fetchData = async () => {
     try {
@@ -96,23 +114,38 @@ export default function ProgramKerjaPage() {
     try {
       if (editProgram) {
         await api.put(`/api/esih/program-kerja/${editProgram.id}`, { ...programForm, tahun: selectedYear })
+        toast.success(`Program Kerja [${programForm.kode}] berhasil diperbarui`, 'Sukses Diperbarui')
       } else {
         await api.post('/api/esih/program-kerja', { ...programForm, tahun: selectedYear })
+        toast.success(`Program Kerja [${programForm.kode}] berhasil ditambahkan`, 'Sukses Ditambahkan')
       }
       setShowProgramModal(false)
       fetchData()
     } catch {
-      alert('Gagal menyimpan Program Kerja')
+      toast.error('Gagal menyimpan Program Kerja', 'Terjadi Kesalahan')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const toggleProgramActive = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin mengubah status aktif Program Kerja ini?')) {
-      await api.patch(`/api/esih/program-kerja/${id}/toggle`)
-      fetchData()
-    }
+  const toggleProgramActive = (p: ParentPK) => {
+    setConfirmModal({
+      open: true,
+      title: 'Ubah Status Program Kerja',
+      message: `Apakah Anda yakin ingin ${p.isActive ? 'menonaktifkan' : 'mengaktifkan'} Program Kerja [${p.kode}] "${p.namaProgram}"?`,
+      confirmLabel: p.isActive ? 'Nonaktifkan' : 'Aktifkan',
+      isDanger: p.isActive,
+      onConfirm: async () => {
+        try {
+          await api.patch(`/api/esih/program-kerja/${p.id}/toggle`)
+          toast.success(`Status Program Kerja [${p.kode}] berhasil diubah`, 'Status Diperbarui')
+          fetchData()
+        } catch (e) {
+          console.error(e)
+          toast.error('Gagal mengubah status Program Kerja', 'Terjadi Kesalahan')
+        }
+      }
+    })
   }
 
   // Sub-Item Modal Handlers
@@ -155,27 +188,44 @@ export default function ProgramKerjaPage() {
           tahun: selectedYear,
           ...subForm
         })
+        toast.success(`Sub-Item [${subForm.kode}] berhasil diperbarui`, 'Sukses Diperbarui')
       } else {
         await api.post('/api/esih/programs', {
           programKerjaId: selectedParentForSub.id,
           tahun: selectedYear,
           ...subForm
         })
+        toast.success(`Sub-Item [${subForm.kode}] berhasil ditambahkan`, 'Sukses Ditambahkan')
       }
       setShowSubModal(false)
       fetchData()
     } catch {
-      alert('Gagal menyimpan Sub-Item Program')
+      toast.error('Gagal menyimpan Sub-Item Program', 'Terjadi Kesalahan')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const toggleSubItemActive = async (subId: string) => {
-    if (confirm('Ubah status aktif Sub-Item ini?')) {
-      await api.patch(`/api/esih/programs/${subId}/toggle`)
-      fetchData()
-    }
+  const toggleSubItemActive = (sub: SubItem) => {
+    if (!sub.id) return
+    const isCurrentlyActive = sub.isActive !== false
+    setConfirmModal({
+      open: true,
+      title: 'Ubah Status Sub-Item',
+      message: `Apakah Anda yakin ingin ${isCurrentlyActive ? 'menonaktifkan' : 'mengaktifkan'} Sub-Item [${sub.kode}] "${sub.namaItem}"?`,
+      confirmLabel: isCurrentlyActive ? 'Nonaktifkan' : 'Aktifkan',
+      isDanger: isCurrentlyActive,
+      onConfirm: async () => {
+        try {
+          await api.patch(`/api/esih/programs/${sub.id}/toggle`)
+          toast.success(`Status Sub-Item [${sub.kode}] berhasil diubah`, 'Status Diperbarui')
+          fetchData()
+        } catch (e) {
+          console.error(e)
+          toast.error('Gagal mengubah status Sub-Item', 'Terjadi Kesalahan')
+        }
+      }
+    })
   }
 
   if (loading) {
@@ -187,30 +237,31 @@ export default function ProgramKerjaPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-4 sm:space-y-5 pb-24 sm:pb-32">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl shadow-xs">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-            <FolderKanban className="text-brand-700" size={22} />
-            Kelola Program Kerja &amp; Sub-Item
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <FolderKanban className="text-brand-700 shrink-0" size={22} />
+            <span>Kelola Program Kerja &amp; Sub-Item</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-            Daftar Program Kerja Induk beserta rincian Sub-Item Program Kerja di dalamnya.
+          <p className="text-xs text-slate-600 font-medium mt-1">
+            Daftar Program Kerja Induk beserta rincian Sub-Item Program Kerja di dalamnya ({selectedYear}).
           </p>
         </div>
         <button
           onClick={openAddProgram}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 neu-btn-brand font-semibold rounded-lg cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer shrink-0"
         >
-          <Plus size={16} /> Tambah Program Kerja Induk
+          <Plus size={16} />
+          <span>Tambah Program Kerja Induk</span>
         </button>
       </div>
 
       {/* Program Cards & Sub-Item List */}
       <div className="space-y-4">
         {parents.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-600 font-semibold text-xs">
+          <div className="bg-white p-8 rounded-2xl shadow-xs text-center text-slate-600 font-semibold text-xs">
             Belum ada data Program Kerja. Silakan tambah Program Kerja baru.
           </div>
         ) : (
@@ -221,23 +272,23 @@ export default function ProgramKerjaPage() {
             return (
               <div
                 key={p.id}
-                className={`bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all ${
+                className={`bg-white rounded-2xl shadow-xs overflow-hidden transition-all ${
                   !p.isActive ? 'opacity-50 bg-slate-50' : ''
                 }`}
               >
-                {/* Parent Program Main Header Row */}
+                {/* Parent Program Main Header Row (No borders on point A, B, C) */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <span className="w-10 h-10 rounded-xl neu-active-green flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                    <span className="w-10 h-10 rounded-xl bg-brand-50 text-brand-900 flex items-center justify-center text-base font-bold font-mono shrink-0">
                       {p.kode}
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-slate-900 text-sm sm:text-base">
+                        <h3 className="font-bold text-slate-900 text-sm sm:text-base">
                           {p.namaProgram}
                         </h3>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${
-                          p.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-300'
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                          p.isActive ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-600'
                         }`}>
                           {p.isActive ? 'AKTIF' : 'NONAKTIF'}
                         </span>
@@ -251,16 +302,16 @@ export default function ProgramKerjaPage() {
                   </div>
 
                   {/* Progress & Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3.5 pt-3 sm:pt-0 border-t sm:border-0 border-slate-100">
                     <div className="w-full sm:w-44">
                       <div className="flex justify-between items-center text-xs font-bold text-slate-600 mb-1">
-                        <span className="text-xs text-slate-600">Total Progress:</span>
-                        <span>{p.totalProgress}%</span>
+                        <span className="text-xs text-slate-500">Total Progress:</span>
+                        <span className="text-slate-900 font-mono">{p.totalProgress}%</span>
                       </div>
-                      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            p.totalProgress >= 80 ? 'bg-emerald-500' : p.totalProgress >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                            p.totalProgress >= 80 ? 'bg-emerald-500' : p.totalProgress >= 50 ? 'bg-amber-400' : 'bg-brand-600'
                           }`}
                           style={{ width: `${p.totalProgress}%` }}
                         />
@@ -270,28 +321,28 @@ export default function ProgramKerjaPage() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => openAddSubItem(p)}
-                        className="px-2.5 py-1.5 rounded-lg neu-btn text-brand-700 hover:bg-brand-50 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
                         title="Tambah Sub-Item Program Kerja"
                       >
-                        <Plus size={14} /> Sub-Item
+                        <Plus size={14} /> <span>Sub-Item</span>
                       </button>
                       <button
                         onClick={() => openEditProgram(p)}
-                        className="p-2 rounded-lg neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"
                         title="Edit Program Kerja Induk"
                       >
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => toggleProgramActive(p.id)}
-                        className="p-2 rounded-lg neu-btn text-slate-700 hover:bg-slate-100 cursor-pointer"
+                        onClick={() => toggleProgramActive(p)}
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"
                         title={p.isActive ? 'Nonaktifkan Program' : 'Aktifkan Program'}
                       >
-                        {p.isActive ? <EyeOff size={15} className="text-slate-600" /> : <Eye size={15} className="text-emerald-600" />}
+                        {p.isActive ? <EyeOff size={15} className="text-slate-600" /> : <Eye size={15} className="text-emerald-700" />}
                       </button>
                       <button
                         onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                        className="p-2 rounded-lg neu-btn text-slate-700 cursor-pointer"
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"
                         title="Lihat / Sembunyikan Sub-Item"
                       >
                         {expandedId === p.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -302,35 +353,35 @@ export default function ProgramKerjaPage() {
 
                 {/* Collapsible Sub-Items Table Section */}
                 {isExpanded && (
-                  <div className="border-t border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-5 space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <ListChecks size={15} className="text-brand-700" />
                         Rincian Sub-Item Program Kerja ({p.items?.length || 0} Item)
                       </h4>
                       <button
                         onClick={() => openAddSubItem(p)}
-                        className="text-xs font-bold text-brand-700 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-brand-700 hover:text-brand-800 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Plus size={13} /> Tambah Sub-Item Baru
                       </button>
                     </div>
 
                     {!p.items || p.items.length === 0 ? (
-                      <div className="bg-white p-4 rounded-xl border border-slate-200 text-center text-xs text-slate-600 font-medium">
+                      <div className="bg-white p-5 rounded-2xl shadow-2xs text-center text-xs text-slate-600 font-medium">
                         Belum ada Sub-Item Program Kerja untuk program induk {p.kode}. Klik &ldquo;Tambah Sub-Item Baru&rdquo; untuk menambahkan.
                       </div>
                     ) : (
-                      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="bg-white rounded-2xl shadow-2xs overflow-hidden">
                         <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs min-w-[640px]">
                           <thead>
-                            <tr className="bg-slate-100/80 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                            <tr className="bg-slate-100/70 border-b border-slate-100 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                               <th className="py-2.5 px-3.5 w-20">Kode</th>
                               <th className="py-2.5 px-3.5">Nama Sub-Item Program</th>
-                              <th className="py-2.5 px-3.5 w-28">Status</th>
+                              <th className="py-2.5 px-3.5 w-28 text-left">Status</th>
                               <th className="py-2.5 px-3.5 w-36">Progress (%)</th>
-                              <th className="py-2.5 px-3.5 text-right w-24">Aksi</th>
+                              <th className="py-2.5 px-3.5 text-left w-24">Aksi</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -341,18 +392,18 @@ export default function ProgramKerjaPage() {
                                   sub.isActive === false ? 'opacity-40' : ''
                                 }`}
                               >
-                                <td className="py-3 px-3.5 font-mono font-bold text-brand-700 whitespace-nowrap">
+                                <td className="py-3 px-3.5 font-mono font-bold text-brand-800 whitespace-nowrap">
                                   {sub.kode}
                                 </td>
                                 <td className="py-3 px-3.5">
                                   <p className="font-semibold text-slate-900">{sub.namaItem}</p>
                                   {sub.keterangan && (
-                                    <p className="text-xs text-slate-600 font-medium">{sub.keterangan}</p>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">{sub.keterangan}</p>
                                   )}
                                 </td>
-                                <td className="py-3 px-3.5">
+                                <td className="py-3 px-3.5 text-left">
                                   <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold border ${
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${
                                       sub.status === 'Closed'
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                         : sub.status === 'On Progress'
@@ -361,12 +412,12 @@ export default function ProgramKerjaPage() {
                                     }`}
                                   >
                                     {sub.status === 'Closed' ? <CheckCircle2 size={11} /> : <Clock size={11} />}
-                                    {sub.status}
+                                    <span className="whitespace-nowrap">{sub.status}</span>
                                   </span>
                                 </td>
                                 <td className="py-3 px-3.5">
                                   <div className="flex items-center gap-2">
-                                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                       <div
                                         className={`h-full rounded-full ${
                                           sub.progress === 100 ? 'bg-emerald-500' : 'bg-brand-600'
@@ -379,22 +430,22 @@ export default function ProgramKerjaPage() {
                                     </span>
                                   </div>
                                 </td>
-                                <td className="py-3 px-3.5 text-right">
-                                  <div className="inline-flex items-center gap-1">
+                                <td className="py-3 px-3.5 text-left">
+                                  <div className="inline-flex items-center justify-start gap-1">
                                     <button
                                       onClick={() => openEditSubItem(p, sub)}
-                                      className="p-1.5 rounded-lg neu-btn text-slate-600 hover:text-slate-900 cursor-pointer"
+                                      className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"
                                       title="Edit Sub-Item"
                                     >
                                       <Pencil size={13} />
                                     </button>
                                     {sub.id && (
                                       <button
-                                        onClick={() => toggleSubItemActive(sub.id!)}
-                                        className="p-1.5 rounded-lg neu-btn text-slate-600 cursor-pointer"
+                                        onClick={() => toggleSubItemActive(sub)}
+                                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"
                                         title={sub.isActive === false ? 'Aktifkan Sub-Item' : 'Nonaktifkan Sub-Item'}
                                       >
-                                        {sub.isActive === false ? <Eye size={13} className="text-emerald-600" /> : <EyeOff size={13} />}
+                                        {sub.isActive === false ? <Eye size={13} className="text-emerald-700" /> : <EyeOff size={13} />}
                                       </button>
                                     )}
                                   </div>
@@ -583,6 +634,47 @@ export default function ProgramKerjaPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Action Confirmation Modal */}
+      {confirmModal.open && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[99999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-sm overflow-hidden my-auto animate-zoom-in">
+              <div className="p-5 text-center space-y-2.5">
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center mx-auto border ${
+                  confirmModal.isDanger ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                }`}>
+                  <AlertTriangle size={22} />
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">{confirmModal.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {confirmModal.message}
+                </p>
+              </div>
+              <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                  className="px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    const action = confirmModal.onConfirm
+                    setConfirmModal(prev => ({ ...prev, open: false }))
+                    await action()
+                  }}
+                  className={`px-4 py-2 rounded-lg text-white text-xs font-semibold cursor-pointer transition-colors shadow-xs ${
+                    confirmModal.isDanger ? 'bg-amber-600 hover:bg-amber-700' : 'bg-brand-700 hover:bg-brand-800'
+                  }`}
+                >
+                  {confirmModal.confirmLabel || 'Ya, Lanjutkan'}
+                </button>
+              </div>
             </div>
           </div>
         </ModalPortal>

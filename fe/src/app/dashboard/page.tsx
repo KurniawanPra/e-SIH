@@ -17,18 +17,8 @@ import {
   ChevronUp,
   ChevronDown,
   AlertCircle,
-  Target,
-  Trophy,
-  ShieldCheck,
-  Zap,
-  Timer,
-  Layers,
   UserCheck,
-  CalendarDays,
-  Cpu,
-  HeartPulse,
-  Bell,
-  BellRing
+  CalendarDays
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -520,7 +510,7 @@ export default function DashboardPage() {
 
   if (loading) return <div className="flex items-center justify-center py-20"><span className="spinner" /></div>
 
-  const isUserRole = user?.role === 'USER'
+  const isUserRole = user?.role !== 'ADMIN'
 
   // =========================================================================
   // VIEW FOR STAFF USER (Role: USER) - Concise, Personal Task Dashboard
@@ -549,20 +539,20 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 3 Personal KPI Cards */}
+        {/* 3 Personal KPI Cards (Center Aligned) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Card 1: My Total Tasks */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2" >
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center space-y-2">
             <p className="text-xs font-semibold text-slate-600">Total Laporan Aktivitas Saya</p>
             <div className="text-4xl font-bold text-slate-900">{myStats.total}</div>
             <p className="text-xs font-semibold text-slate-600">Ditugaskan pada tahun {selectedYear}</p>
           </div>
 
           {/* Card 2: My Closure Rate */}
-          <div className="bg-brand-50/80 p-5 rounded-2xl border border-brand-200 shadow-sm space-y-2" >
+          <div className="bg-brand-50/80 p-5 rounded-2xl border border-brand-200 shadow-sm text-center flex flex-col items-center justify-center space-y-2">
             <p className="text-xs font-semibold text-brand-800">Realisasi Selesai (Closure Rate)</p>
             <div className="text-4xl font-bold text-brand-700">{myRate}%</div>
-            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-brand-200">
+            <div className="w-full max-w-[200px] bg-slate-200 h-2 rounded-full overflow-hidden border border-brand-200">
               <div className="h-full bg-brand-700 rounded-full" style={{ width: `${myRate}%` }} />
             </div>
             <p className="text-xs font-bold text-slate-700 pt-1">
@@ -571,20 +561,26 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: My Status Breakdown */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5" >
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center space-y-2">
             <p className="text-xs font-semibold text-slate-600">Status Tugas Saya</p>
-            <div className="space-y-1.5 text-xs font-bold">
-              <div className="flex justify-between text-emerald-700">
-                <span className="flex items-center gap-1.5"><CheckCircle2 size={13} /> Selesai (Closed)</span>
-                <span className="font-bold">{myStats.closed}</span>
+            <div className="grid grid-cols-3 gap-2 w-full pt-1">
+              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-emerald-50/80 border border-emerald-100">
+                <span className="text-[11px] font-bold text-emerald-800 flex items-center justify-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-700" /> Selesai
+                </span>
+                <span className="text-base font-bold text-slate-900 mt-0.5">{myStats.closed}</span>
               </div>
-              <div className="flex justify-between text-amber-600">
-                <span className="flex items-center gap-1.5"><Clock size={13} /> On Progress</span>
-                <span className="font-bold">{myStats.progress}</span>
+              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-amber-50/80 border border-amber-100">
+                <span className="text-[11px] font-bold text-amber-800 flex items-center justify-center gap-1">
+                  <Clock size={11} className="text-amber-700" /> Progres
+                </span>
+                <span className="text-base font-bold text-slate-900 mt-0.5">{myStats.progress}</span>
               </div>
-              <div className="flex justify-between text-red-600">
-                <span className="flex items-center gap-1.5"><Activity size={13} /> Open</span>
-                <span className="font-bold">{myStats.open}</span>
+              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-red-50/80 border border-red-100">
+                <span className="text-[11px] font-bold text-red-800 flex items-center justify-center gap-1">
+                  <Activity size={11} className="text-red-700" /> Open
+                </span>
+                <span className="text-base font-bold text-slate-900 mt-0.5">{myStats.open}</span>
               </div>
             </div>
           </div>
@@ -778,8 +774,12 @@ export default function DashboardPage() {
         {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard Kepala Unit Organisasi Sub Bagian Sistem &amp; IT</h2>
-            <p className="text-xs text-slate-600 font-medium mt-0.5">Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT Operational</p>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              Executive Dashboard {user?.jabatan || 'Kepala Sub Bagian Sistem dan IT'}
+            </h2>
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
+              Selamat datang, <strong className="text-slate-900">{user?.name || 'Admin'}</strong> &mdash; Sistem Laporan Highlight &amp; Monitoring Kinerja Sub Bagian Sistem &amp; IT
+            </p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <span className="text-xs font-bold text-slate-700">Tahun:</span>
@@ -1007,202 +1007,96 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* RIGHT SIDEBAR (Perfectly level with Executive Dashboard card, mt-0) */}
-      <div className="lg:col-span-1 2xl:col-span-1 min-w-0 space-y-4 mt-0">
-        {/* Card 1: Overall Program Kerja, Target Kuartal & Lead Time SLA */}
-        <div className="bg-white rounded-2xl border border-brand-700 shadow-sm p-5 space-y-5" >
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <h3 className="font-semibold text-slate-900 text-base leading-tight">
-              Overall Program Kerja ({selectedYear})
+      {/* RIGHT SIDEBAR (Executive Summary & Quick Action List) */}
+      <div className="lg:col-span-1 2xl:col-span-1 min-w-0 space-y-4">
+        {/* Card 1: Ringkasan KPI */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h3 className="font-bold text-slate-900 text-sm">
+              Ringkasan Realisasi ({selectedYear})
             </h3>
+            <span className="text-xs font-bold text-brand-700">{rate}% Selesai</span>
           </div>
 
-          {/* Closure Rate Card */}
-          <div className="bg-brand-50/70 rounded-xl p-4 border border-brand-200 text-center space-y-1">
-            <p className="text-xs font-semibold text-brand-800">Total Closure Rate</p>
-            <div className="text-4xl font-bold text-brand-700 tracking-tight py-1">{rate}%</div>
-            <p className="text-xs font-bold text-slate-700">
-              <strong className="text-brand-800">{stats.closed}</strong> dari <strong className="text-brand-800">{stats.total}</strong> Aktivitas Selesai
-            </p>
-            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-3 border border-brand-200">
-              <div className="h-full bg-brand-700 rounded-full transition-all" style={{ width: `${rate}%` }} />
+          <div className="space-y-1.5">
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-700 rounded-full"
+                style={{ width: `${rate}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-600">
+              <span>{stats.closed} selesai</span>
+              <span>{stats.total} total aktivitas</span>
             </div>
           </div>
 
-          {/* Metric 1: Program Kerja */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-900">Program Kerja</p>
-              <p className="text-xs text-slate-600 font-medium">Kelompok Induk</p>
+          {/* 3 Metric Rows */}
+          <div className="divide-y divide-slate-100 text-xs">
+            <div className="py-2 flex justify-between">
+              <span className="text-slate-600">Program Kerja Induk</span>
+              <span className="font-semibold text-slate-900">{kpi?.totalParents || 0}</span>
             </div>
-            <span className="text-2xl font-bold text-slate-900">{kpi?.totalParents || 0}</span>
-          </div>
-
-          {/* Metric 2: Item Program */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-900">Item Program</p>
-              <p className="text-xs text-slate-600 font-medium">Sub-Program Kerja</p>
+            <div className="py-2 flex justify-between">
+              <span className="text-slate-600">Sub-Program Kerja</span>
+              <span className="font-semibold text-slate-900">{kpi?.totalPrograms || 0}</span>
             </div>
-            <span className="text-2xl font-bold text-slate-900">{kpi?.totalPrograms || 0}</span>
-          </div>
-
-          {/* Metric 3: Aktivitas */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-slate-900">Aktivitas ({selectedYear})</p>
-              <p className="text-xs text-slate-600 font-medium">Total Laporan Aktivitas</p>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">{stats.total}</span>
-          </div>
-
-          {/* Executive Chart 1: Pencapaian Volume Aktivitas per Program */}
-          <div className="pt-4 border-t border-slate-200 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-slate-900 leading-tight">
-                Realisasi Task per Kelompok Program
-              </p>
-              <span className="text-xs font-bold text-slate-600 shrink-0">A, B, C</span>
-            </div>
-            <ChartContainer
-              config={{
-                Selesai: { label: 'Selesai', color: '#006837' },
-                Berjalan: { label: 'Berjalan', color: '#f59e0b' }
-              }}
-              className="aspect-auto h-[180px] w-full"
-            >
-              <BarChart accessibilityLayer data={groupTaskVolumeData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="program" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} tickMargin={8} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="Selesai" fill="var(--color-Selesai)" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                <Bar dataKey="Berjalan" fill="var(--color-Berjalan)" radius={[4, 4, 0, 0]} maxBarSize={20} />
-              </BarChart>
-            </ChartContainer>
-          </div>
-
-          {/* Executive Chart 2: Monitoring Status Kendala & Operasional */}
-          <div className="pt-4 border-t border-slate-200 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-slate-900 leading-tight">
-                Status Penanganan &amp; Kendala
-              </p>
-              <span className="text-xs font-bold text-slate-600 shrink-0">Operasional</span>
-            </div>
-            <ChartContainer
-              config={{
-                Jumlah: { label: 'Aktivitas', color: '#0284c7' }
-              }}
-              className="aspect-auto h-[180px] w-full"
-            >
-              <BarChart accessibilityLayer data={kendalaStatusData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="status" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} tickMargin={8} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="Jumlah" fill="var(--color-Jumlah)" radius={4} maxBarSize={32} />
-              </BarChart>
-            </ChartContainer>
-          </div>
-
-          {/* Status Breakdown */}
-          <div className="pt-3 border-t border-slate-200 space-y-2.5">
-            <p className="text-xs font-semibold text-slate-600">Status Aktivitas Operasional</p>
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="flex items-center gap-2 text-slate-700">
-                <span className="w-2.5 h-2.5 rounded-full bg-brand-700" /> Selesai (Closed)
-              </span>
-              <span className="font-semibold text-brand-700">{stats.closed}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="flex items-center gap-2 text-slate-700">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> On Progress
-              </span>
+            <div className="py-2 flex justify-between">
+              <span className="text-slate-600">Dalam Pengerjaan (On Progress)</span>
               <span className="font-semibold text-amber-600">{stats.progress}</span>
             </div>
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="flex items-center gap-2 text-slate-700">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Open
-              </span>
-              <span className="font-semibold text-red-600">{stats.open}</span>
+            <div className="py-2 flex justify-between">
+              <span className="text-slate-600">Belum Dimulai (Open)</span>
+              <span className="font-semibold text-slate-700">{stats.open}</span>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Peringkat Top Performers */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
-            <h4 className="font-semibold text-slate-900 text-sm leading-tight">
-              Top Performer PIC
+        {/* Card 2: Kinerja PIC */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h4 className="font-bold text-slate-900 text-sm">
+              Kinerja PIC
             </h4>
-            <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200 shrink-0">
-              High Realization
-            </span>
+            <span className="text-xs text-slate-500">SLA: {slaRate}%</span>
           </div>
 
-          <div className="space-y-3">
-            {topPics.map((pic, idx) => (
-              <div key={pic.name} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-900' : idx === 1 ? 'bg-slate-300 text-slate-900' : 'bg-amber-700 text-white'
-                    }`}>
-                    #{idx + 1}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-xs text-slate-900 truncate">{pic.name}</p>
-                    <p className="text-xs text-slate-600">{pic.closed} Aktivitas Selesai</p>
-                  </div>
+          <div className="divide-y divide-slate-100">
+            {topPics.map((pic) => (
+              <div key={pic.name} className="py-2 flex items-center justify-between text-xs">
+                <div className="min-w-0 pr-2">
+                  <p className="font-medium text-slate-900 truncate">{pic.name}</p>
+                  <p className="text-[11px] text-slate-500">{pic.closed} dari {pic.total} aktivitas</p>
                 </div>
-                <span className="text-xs font-bold text-brand-700 shrink-0">{pic.percentage}%</span>
+                <span className="font-semibold text-slate-700 shrink-0">{pic.percentage}%</span>
               </div>
             ))}
           </div>
-
-          {/* Mini SLA Compliance Indicator */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-              <ShieldCheck size={14} className="text-emerald-600" /> Kepatuhan Target SLA
-            </span>
-            <span className="font-bold text-emerald-700">{slaRate}%</span>
-          </div>
         </div>
 
-        {/* CARD 3: Prioritas Utama & Highlight Penanganan Operasional */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-3 border-b border-slate-200">
-            <h4 className="font-semibold text-slate-900 text-sm leading-tight">
-              Prioritas &amp; Highlight Penanganan
+        {/* Card 3: Aktivitas Perlu Perhatian */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h4 className="font-bold text-slate-900 text-sm">
+              Perlu Tindak Lanjut
             </h4>
-            <span className="text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 self-start sm:self-auto shrink-0">
-              Needs Follow-Up
-            </span>
+            <span className="text-xs text-slate-500">{priorityTasks.length} task</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {priorityTasks.length > 0 ? (
-              priorityTasks.map((task: any) => (
-                <div key={task.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:bg-white hover:border-slate-400 hover:shadow-sm transition-all">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-600 truncate">{task.itemName || task.kategoriProgram}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md border shrink-0 ${task.status === 'Open'
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                        : task.status === 'On Progress'
-                          ? 'bg-amber-100 text-amber-800 border-amber-300'
-                          : 'bg-slate-200 text-slate-700 border-slate-300'
-                      }`}>
-                      {task.status}
-                    </span>
+              priorityTasks.slice(0, 4).map((task: any) => (
+                <div key={task.id} className="p-2.5 rounded border border-slate-100 bg-slate-50 text-xs space-y-1">
+                  <div className="flex items-center justify-between gap-1 text-[11px] text-slate-500">
+                    <span className="font-semibold text-slate-700 truncate">{task.itemName || task.kategoriProgram}</span>
+                    <span className="shrink-0">{task.dueDate || task.startDate}</span>
                   </div>
-                  <p className="font-semibold text-slate-900 text-xs leading-snug line-clamp-2">{task.kegiatan}</p>
-                  <div className="flex items-center justify-between text-xs text-slate-600 font-semibold pt-1 border-t border-slate-200">
-                    <span className="truncate">PIC: <strong>{task.picNama}</strong></span>
-                    <span className="shrink-0 font-bold text-slate-700">{task.startDate}</span>
-                  </div>
+                  <p className="font-medium text-slate-900 line-clamp-2">{task.kegiatan}</p>
+                  <p className="text-[11px] text-slate-500">PIC: {task.picNama}</p>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-600 font-medium text-center py-4">Seluruh aktivitas berjalan sesuai target SLA.</p>
+              <p className="text-xs text-slate-500 py-2 text-center">Semua tugas berjalan sesuai jadwal.</p>
             )}
           </div>
         </div>
