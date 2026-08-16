@@ -64,6 +64,23 @@ model Activity {
   createdAt         DateTime @default(now())
 
   program       ref_Item_ProgramKerja?  @relation(fields: [idProgram], references: [id])
+  auditLogs     ActivityAuditLog[]
+}
+
+// Audit trail perubahan pada Activity (karena record activity tidak boleh dihapus)
+model ActivityAuditLog {
+  id          String   @id @default(cuid())
+  activityId  String
+  field       String
+  oldValue    String?
+  newValue    String?
+  changedBy   String?  // nama / id user yang melakukan perubahan
+  changedAt   DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId, changedAt])
+  @@map("ActivityAuditLog")
 }
 
 // Monthly curated highlight report (PERIODE bulanan, format INLHO/REP-F/-021)

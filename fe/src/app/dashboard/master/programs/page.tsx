@@ -31,7 +31,9 @@ import {
   AlertTriangle,
   ShieldAlert,
   ChevronDown,
-  Check
+  Check,
+  Info,
+  History
 } from 'lucide-react'
 import { exportSubItemToExcel, exportTableToExcel3 } from '@/lib/excelExport'
 import type { SessionUser } from '@/types/auth'
@@ -237,6 +239,11 @@ export default function DaftarProgramKerjaPage() {
   const [selectedPics, setSelectedPics] = useState<{ nama: string; email: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
 
+  // Audit Log Modal State
+  const [auditActivity, setAuditActivity] = useState<any | null>(null)
+  const [auditLogs, setAuditLogs] = useState<any[]>([])
+  const [auditLoading, setAuditLoading] = useState(false)
+
   // 1. Searchable Sub-Program Dropdown State inside Modal
   const [subProgramDropdownOpen, setSubProgramDropdownOpen] = useState(false)
   const [subProgramSearchQuery, setSubProgramSearchQuery] = useState('')
@@ -345,15 +352,25 @@ export default function DaftarProgramKerjaPage() {
     return ((userObj as any)?.programs || []).map((p: any) => String(p.programId || '')).filter(Boolean)
   }, [isAdmin, userObj])
 
-  // Flag: non-admin user with no program kerja assigned by admin.
-  // Sekarang semua program kerja tetap ditampilkan untuk user non-admin,
-  // sehingga aktivitas dari semua PIC bisa dipantau.
-  const hasNoAssignment = false
+  // Flag: non-admin user with no program kerja assigned by admin
+  const hasNoAssignment = !isAdmin && currentUser !== null && usersList.length > 0 && assignedProgramIds.length === 0
 
-  // Displayed Parent Programs (semua program untuk admin dan user non-admin)
+  // Displayed Parent Programs (admin: semua; user: hanya yang ditugaskan admin)
   const displayParents = useMemo(() => {
-    return parents
-  }, [parents])
+    if (isAdmin) return parents
+    if (hasNoAssignment) return []
+
+    const filtered = parents.filter(p => {
+      const pId = String(p.id).toUpperCase()
+      const pKode = String(p.kode).toUpperCase()
+      return assignedProgramIds.some((id: string) => {
+        const upper = String(id).toUpperCase()
+        return upper === pId || upper === pKode || upper === `PK-${pKode}` || upper.startsWith(`${pKode}.`)
+      })
+    })
+
+    return filtered.length > 0 ? filtered : parents
+  }, [isAdmin, parents, hasNoAssignment, assignedProgramIds])
 
   // Automatically ensure activeParentTab points to a valid assigned program
   useEffect(() => {
@@ -616,6 +633,21 @@ export default function DaftarProgramKerjaPage() {
     }
   }
 
+  const openAuditModal = async (act: ActivityItem) => {
+    setAuditActivity(act)
+    setAuditLogs([])
+    setAuditLoading(true)
+    try {
+      const res = await api.get(`/api/esih/activities/${act.id}/audit`)
+      setAuditLogs(res.data.data || [])
+    } catch (e) {
+      console.error(e)
+      setAuditLogs([])
+    } finally {
+      setAuditLoading(false)
+    }
+  }
+
   // Filter activities based on search, status filter, user assignment, and sub-program item ownership
   const filterActivities = (activities: ActivityItem[] = [], currentSub?: SubProgram) => {
     const statusPriority: Record<string, number> = {
@@ -688,8 +720,8 @@ export default function DaftarProgramKerjaPage() {
             title="PIC Utama (Penanggung Jawab Utama)"
           >
             <BadgeCheck size={13} className="text-amber-700 shrink-0" />
-            <span>{primaryPic}</span>
-            <span className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.5 rounded-md tracking-wide">
+            <span className="whitespace-nowrap">{primaryPic}</span>
+            <span className="text-[10px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.5 rounded-md tracking-wide whitespace-nowrap">
               Utama
             </span>
           </span>
@@ -705,7 +737,7 @@ export default function DaftarProgramKerjaPage() {
                 title="PIC Pendukung"
               >
                 <UserCheck size={10} className="text-slate-600 shrink-0" />
-                <span>{name}</span>
+                <span className="whitespace-nowrap">{name}</span>
               </span>
             ))}
           </div>
@@ -887,12 +919,14 @@ export default function DaftarProgramKerjaPage() {
             <span>
               {isAdmin
                 ? 'Semua Program Kerja Induk:'
-                : 'Semua Program Kerja Induk:'}
+                : displayParents.length === 1
+                  ? 'Program Kerja Induk Penugasan Saya:'
+                  : 'Daftar Program Kerja Induk Saya:'}
             </span>
           </div>
           {!isAdmin && (
             <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-              {displayParents.length} Program Kerja
+              {displayParents.length === 1 ? '1 Program Ditugaskan' : `${displayParents.length} Program Ditugaskan`}
             </span>
           )}
         </div>
@@ -922,13 +956,10 @@ export default function DaftarProgramKerjaPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Progress Capaian</span>
-                <span className="text-sm font-bold text-emerald-700">{displayParents[0].totalProgress}%</span>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-900 font-bold text-xs">
-                {displayParents[0].totalProgress}%
+            <div className="flex items-center self-end sm:self-center shrink-0">
+              <div className="flex flex-col items-center justify-center text-center px-4 py-1.5 rounded-xl border-2 border-emerald-500/80 bg-transparent">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Progress Capaian</span>
+                <span className="text-base font-black text-emerald-800 tracking-tight block">{displayParents[0].totalProgress}%</span>
               </div>
             </div>
           </div>
@@ -1138,7 +1169,9 @@ export default function DaftarProgramKerjaPage() {
                                 {act.descriptionAction || '-'}
                               </td>
                               <td className="py-3.5 px-3.5">
-                                {renderPicBadges(act.picNama)}
+                                <div className="line-clamp-2">
+                                  {renderPicBadges(act.picNama)}
+                                </div>
                               </td>
                               <td className="py-3.5 px-3.5 font-medium text-slate-700 whitespace-nowrap">
                                 {act.dueDate || act.startDate || '-'}
@@ -1187,36 +1220,48 @@ export default function DaftarProgramKerjaPage() {
                               </td>
                               <td className="py-3.5 px-3.5 text-left">
                                 <div className="flex items-center justify-start gap-1.5 flex-nowrap">
-                                  {/* Shortcut Status Button (On Progress <-> Closed) */}
-                                  {act.status === 'Closed' ? (
-                                    <button
-                                      onClick={() => handleToggleActivityStatus(act)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                                      title="Klik untuk mengubah status kembali ke On Progress"
-                                    >
-                                      <RotateCcw size={12} className="text-amber-700 shrink-0" />
-                                      <span>On Progress</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleToggleActivityStatus(act)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                                      title="Klik untuk mengubah status menjadi Selesai (Closed)"
-                                    >
-                                      <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
-                                      <span>Closed</span>
-                                    </button>
-                                  )}
+                                  {/* Detail / Audit Log Button (all users) */}
+                                  <button
+                                    onClick={() => openAuditModal(act)}
+                                    className="p-1.5 rounded-lg text-slate-500 hover:text-brand-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer shrink-0"
+                                    title="Detail & Riwayat Perubahan"
+                                  >
+                                    <Info size={13} />
+                                  </button>
 
-                                  {/* Edit Detail Button */}
+                                  {/* Admin-only actions */}
                                   {isAdmin && (
-                                    <button
-                                      onClick={() => openEditModal(act)}
-                                      className="p-1.5 rounded-lg text-slate-500 hover:text-brand-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer shrink-0"
-                                      title="Edit Project / Kegiatan"
-                                    >
-                                      <Pencil size={13} />
-                                    </button>
+                                    <>
+                                      {/* Shortcut Status Button (On Progress <-> Closed) */}
+                                      {act.status === 'Closed' ? (
+                                        <button
+                                          onClick={() => handleToggleActivityStatus(act)}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                          title="Klik untuk mengubah status kembali ke On Progress"
+                                        >
+                                          <RotateCcw size={12} className="text-amber-700 shrink-0" />
+                                          <span>On Progress</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => handleToggleActivityStatus(act)}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                          title="Klik untuk mengubah status menjadi Selesai (Closed)"
+                                        >
+                                          <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
+                                          <span>Closed</span>
+                                        </button>
+                                      )}
+
+                                      {/* Edit Detail Button */}
+                                      <button
+                                        onClick={() => openEditModal(act)}
+                                        className="p-1.5 rounded-lg text-slate-500 hover:text-brand-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer shrink-0"
+                                        title="Edit Project / Kegiatan"
+                                      >
+                                        <Pencil size={13} />
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               </td>
@@ -1734,6 +1779,90 @@ export default function DaftarProgramKerjaPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Audit Log / Detail Record Modal */}
+      {auditActivity && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                    <History size={18} className="text-brand-700" /> Detail Record & Riwayat Perubahan
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">ID: {auditActivity.id}</p>
+                </div>
+                <button
+                  onClick={() => setAuditActivity(null)}
+                  className="p-1.5 rounded-lg neu-btn text-slate-600 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 font-semibold">Kegiatan</span>
+                    <p className="font-bold text-slate-900 mt-0.5">{auditActivity.kegiatan}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 font-semibold">Status</span>
+                    <p className="font-bold text-slate-900 mt-0.5">{auditActivity.status}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 font-semibold">PIC</span>
+                    <p className="font-bold text-slate-900 mt-0.5">{auditActivity.picNama}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-500 font-semibold">Tanggal</span>
+                    <p className="font-bold text-slate-900 mt-0.5">{auditActivity.startDate} → {auditActivity.dueDate}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700 mb-2">Riwayat Perubahan</h4>
+                  {auditLoading ? (
+                    <div className="text-center py-6"><span className="spinner" /></div>
+                  ) : auditLogs.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-6 text-center">Belum ada riwayat perubahan untuk record ini.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {auditLogs.map((log: any) => (
+                        <div key={log.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 text-xs">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-bold text-brand-800">{log.field}</span>
+                            <span className="text-slate-500">{log.changedBy || 'System'} · {new Date(log.changedAt).toLocaleString('id-ID')}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="p-2 rounded-lg bg-red-50 border border-red-100">
+                              <span className="text-red-500 font-semibold">Sebelum</span>
+                              <p className="text-slate-700 break-words">{log.oldValue ?? '-'}</p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                              <span className="text-emerald-600 font-semibold">Sesudah</span>
+                              <p className="text-slate-700 break-words">{log.newValue ?? '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-5 py-3.5 border-t border-slate-200 bg-white shrink-0 flex items-center justify-end">
+                <button
+                  onClick={() => setAuditActivity(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         </ModalPortal>

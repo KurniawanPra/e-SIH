@@ -22,7 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ListChecks,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Pin
 } from 'lucide-react'
 import type { SessionUser } from '@/types/auth'
 import ModalPortal from '@/components/ModalPortal'
@@ -60,9 +61,13 @@ const formatUploadTime = (iso?: string | null) => {
   if (!iso) return '-'
   try {
     const d = new Date(iso)
-    return d.toLocaleString('id-ID', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    })
+    if (isNaN(d.getTime())) return '-'
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    const hours = String(d.getHours()).padStart(2, '0')
+    const mins = String(d.getMinutes()).padStart(2, '0')
+    return `${day}/${month}/${year} ${hours}:${mins}`
   } catch {
     return '-'
   }
@@ -89,6 +94,37 @@ export default function WeeklyActivitiesPage() {
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthIdx)
   const [selectedWeek, setSelectedWeek] = useState<string>('ALL')
   const { selectedYear, setSelectedYear } = useYear()
+
+  // Pinned / Marked activities state (Persisted in localStorage)
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(localStorage.getItem('esih_pinned_weekly_activities') || '[]')
+    } catch {
+      return []
+    }
+  })
+
+  const togglePinActivity = (id: string, kegiatan: string) => {
+    const exists = pinnedIds.includes(id)
+    const next = exists ? pinnedIds.filter(x => x !== id) : [id, ...pinnedIds]
+
+    setPinnedIds(next)
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('esih_pinned_weekly_activities', JSON.stringify(next))
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    if (exists) {
+      toast.info(`Mark dilepas untuk "${kegiatan}"`, 'Unmarked')
+    } else {
+      toast.success(`"${kegiatan}" berhasil di-mark & di-pin ke paling atas`, 'Marked & Pinned')
+    }
+  }
 
   const yearOptions = useMemo(() => {
     const yearsSet = new Set<number>()
@@ -126,9 +162,11 @@ export default function WeeklyActivitiesPage() {
     return map
   }, [activities, selectedYear])
 
-  // Date Range Filters for Excel Export
-  const [startDateFilter, setStartDateFilter] = useState('')
-  const [endDateFilter, setEndDateFilter] = useState('')
+  // Date Range Filters (default: bulan ini)
+  const currentMonthFirstDay = `${selectedYear}-${String(currentMonthIdx).padStart(2, '0')}-01`
+  const currentMonthLastDay = `${selectedYear}-${String(currentMonthIdx).padStart(2, '0')}-${String(new Date(selectedYear, currentMonthIdx, 0).getDate()).padStart(2, '0')}`
+  const [startDateFilter, setStartDateFilter] = useState(currentMonthFirstDay)
+  const [endDateFilter, setEndDateFilter] = useState(currentMonthLastDay)
 
   // Filters
   const [search, setSearch] = useState('')
@@ -192,19 +230,11 @@ export default function WeeklyActivitiesPage() {
   }, [selectedYear])
 
   // Priority scoring for sorting activities:
-  // Items with kendala/tindakLanjut and unfinished status (On Progress / Open) come FIRST
+  // ONLY manually marked/pinned activities float to the top
   const getPriorityScore = (a: any) => {
-    const hasKendala = Boolean(a.kendala && a.kendala !== '-' && a.kendala.trim() !== '')
-    const hasTindakLanjut = Boolean(a.tindakLanjut && a.tindakLanjut !== '-' && a.tindakLanjut.trim() !== '')
-    const isUnfinished = a.status === 'Open' || a.status === 'On Progress'
-
-    if (hasKendala && hasTindakLanjut && isUnfinished) return 100
-    if (hasKendala && isUnfinished) return 90
-    if (hasTindakLanjut && isUnfinished) return 80
-    if (hasKendala) return 70
-    if (a.status === 'On Progress') return 50
-    if (a.status === 'Open') return 40
-    return 10
+    const isPinned = pinnedIds.includes(a.id)
+    if (isPinned) return 1000
+    return 0
   }
 
   // Filtered & Sorted activities based on Priority, Month, Week, Date Range, Search, User Filter, and Status Filter
@@ -273,7 +303,7 @@ export default function WeeklyActivitiesPage() {
       }
       return new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime()
     })
-  }, [activities, selectedMonth, selectedYear, selectedWeek, startDateFilter, endDateFilter, userFilter, statusFilter, search, user])
+  }, [activities, selectedMonth, selectedYear, selectedWeek, startDateFilter, endDateFilter, userFilter, statusFilter, search, user, pinnedIds])
 
   // Summary Stats for the filtered period
   const summaryStats = useMemo(() => {
@@ -325,6 +355,21 @@ export default function WeeklyActivitiesPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
+  const formatRangeDate = (iso: string) => {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
+
+  const getRangeTitle = () => {
+    const start = startDateFilter || currentMonthFirstDay
+    const end = endDateFilter || currentMonthLastDay
+    const startLabel = formatRangeDate(start)
+    const endLabel = formatRangeDate(end)
+    if (startLabel && endLabel && start !== end) return `${startLabel} - ${endLabel}`
+    return startLabel || endLabel || `Bulan ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
+  }
+
   // Export Filtered Activities to Excel File (Weekly Activity Sheet format)
   const handleExportExcel = async () => {
     if (filteredActivities.length === 0) {
@@ -332,12 +377,14 @@ export default function WeeklyActivitiesPage() {
       return
     }
 
-    const titleStr = `Weekly Activities SIH - ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
-    
+    const rangeTitle = getRangeTitle()
+    const titleStr = `Weekly Activities SIH - ${rangeTitle}`
+    const safeSubName = rangeTitle.replace(/[^a-zA-Z0-9]+/g, '_')
+
     await exportTableToExcel3({
       title: titleStr,
       subKode: 'ACTIVITIES',
-      subNamaItem: `Activities_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}`,
+      subNamaItem: `Activities_${safeSubName}`,
       year: selectedYear,
       activities: filteredActivities
     })
@@ -550,8 +597,8 @@ export default function WeeklyActivitiesPage() {
               {(startDateFilter || endDateFilter) && (
                 <button
                   onClick={() => {
-                    setStartDateFilter('')
-                    setEndDateFilter('')
+                    setStartDateFilter(currentMonthFirstDay)
+                    setEndDateFilter(currentMonthLastDay)
                   }}
                   className="p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
                   title="Reset Filter Range Tanggal"
@@ -639,15 +686,15 @@ export default function WeeklyActivitiesPage() {
         <div className="bg-white p-4 rounded-2xl border border-brand-200 shadow-sm space-y-3 animate-dropdown-in relative z-50">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <span className="text-xs font-semibold text-brand-800 flex items-center gap-1.5">
-              <ListFilter size={15} /> Konfigurasi Filter Lanjutan &amp; Ekspor Data
+              <ListFilter size={15} /> Konfigurasi Ekspor Data
             </span>
             {(userFilter !== 'ALL' || statusFilter !== 'ALL' || startDateFilter || endDateFilter) && (
               <button
                 onClick={() => {
                   setUserFilter('ALL')
                   setStatusFilter('ALL')
-                  setStartDateFilter('')
-                  setEndDateFilter('')
+                  setStartDateFilter(currentMonthFirstDay)
+                  setEndDateFilter(currentMonthLastDay)
                 }}
                 className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
               >
@@ -736,68 +783,99 @@ export default function WeeklyActivitiesPage() {
             Tidak ada laporan aktivitas pada rentang tanggal/filter terpilih.
           </div>
         ) : (
-          paginatedActivities.map((a) => (
-            <div key={a.id} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3 w-full min-w-0">
-              {/* Top Row: Status */}
-              <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 min-w-0">
-                <span className="text-xs font-bold text-slate-700">Aktivitas #{a.no || a.id}</span>
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${
-                  a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
-                }`}>
-                  {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Cancelled' ? <XCircle size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                  {a.status}
-                </span>
-              </div>
-
-              {/* Week Badge */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-50 border border-brand-200 text-xs font-bold text-brand-800" title={`Start: ${a.startDate || '-'} | Due: ${a.dueDate || '-'}`}>
-                  <CalendarDays size={12} /> Minggu: {weekLabel(a.startDate, a.dueDate)}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-600">
-                  <Clock size={11} className="text-slate-600" /> Upload: {formatUploadTime(a.createdAt)}
-                </span>
-              </div>
-
-              {/* Activity Details */}
-              <div className="min-w-0">
-                <p className="font-semibold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
-                {a.descriptionAction && <p className="text-xs text-slate-600 font-medium mt-1">{a.descriptionAction}</p>}
-                {a.tindakLanjut && (
-                  <p className="text-xs text-slate-700 font-semibold mt-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
-                    Tindak Lanjut: {a.tindakLanjut}
-                  </p>
-                )}
-                {a.kendala && (
-                  <p className="text-xs text-red-700 font-semibold mt-1.5 bg-red-50 border border-red-200 rounded-lg px-2 py-1">
-                    Kendala: {a.kendala}
-                  </p>
-                )}
-              </div>
-
-              {/* Footer Row: PIC, Date & Action Buttons */}
-              <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600 min-w-0 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="flex items-center gap-1.5 font-bold text-slate-900 truncate min-w-0">
-                    <User size={13} className="text-slate-600 shrink-0" /> {a.picNama?.split('/')[0]}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs font-medium text-slate-600 shrink-0">
-                    <Calendar size={12} className="text-slate-600" /> {a.startDate}
+          paginatedActivities.map((a) => {
+            const isPinned = pinnedIds.includes(a.id)
+            return (
+              <div
+                key={a.id}
+                className={`rounded-2xl border p-4 shadow-xs space-y-3 w-full min-w-0 transition-all ${
+                  isPinned
+                    ? 'bg-amber-50/40 border-amber-300 ring-2 ring-amber-400/30'
+                    : 'bg-white border-slate-200'
+                }`}
+              >
+                {/* Top Row: Status & Pin Badge */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-bold text-slate-700">Aktivitas #{a.no || a.id}</span>
+                    {isPinned && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 font-bold text-[10px]">
+                        <Pin size={10} className="fill-amber-600 rotate-45" /> Pinned Up
+                      </span>
+                    )}
+                  </div>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${
+                    a.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' : a.status === 'On Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' : a.status === 'Open' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-200 text-slate-700 border-slate-300'
+                  }`}>
+                    {a.status === 'Closed' ? <CheckCircle2 size={12} /> : a.status === 'Cancelled' ? <XCircle size={12} /> : a.status === 'Open' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                    {a.status}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={() => openQuickStatus(a)}
-                    className="px-2.5 py-1 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
-                    title="Update Status Aktivitas"
-                  >
-                    <RefreshCw size={13} /> Update Status
-                  </button>
+                {/* Week Badge */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-50 border border-brand-200 text-xs font-bold text-brand-800" title={`Start: ${a.startDate || '-'} | Due: ${a.dueDate || '-'}`}>
+                    <CalendarDays size={12} /> Minggu: {weekLabel(a.startDate, a.dueDate)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-600">
+                    <Clock size={11} className="text-slate-600" /> Upload: {formatUploadTime(a.createdAt)}
+                  </span>
+                </div>
+
+                {/* Activity Details */}
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900 text-sm leading-snug">{a.kegiatan}</p>
+                  {a.descriptionAction && <p className="text-xs text-slate-600 font-medium mt-1">{a.descriptionAction}</p>}
+                  {a.tindakLanjut && (
+                    <p className="text-xs text-slate-700 font-semibold mt-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
+                      Tindak Lanjut: {a.tindakLanjut}
+                    </p>
+                  )}
+                  {a.kendala && (
+                    <p className="text-xs text-red-700 font-semibold mt-1.5 bg-red-50 border border-red-200 rounded-lg px-2 py-1">
+                      Kendala: {a.kendala}
+                    </p>
+                  )}
+                </div>
+
+                {/* Footer Row: PIC, Date & Action Buttons */}
+                <div className="pt-2.5 border-t border-slate-200/80 flex items-center justify-between gap-2 text-xs text-slate-600 min-w-0 flex-wrap">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-900 truncate min-w-0">
+                      <User size={13} className="text-slate-600 shrink-0" /> {a.picNama?.split('/')[0]}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-medium text-slate-600 shrink-0">
+                      <Calendar size={12} className="text-slate-600" /> {a.startDate}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Mark / Pin Up Button */}
+                    <button
+                      onClick={() => togglePinActivity(a.id, a.kegiatan)}
+                      className={`px-2 py-1 rounded-xl text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer transition-all shadow-2xs border ${
+                        isPinned
+                          ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-amber-50 hover:text-amber-800 hover:border-amber-300'
+                      }`}
+                      title={isPinned ? 'Lepas Mark / Pin' : 'Mark aktivitas ini agar langsung ke paling atas'}
+                    >
+                      <Pin size={12} className={isPinned ? 'text-amber-700 fill-amber-600 rotate-45 shrink-0' : 'text-slate-400 shrink-0'} />
+                      <span>{isPinned ? 'Marked' : 'Mark Up'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => openQuickStatus(a)}
+                      className="px-2.5 py-1 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
+                      title="Update Status Aktivitas"
+                    >
+                      <RefreshCw size={13} /> Update Status
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
@@ -816,7 +894,7 @@ export default function WeeklyActivitiesPage() {
                 <th className="py-3.5 px-4 w-36 text-left">Status</th>
                 <th className="py-3.5 px-4 w-40">Penanggung Jawab (PIC)</th>
                 <th className="py-3.5 px-4 w-44">Waktu Upload Laporan</th>
-                <th className="py-3.5 px-4 w-36 text-left">Aksi</th>
+                <th className="py-3.5 px-4 min-w-[190px] text-left">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
@@ -828,15 +906,24 @@ export default function WeeklyActivitiesPage() {
                 </tr>
               ) : (
                 paginatedActivities.map((a, i) => {
-                  const hasActiveKendala = Boolean(a.kendala && a.kendala !== '-' && a.kendala.trim() !== '' && a.status !== 'Closed')
+                  const isPinned = pinnedIds.includes(a.id)
                   return (
                     <tr
                       key={a.id}
                       className={`transition-colors ${
-                        hasActiveKendala ? 'bg-red-50/70 hover:bg-red-100/70' : 'hover:bg-slate-50'
+                        isPinned ? 'bg-amber-50/50 hover:bg-amber-100/40' : 'hover:bg-slate-50'
                       }`}
                     >
-                    <td className="py-4 px-4 text-center font-mono font-bold text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">{startIndex + i + 1}</td>
+                    <td className="py-4 px-4 text-center font-mono font-bold text-slate-800 sticky left-0 bg-slate-100 z-10 border-r-2 border-slate-300/80 shadow-xs">
+                      {isPinned ? (
+                        <div className="flex items-center justify-center gap-1 text-amber-700" title="Aktivitas di-mark & di-pin ke paling atas">
+                          <Pin size={11} className="fill-amber-600 rotate-45" />
+                          <span>{startIndex + i + 1}</span>
+                        </div>
+                      ) : (
+                        startIndex + i + 1
+                      )}
+                    </td>
 
                     {/* Minggu Column (Start & Due) */}
                     <td className="py-4 px-4 text-center">
@@ -847,10 +934,20 @@ export default function WeeklyActivitiesPage() {
 
                     {/* Kegiatan Column */}
                     <td className="py-4 px-4">
-                      <p className="font-semibold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
-                      {a.descriptionAction && (
-                        <p className="text-xs text-slate-600 font-medium mt-0.5 line-clamp-2">{a.descriptionAction}</p>
-                      )}
+                      <div className="space-y-1">
+                        {isPinned && (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 font-bold text-[10px]">
+                              <Pin size={10} className="fill-amber-600 rotate-45 shrink-0" />
+                              <span>Pinned</span>
+                            </span>
+                          </div>
+                        )}
+                        <p className="font-semibold text-slate-900 text-xs leading-snug">{a.kegiatan}</p>
+                        {a.descriptionAction && (
+                          <p className="text-xs text-slate-600 font-medium line-clamp-2">{a.descriptionAction}</p>
+                        )}
+                      </div>
                     </td>
 
                     {/* Tindak Lanjut Column */}
@@ -903,9 +1000,23 @@ export default function WeeklyActivitiesPage() {
                       </span>
                     </td>
 
-                    {/* 2 Actions Column: Update Status & Edit (Align Start) */}
+                    {/* Actions Column: Mark Up/Pin + Update Status */}
                     <td className="py-4 px-4 text-left">
-                      <div className="flex items-center justify-start gap-1.5">
+                      <div className="flex items-center justify-start gap-1.5 flex-nowrap">
+                        {/* Mark / Pin Up Button */}
+                        <button
+                          onClick={() => togglePinActivity(a.id, a.kegiatan)}
+                          className={`px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-all shadow-2xs border ${
+                            isPinned
+                              ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-amber-50 hover:text-amber-800 hover:border-amber-300'
+                          }`}
+                          title={isPinned ? 'Lepas Mark / Pin' : 'Mark aktivitas ini agar langsung ke paling atas'}
+                        >
+                          <Pin size={13} className={isPinned ? 'text-amber-700 fill-amber-600 rotate-45 shrink-0' : 'text-slate-400 shrink-0'} />
+                          <span>{isPinned ? 'Marked' : 'Mark Up'}</span>
+                        </button>
+
                         <button
                           onClick={() => openQuickStatus(a)}
                           className="px-2.5 py-1 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"

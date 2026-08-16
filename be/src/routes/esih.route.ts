@@ -412,27 +412,63 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       }).catch(() => null)
     }
 
-    const updated = await prisma.activity.update({
-      where: { id },
-      data: {
-        ...(idProgram !== undefined ? { idProgram: idProgram || null } : {}),
-        kategoriProgram: programItem?.programKerja ? `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` : undefined,
-        itemName: programItem?.namaItem,
-        kegiatan,
-        descriptionAction,
-        startDate,
-        dueDate,
-        closedDate,
-        status,
-        picNama,
-        picEmail,
-        tindakLanjut,
-        kendala,
-        remarks,
-      },
-    })
+    const nextData: any = {
+      ...(idProgram !== undefined ? { idProgram: idProgram || null } : {}),
+      ...(programItem?.programKerja ? { kategoriProgram: `${programItem.programKerja.kode} ${programItem.programKerja.namaProgram}` } : {}),
+      ...(programItem?.namaItem ? { itemName: programItem.namaItem } : {}),
+      kegiatan,
+      descriptionAction,
+      startDate,
+      dueDate,
+      closedDate,
+      status,
+      picNama,
+      picEmail,
+      tindakLanjut,
+      kendala,
+      remarks,
+    }
+
+    const auditFields: string[] = [
+      'idProgram', 'kategoriProgram', 'itemName', 'kegiatan', 'descriptionAction',
+      'startDate', 'dueDate', 'closedDate', 'status', 'picNama', 'picEmail',
+      'tindakLanjut', 'kendala', 'remarks',
+    ]
+
+    const changedBy = (request.session.get('user') as any)?.name || (request.session.get('user') as any)?.email || null
+    const auditLogs: any[] = []
+
+    for (const field of auditFields) {
+      if (!(field in nextData)) continue
+      const oldValue = current[field as keyof typeof current]
+      const newValue = nextData[field]
+      if (String(oldValue ?? '') === String(newValue ?? '')) continue
+      auditLogs.push({
+        activityId: id,
+        field,
+        oldValue: oldValue === null || oldValue === undefined ? null : String(oldValue),
+        newValue: newValue === null || newValue === undefined ? null : String(newValue),
+        changedBy,
+      })
+    }
+
+    const updated = await prisma.activity.update({ where: { id }, data: nextData })
+
+    if (auditLogs.length > 0) {
+      await prisma.activityAuditLog.createMany({ data: auditLogs }).catch(() => null)
+    }
 
     return { success: true, data: updated }
+  })
+
+  // GET audit trail untuk sebuah activity
+  fastify.get('/activities/:id/audit', async (request: any, reply) => {
+    const { id } = request.params
+    const logs = await prisma.activityAuditLog.findMany({
+      where: { activityId: id },
+      orderBy: { changedAt: 'desc' },
+    })
+    return { success: true, data: logs }
   })
 
   // PATCH toggle active/inactive Activity
@@ -582,6 +618,11 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.put('/highlights/:id', async (request: any, reply) => {
     const { id } = request.params
     const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks, programId, pics, bagian } = request.body || {}
+
+    const existing = await prisma.highlight.findUnique({ where: { id } }).catch(() => null)
+    if (!existing) {
+      return reply.code(404).send({ success: false, error: 'Highlight tidak ditemukan' })
+    }
 
     if (programId) {
       const progItem = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
@@ -766,8 +807,8 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           ? 'Seksi MR & HSSE'
           : (defaultRole === 'ADMIN' ? 'Sub Bagian Sistem & IT' : 'Seksi IT')
 
-        const id = String(emp?.id || emp?.employeeId || emp?.user?.id || nama)
-        const email = emp?.email || emp?.userEmail || emp?.user?.email || (emp?.nrk ? `${emp.nrk}@inl.co.id` : `${id}@inl.co.id`)
+        const id = String(emp?.id || emp?.employeeId || emp?.user?.id || '')
+        const email = emp?.email || null
 
         const override = overrideMap.get(id) || overrideMap.get(nama) || overrideMap.get(email)
         const role = override?.role || defaultRole

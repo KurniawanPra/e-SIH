@@ -28,7 +28,6 @@ import {
 import ModalPortal from '@/components/ModalPortal'
 import { useYear } from '@/context/YearContext'
 import { exportSubItemToExcel } from '@/lib/excelExport'
-import { isSamePerson } from '@/lib/utils'
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -134,28 +133,6 @@ export default function MonthlyActivitiesPage() {
 
   const [selectedBagian, setSelectedBagian] = useState<string>('ALL')
 
-  const inferBagian = (h: any): string => {
-    const existing = (h?.bagian || '').trim().toUpperCase()
-    if (existing) return existing
-
-    const text = `${h?.item || ''} ${h?.namePic || ''} ${h?.description || ''} ${h?.remarks || ''}`.toUpperCase()
-    if (/HSSE|HSE|SAFETY|K3|DAMKAR|SECURITY|CLEANING|JUMAT BERSIH/.test(text)) return 'HSSE'
-    if (/IT |SMARTWB|RFID|SAP|HARDWARE|SERVER|ISP|CCTV|PATCH|DATA CENTER|NETWORK/.test(text)) return 'IT'
-    if (/SISTEM|SDM|SEKPER|KPBN|PROSES BISNIS|ISO|AUDIT|HALAL/.test(text)) return 'SISTEM'
-
-    // Cocokkan nama PIC ke daftar user untuk infer unit.
-    const pics = (h?.namePic || '').split(/[/,;]+/).map((n: string) => n.trim()).filter(Boolean)
-    const matched = userList.find((u: any) =>
-      pics.some((n: string) => isSamePerson({ name: u.nama }, { name: n })),
-    )
-    if (matched?.unit) {
-      if (/hsse|hse|safety|k3|mr/i.test(matched.unit)) return 'HSSE'
-      if (/it|sistem|teknologi|informasi/i.test(matched.unit)) return 'IT'
-    }
-
-    return ''
-  }
-
   const filteredHighlights = useMemo(() => {
     let list = highlights
 
@@ -255,7 +232,7 @@ export default function MonthlyActivitiesPage() {
 
   const openAddModal = (bulan = selectedMonth, tahun = selectedYear) => {
     setEditingId(null)
-    setForm({ ...emptyForm, bulan, tahun, bagian: selectedBagian !== 'ALL' ? selectedBagian : (masterBagian[0]?.kode || 'SISTEM') })
+    setForm({ ...emptyForm, bulan, tahun })
     setShowModal(true)
   }
 
@@ -264,7 +241,7 @@ export default function MonthlyActivitiesPage() {
     setForm({
       bulan: h.bulan,
       tahun: h.tahun,
-      bagian: inferBagian(h) || (masterBagian[0]?.kode || 'SISTEM'),
+      bagian: h.bagian || '',
       item: h.item || '',
       description: h.description || '',
       actionToBeTaken: h.actionToBeTaken || '',
@@ -475,112 +452,230 @@ export default function MonthlyActivitiesPage() {
             </div>
           </div>
 
-          <div className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            {/* Row 1: Filters (Month, Year, Bagian, Date Range) & Action Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                {userRole === 'ADMIN' && (
-                  <button
-                    onClick={() => setView('cards')}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-xs"
-                    title="Kembali ke pilihan bulan"
-                  >
-                    <ArrowLeft size={15} /> Pilih Bulan Lain
-                  </button>
-                )}
-                <select
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(Number(e.target.value))}
-                  className="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
-                >
-                  {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                </select>
-                <select
-                  value={selectedYear}
-                  onChange={e => setSelectedYear(Number(e.target.value))}
-                  className="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
-                >
-                  {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <select
-                  value={selectedBagian}
-                  onChange={e => setSelectedBagian(e.target.value)}
-                  className="rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-xs sm:text-sm font-bold text-brand-800 outline-none cursor-pointer"
-                  title="Filter berdasarkan Bagian"
-                >
-                  <option value="ALL">Semua Bagian</option>
-                  {masterBagian.filter(b => b.isActive).map(b => (
-                    <option key={b.id} value={b.kode || b.nama}>
-                      {b.nama} ({b.kode})
-                    </option>
-                  ))}
-                </select>
-
-                {/* Filter Range Tanggal */}
-                <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-300">
-                  <span className="text-xs font-semibold text-slate-700 px-1 flex items-center gap-1">
-                    <Calendar size={13} className="text-brand-600 shrink-0" /> Range:
-                  </span>
-                  <input
-                    type="date"
-                    value={startDateFilter}
-                    onChange={e => setStartDateFilter(e.target.value)}
-                    className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
-                    title="Tanggal Awal"
-                  />
-                  <span className="text-xs font-bold text-slate-600">s/d</span>
-                  <input
-                    type="date"
-                    value={endDateFilter}
-                    onChange={e => setEndDateFilter(e.target.value)}
-                    className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
-                    title="Tanggal Akhir"
-                  />
-                  {(startDateFilter || endDateFilter) && (
+          <div className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm space-y-3">
+            {/* Responsive Filter Toolbar: Stacked & Full Width on Mobile, Flex on Desktop */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                {/* Left Controls: Back button, Month, Year, Bagian, Date Range */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap flex-1 min-w-0">
+                  {userRole === 'ADMIN' && (
                     <button
-                      onClick={() => {
-                        setStartDateFilter('')
-                        setEndDateFilter('')
-                      }}
-                      className="p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
-                      title="Reset Filter Range Tanggal"
+                      onClick={() => setView('cards')}
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors shadow-xs"
+                      title="Kembali ke pilihan bulan"
                     >
-                      <X size={13} />
+                      <ArrowLeft size={15} /> Pilih Bulan Lain
                     </button>
                   )}
+
+                  {/* Dropdowns Grid (2 cols on mobile, flex on sm+) */}
+                  <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+                    <select
+                      value={selectedMonth}
+                      onChange={e => setSelectedMonth(Number(e.target.value))}
+                      className="col-span-1 w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                    >
+                      {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                    </select>
+                    <select
+                      value={selectedYear}
+                      onChange={e => setSelectedYear(Number(e.target.value))}
+                      className="col-span-1 w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                    >
+                      {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                    <select
+                      value={selectedBagian}
+                      onChange={e => setSelectedBagian(e.target.value)}
+                      className="col-span-2 sm:col-span-1 w-full sm:w-auto rounded-xl border border-brand-200 bg-brand-50/70 px-3 py-2 text-xs sm:text-sm font-bold text-brand-800 outline-none cursor-pointer"
+                      title="Filter berdasarkan Bagian"
+                    >
+                      <option value="ALL">Semua Bagian</option>
+                      {masterBagian.filter(b => b.isActive).map(b => (
+                        <option key={b.id} value={b.kode || b.nama}>
+                          {b.nama} ({b.kode})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Filter Range Tanggal (Full width on mobile) */}
+                  <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 bg-slate-50 p-2 sm:p-1.5 rounded-xl border border-slate-300">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                        <Calendar size={13} className="text-brand-600 shrink-0" /> Range:
+                      </span>
+                      {(startDateFilter || endDateFilter) && (
+                        <button
+                          onClick={() => {
+                            setStartDateFilter('')
+                            setEndDateFilter('')
+                          }}
+                          className="sm:hidden p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
+                          title="Reset Filter Range Tanggal"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                      <input
+                        type="date"
+                        value={startDateFilter}
+                        onChange={e => setStartDateFilter(e.target.value)}
+                        className="flex-1 sm:w-auto px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
+                        title="Tanggal Awal"
+                      />
+                      <span className="text-xs font-bold text-slate-600">s/d</span>
+                      <input
+                        type="date"
+                        value={endDateFilter}
+                        onChange={e => setEndDateFilter(e.target.value)}
+                        className="flex-1 sm:w-auto px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900 outline-none focus:border-brand-500"
+                        title="Tanggal Akhir"
+                      />
+                      {(startDateFilter || endDateFilter) && (
+                        <button
+                          onClick={() => {
+                            setStartDateFilter('')
+                            setEndDateFilter('')
+                          }}
+                          className="hidden sm:inline-flex p-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold cursor-pointer"
+                          title="Reset Filter Range Tanggal"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Action buttons: Full width grid on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2 w-full lg:w-auto shrink-0">
+                  <button
+                    onClick={handleExportExcel}
+                    className="w-full lg:w-auto flex items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3.5 py-2.5 sm:py-2 text-xs font-bold hover:bg-emerald-100 shadow-xs cursor-pointer transition-colors"
+                    title="Export Data ke Excel Format Document INL"
+                  >
+                    <FileSpreadsheet size={15} /> Export Excel
+                  </button>
+                  <button
+                    onClick={() => openAddModal()}
+                    className="w-full lg:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2.5 sm:py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm cursor-pointer transition-colors"
+                  >
+                    <Plus size={15} /> Tambah Highlight
+                  </button>
                 </div>
               </div>
 
-              {/* Export Excel & Tambah Highlight buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={handleExportExcel}
-                  className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-3 py-2 text-xs font-bold hover:bg-emerald-100 shadow-xs cursor-pointer"
-                  title="Export Data ke Excel Format Document INL (1.jpeg)"
-                >
-                  <FileSpreadsheet size={15} /> Export Excel
-                </button>
-                <button
-                  onClick={() => openAddModal()}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm cursor-pointer"
-                >
-                  <Plus size={15} /> Tambah Highlight
-                </button>
+              {/* Search Bar Full Width */}
+              <div className="relative w-full">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Cari item, PIC, deskripsi..."
+                  className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3.5 text-xs sm:text-sm font-medium focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none bg-slate-50/50 focus:bg-white transition-all"
+                />
               </div>
             </div>
 
-            {/* Row 2: Search Bar Full Width */}
-            <div className="relative w-full">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Cari item, PIC, deskripsi..."
-                className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3.5 text-xs sm:text-sm font-medium focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none bg-slate-50/50 focus:bg-white transition-all"
-              />
+            {/* ===== MOBILE CARDS VIEW (sm:hidden) ===== */}
+            <div className="sm:hidden space-y-3">
+              {filteredHighlights.length === 0 ? (
+                <div className="py-10 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-6">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
+                    <FileSpreadsheet size={24} />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-600">
+                    Belum ada data highlight pada {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
+                  </p>
+                  <button
+                    onClick={() => openAddModal()}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-xs cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>Tambah Highlight</span>
+                  </button>
+                </div>
+              ) : (
+                paginatedHighlights.map((h, idx) => (
+                  <div key={h.id} className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+                    {/* Card Top: Index, Bagian, Status */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center">
+                          {startIndex + idx + 1}
+                        </span>
+                        {h.bagian && (
+                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wide border ${
+                            h.bagian.toUpperCase().includes('HSSE')
+                              ? 'bg-sky-50 text-sky-800 border-sky-200'
+                              : h.bagian.toUpperCase().includes('IT')
+                              ? 'bg-purple-50 text-purple-800 border-purple-200'
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                          }`}>
+                            {h.bagian}
+                          </span>
+                        )}
+                      </div>
+
+                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
+                        {h.status}
+                      </span>
+                    </div>
+
+                    {/* Title & Description */}
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm leading-snug">{h.item}</h4>
+                      {h.description && (
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed whitespace-pre-wrap">{h.description}</p>
+                      )}
+                    </div>
+
+                    {/* Metadata Details */}
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-500 font-bold block">PIC:</span>
+                        <span className="font-semibold text-slate-800">{h.namePic || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 font-bold block">Target / Closed:</span>
+                        <span className="font-medium text-slate-700">
+                          {h.targetDate || '-'} {h.closedDate ? `(${h.closedDate})` : ''}
+                        </span>
+                      </div>
+                      {h.remarks && (
+                        <div className="col-span-2">
+                          <span className="text-[10px] text-slate-500 font-bold block">Remarks:</span>
+                          <span className="text-slate-600 italic">{h.remarks}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEditModal(h)}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs py-2 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <RefreshCw size={13} /> Update Status
+                      </button>
+                      <button
+                        onClick={() => handleDelete(h.id)}
+                        className="p-2 rounded-xl text-red-600 hover:bg-red-50 border border-red-200 cursor-pointer"
+                        title="Hapus Item"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
-            <div className="overflow-x-auto w-full min-w-0 print:overflow-visible">
+            {/* ===== DESKTOP TABLE VIEW (hidden sm:block) ===== */}
+            <div className="hidden sm:block overflow-x-auto w-full min-w-0 print:overflow-visible">
               <table className="w-full min-w-max text-left text-sm">
                 <thead>
                   <tr className="border-b-2 border-slate-300 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -665,20 +760,21 @@ export default function MonthlyActivitiesPage() {
 
             {/* ===== PAGINATION BAR ===== */}
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 text-xs font-semibold text-slate-600 print:hidden">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span>
+              {/* Data Counter & Rows Per Page Selector (Full width on mobile) */}
+              <div className="flex items-center justify-between w-full sm:w-auto gap-3 pb-2.5 sm:pb-0 border-b border-slate-100 sm:border-b-0">
+                <span className="truncate">
                   Menampilkan <strong className="text-slate-900">{filteredHighlights.length > 0 ? startIndex + 1 : 0}</strong>–<strong className="text-slate-900">{endIndex}</strong> dari <strong className="text-slate-900">{filteredHighlights.length}</strong> data
                 </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-600">|</span>
-                  <span className="text-slate-600">Tampilkan:</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-slate-400 hidden sm:inline">|</span>
+                  <span className="text-slate-600 hidden xs:inline">Baris:</span>
                   <select
                     value={itemsPerPage}
                     onChange={e => {
                       setItemsPerPage(Number(e.target.value))
                       setCurrentPage(1)
                     }}
-                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-700 outline-none cursor-pointer"
+                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-800 outline-none cursor-pointer shadow-2xs"
                   >
                     <option value={5}>5 / hal</option>
                     <option value={10}>10 / hal</option>
@@ -689,62 +785,84 @@ export default function MonthlyActivitiesPage() {
                 </div>
               </div>
 
+              {/* Navigation Controls: Prev, Page Indicator / Numbers, Next */}
               {filteredHighlights.length > 0 && (
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  {/* Direct Page Input Number */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">
-                      <span className="text-xs font-bold text-slate-600">Ke Halaman:</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={totalPages}
-                        value={currentPage}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10)
-                          if (!isNaN(val)) {
-                            const target = Math.max(1, Math.min(val, totalPages))
-                            setCurrentPage(target)
-                          }
-                        }}
-                        className="w-12 px-1.5 py-0.5 text-center font-semibold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
-                      />
-                      <span className="text-xs font-bold text-slate-600">/ {totalPages}</span>
-                    </div>
-                  )}
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                  {/* Prev Button */}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                  >
+                    <ChevronLeft size={15} /> <span>Prev</span>
+                  </button>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    >
-                      <ChevronLeft size={14} /> Prev
-                    </button>
-
-                    <div className="flex items-center gap-1 px-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-7 h-7 rounded-xl text-xs font-bold transition cursor-pointer ${currentPage === page
-                              ? 'bg-brand-600 text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                            }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage >= totalPages}
-                      className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    >
-                      Next <ChevronRight size={14} />
-                    </button>
+                  {/* Mobile Simple Page Indicator (sm:hidden) */}
+                  <div className="sm:hidden flex items-center justify-center px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 shrink-0">
+                    <span className="text-brand-700 font-extrabold">{currentPage}</span>
+                    <span className="text-slate-400 mx-1">/</span>
+                    <span>{totalPages}</span>
                   </div>
+
+                  {/* Desktop Extended Page Navigation (hidden sm:flex) */}
+                  <div className="hidden sm:flex items-center gap-2">
+                    {/* Direct Page Input Number */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs">
+                        <span className="text-xs font-bold text-slate-600">Ke Halaman:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={currentPage}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10)
+                            if (!isNaN(val)) {
+                              const target = Math.max(1, Math.min(val, totalPages))
+                              setCurrentPage(target)
+                            }
+                          }}
+                          className="w-12 px-1.5 py-0.5 text-center font-semibold text-xs text-brand-700 bg-slate-50 border border-slate-200 rounded outline-none focus:border-brand-500 focus:bg-white"
+                        />
+                        <span className="text-xs font-bold text-slate-600">/ {totalPages}</span>
+                      </div>
+                    )}
+
+                    {/* Page Number Chips */}
+                    <div className="flex items-center gap-1 px-1">
+                      {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                        let page = i + 1
+                        if (totalPages > 7) {
+                          if (currentPage > 4 && currentPage < totalPages - 3) {
+                            page = currentPage - 3 + i
+                          } else if (currentPage >= totalPages - 3) {
+                            page = totalPages - 6 + i
+                          }
+                        }
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-7 h-7 rounded-xl text-xs font-bold transition cursor-pointer ${currentPage === page
+                                ? 'bg-brand-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 sm:py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                  >
+                    <span>Next</span> <ChevronRight size={15} />
+                  </button>
                 </div>
               )}
             </div>

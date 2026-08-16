@@ -4,6 +4,7 @@ import { exchangePortalToken, SsoExchangeError } from '../services/portal-sso.se
 import { generateToken, verifyToken } from '../services/token.service'
 import { config } from '../config/env'
 import type { SessionUser } from '../plugins/auth'
+import prisma from '../plugins/prisma'
 
 const loginSchema = z.object({
   ssoToken: z.string().min(1),
@@ -89,14 +90,29 @@ export default async function authRoutes(app: FastifyInstance) {
         }
       }
     }
+
     if (user) {
-      if (!user.role) {
+      // Selalu baca override role terbaru dari ref_UserOverride.
+      // Role disimpan admin di tabel override, bukan di session.
+      const override = await prisma.ref_UserOverride.findFirst({
+        where: {
+          OR: [
+            { userId: user.sub },
+            ...(user.employeeId ? [{ userId: user.employeeId }] : []),
+          ],
+        },
+      }).catch(() => null)
+
+      if (override?.role) {
+        user.role = override.role
+      } else if (!user.role) {
         const rawJabatan = (typeof user.jabatan === 'string' ? user.jabatan : user.employee?.jabatan) || ''
         const jLower = rawJabatan.toLowerCase()
         user.role = (jLower.includes('kepala') || jLower.includes('kasubag') || jLower.includes('manager') || jLower.includes('pimpinan')) ? 'ADMIN' : 'USER'
-        request.session.set('user', user)
       }
+      request.session.set('user', user)
     }
+
     return {
       success: true,
       data: user,
