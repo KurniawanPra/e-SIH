@@ -1678,7 +1678,6 @@ export default function DashboardPage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <FileSpreadsheet size={18} className="text-brand-700" />
                     {selectedHighlightMonth === 'ALL'
                       ? `Update Highlight Bulanan (${selectedYear})`
                       : `Update Highlight Mingguan - Bulan ${MONTH_NAMES[Number(selectedHighlightMonth) - 1]} (${selectedYear})`}
@@ -1757,13 +1756,13 @@ export default function DashboardPage() {
                 >
                   Tabel Bulanan <ExternalLink size={12} />
                 </Link>
-                <Link
+                {/* <Link
                   href="/dashboard/weekly"
                   className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
                   title="Buka Laporan Aktivitas Mingguan"
                 >
                   Aktivitas Mingguan <ExternalLink size={12} />
-                </Link>
+                </Link> */}
               </div>
             </div>
 
