@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { api, getCurrentUser, exchangeSsoToken, runtimeConfig } from '../../fe/src/lib/api'
 

@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+import { strict as assert } from 'node:assert'
 import { createServer, type Server } from 'node:http'
 import { after, before, test } from 'node:test'
 import type { FastifyInstance } from 'fastify'

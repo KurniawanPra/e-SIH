@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { activityCounts, activityWeek, dateOnly, hasActivityPic, inDateRange, periodRange, programActivities } from '../../fe/src/lib/activities'
 import { loadDashboardData } from '../../fe/src/lib/dashboard-data'
