@@ -1,0 +1,16 @@
+node_modules
+.next*
+.env*
+!.env.example
+out
+build
+tsconfig.tsbuildinfo
+*.log
+.git
+.gitignore
+.claude
+.opencode
+.agents
+.windsurf
+AGENTS.md
+agents.md

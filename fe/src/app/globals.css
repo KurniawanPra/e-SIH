@@ -1,0 +1,348 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #006837;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom Tailwind Utilities */
+.bg-brand-50 {
+  background-color: var(--color-brand-50);
+}
+
+.bg-brand-100 {
+  background-color: var(--color-brand-100);
+}
+
+.bg-brand-500 {
+  background-color: var(--color-brand-500);
+}
+
+.bg-brand-600 {
+  background-color: var(--color-brand-600);
+}
+
+.bg-brand-700 {
+  background-color: var(--color-brand-700);
+}
+
+.bg-brand-800 {
+  background-color: var(--color-brand-800);
+}
+
+.bg-brand-950 {
+  background-color: #022c22;
+}
+
+.text-brand-300 {
+  color: var(--color-brand-300);
+}
+
+.text-brand-700 {
+  color: var(--color-brand-700);
+}
+
+.border-brand-200 {
+  border-color: var(--color-brand-200);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f8fafc;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Green Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #006837;
+  border-radius: 9999px;
+  border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #047857;
+}
+
+* {
+  scrollbar-color: #006837 #f1f5f9;
+}
+
+/* Sidebar transition */
+.sidebar-enter {
+  transform: translateX(-100%);
+}
+
+.sidebar-active {
+  transform: translateX(0);
+}
+
+/* Mobile dock */
+.mobile-dock {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Chart container */
+.chart-container canvas {
+  max-height: 300px;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-content {
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Interaction Animations ===== */
+
+/* Modal overlay fade (backdrop) */
+@keyframes overlayFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-overlay-fade {
+  animation: overlayFade 0.2s ease-out both;
+}
+
+/* Modal panel zoom-in (used by all modals via animate-zoom-in) */
+.animate-zoom-in {
+  animation: zoomIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Dropdown / submenu expansion */
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdownIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Continuous Running Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-overlay-fade,
+  .animate-zoom-in,
+  .animate-dropdown-in,
+  .modal-backdrop,
+  .modal-content,
+  .chart-tooltip-zoom {
+    animation: none !important;
+  }
+}
+
+/* Tooltip zoom animation */
+.chart-tooltip-zoom {
+  animation: zoomIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enterprise Flat Design System */
+.neu-header {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.neu-sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+.neu-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.neu-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.neu-btn:active {
+  background: #f1f5f9;
+}
+
+.neu-inset {
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.neu-input {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.neu-input:focus {
+  border-color: #006837;
+  box-shadow: 0 0 0 2px rgba(0, 104, 55, 0.2);
+}
+
+.neu-select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.neu-select:focus {
+  border-color: #006837;
+  box-shadow: 0 0 0 2px rgba(0, 104, 55, 0.2);
+}
+
+.neu-active-green {
+  background: #006837;
+  color: #ffffff;
+  border: 1px solid #006837;
+  box-shadow: none;
+}
+
+.neu-sidebar-active {
+  background: #f0fdf4 !important;
+  color: #006837 !important;
+  border-left: 3px solid #006837 !important;
+  box-shadow: none !important;
+}
+
+.neu-btn-brand {
+  background: #006837 !important;
+  color: #ffffff !important;
+  border: 1px solid #006837 !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+}
+
+.neu-btn-brand:hover {
+  background: #065f46 !important;
+  color: #ffffff !important;
+  border-color: #065f46 !important;
+}
+
+.neu-btn-emerald {
+  background: #047857 !important;
+  color: #ffffff !important;
+  border: 1px solid #047857 !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+}
+
+.neu-btn-emerald:hover {
+  background: #065f46 !important;
+  color: #ffffff !important;
+  border-color: #065f46 !important;
+}
+
+/* Spinner */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #006837;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

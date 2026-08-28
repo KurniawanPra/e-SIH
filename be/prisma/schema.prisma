@@ -1,0 +1,149 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Parent: Master Program Kerja Induk
+model ref_ProgramKerja {
+  id          String   @id
+  kode        String   // e.g., "A", "B", "C"
+  namaProgram String   // e.g., "ENABLING DIGITAL AND RELIABLE OPERATION"
+  deskripsi   String?
+  tahun       Int      @default(2026)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  items ref_Item_ProgramKerja[]
+
+  @@map("ref_ProgramKerja")
+}
+
+// Child: Sub-Program / Item Spesifik
+model ref_Item_ProgramKerja {
+  id             String   @id
+  programKerjaId String
+  kode           String   // e.g., "A.1", "A.2"
+  namaItem       String   // e.g., "IT Development"
+  status         String   @default("On Progress") // "On Progress", "Closed", "Open"
+  progress       Int      @default(0)
+  tahun          Int      @default(2026)
+  keterangan     String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  programKerja ref_ProgramKerja @relation(fields: [programKerjaId], references: [id], onDelete: Cascade)
+  activities   Activity[]
+  highlights   Highlight[]
+
+  @@map("ref_Item_ProgramKerja")
+}
+
+model Activity {
+  id                String   @id
+  no                Int      @unique
+  idProgram         String?  // Opsional (kegiatan personal tidak terkait program)
+  kategoriProgram   String
+  itemName          String
+  kegiatan          String
+  descriptionAction String?
+  startDate         String
+  dueDate           String
+  closedDate        String?
+  tindakLanjut      String?
+  kendala           String?
+  status            String   @default("Open")
+  remarks           String?
+  picEmail          String
+  picNama           String
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  program       ref_Item_ProgramKerja?  @relation(fields: [idProgram], references: [id])
+  auditLogs     ActivityAuditLog[]
+}
+
+// Audit trail perubahan pada Activity (karena record activity tidak boleh dihapus)
+model ActivityAuditLog {
+  id          String   @id @default(cuid())
+  activityId  String
+  field       String
+  oldValue    String?
+  newValue    String?
+  changedBy   String?  // nama / id user yang melakukan perubahan
+  changedAt   DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId, changedAt])
+  @@map("ActivityAuditLog")
+}
+
+// Monthly curated highlight report (PERIODE bulanan, format INLHO/REP-F/-021)
+model Highlight {
+  id              String    @id @default(cuid())
+  bulan           Int
+  tahun           Int
+  no              Int       @default(0)
+  item            String
+  description     String?
+  actionToBeTaken String?
+  namePic         String?
+  targetDate      String?
+  closedDate      String?
+  status          String    @default("Open") // "Open", "On Progress", "Closed", "Cancelled"
+  remarks         String?
+  bagian          String? // Sistem / IT / HSSE (untuk filter & badge highlight)
+  authorId        String?
+  programId       String? // sub-program (mis. IT Development) tujuan program highlight
+  pics            Json?    // daftar PIC lebih dari 1: [{ name, email }]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  program ref_Item_ProgramKerja? @relation(fields: [programId], references: [id], onDelete: SetNull)
+
+  @@index([bulan, tahun])
+  @@index([programId])
+}
+
+// Master Bagian / Unit untuk pilihan highlight & filter
+model ref_Bagian {
+  id        String   @id
+  kode      String
+  nama      String
+  deskripsi String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("ref_Bagian")
+}
+
+// Override lokal untuk role & penugasan program user (sumber data user tetap Portal SSO)
+model ref_UserOverride {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  role      String?
+  programIds Json?
+  isActive  Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ref_UserOverride")
+}
+
+// Notifikasi (mis. staff mengubah penugasan sub-program user → muncul di dashboard admin)
+model Notification {
+  id        String    @id @default(cuid())
+  type      String    @default("INFO") // "PROGRAM_ASSIGNMENT", dll
+  title     String
+  message   String
+  createdBy String? // nama aktor yang memicu notifikasi
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([isRead, createdAt])
+}

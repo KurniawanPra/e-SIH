@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build & compiled outputs
+.next/
+**/.next/
+**/.next-*/
+out/
+**/out/
+build/
+**/build/
+dist/
+**/dist/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Environment & local config variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!*.env.example
+
+# Databases & local data
+dev.db
+*.sqlite
+*.sqlite-journal
+
+# Logs & debugging
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Non-be/fe Tooling, IDE, and AI Agent metadata directories & files
+anti-slop/
+antislop.toml
+.opencode/
+.commandcode/
+.claude/
+.agents/
+.windsurf/
+.gstack/
+.idea/
+.vscode/
+.cursor/
+graphify-out/
+skills-lock.json
+**/skills-lock.json
+
+# Reference, legacy, and non-code docs outside be & fe
+legacy/
+postman/
+referensi/
+esih-architecture.png
+AGENTS.md
+agents.md
+DESIGN.md
