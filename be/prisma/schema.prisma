@@ -93,6 +93,7 @@ model Highlight {
   description     String?
   actionToBeTaken String?
   namePic         String?
+  startDate       String?
   targetDate      String?
   closedDate      String?
   status          String    @default("Open") // "Open", "On Progress", "Closed", "Cancelled"

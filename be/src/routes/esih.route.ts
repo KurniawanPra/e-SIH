@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prisma from '../plugins/prisma'
 import { getPortalData } from '../services/portal-data.service'
 import { z } from 'zod'
+import { parseHighlight } from '../services/highlight.service'
 import { assertOwnsRecord, httpError } from '../services/authorization.service'
 import { activityInput, reportQuery, validateActivityDates, changedActivityFields } from '../services/activity.service'
 
@@ -422,10 +423,8 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // POST create highlight
   fastify.post('/highlights', async (request: any, reply) => {
-    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks, programId, pics, bagian } = request.body || {}
-    if (!bulan || !tahun || !item) {
-      return reply.code(400).send({ success: false, error: 'Bulan, Tahun, dan Item wajib diisi' })
-    }
+    const input = parseHighlight(request.body || {})
+    const { programId, bulan, tahun } = input
 
     if (programId) {
       const progItem = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
@@ -440,29 +439,14 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       where: { bulan: Number(bulan), tahun: Number(tahun) },
     })
 
-    const picList = Array.isArray(pics) ? pics.filter((p: any) => p && (p.name || p.email || p.nama)) : null
-    const namePicResult = picList && picList.length > 0
-      ? picList.map((p: any) => p.name || p.nama).filter(Boolean).join(' / ')
-      : (namePic ?? null)
-
     const created = await prisma.highlight.create({
       data: {
-        bulan: Number(bulan),
-        tahun: Number(tahun),
-        no: no !== undefined && no !== null ? Number(no) : count + 1,
-        item,
-        description,
-        actionToBeTaken,
-        namePic: namePicResult,
-        targetDate,
-        closedDate: status === 'Closed' && closedDate ? closedDate : null,
-        status: status || 'Open',
-        remarks,
-        bagian: bagian || null,
+        ...input,
+        bulan: bulan!, tahun: tahun!, item: input.item!, bagian: input.bagian!,
+        no: input.no ?? count + 1,
         authorId,
-        programId: programId || null,
-        pics: picList && picList.length > 0 ? picList : undefined,
       },
+      include: { program: { include: { programKerja: true } } },
     })
     return reply.code(201).send({ success: true, data: created })
   })
@@ -470,13 +454,14 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // PUT edit highlight
   fastify.put('/highlights/:id', async (request: any, reply) => {
     const { id } = request.params
-    const { bulan, tahun, no, item, description, actionToBeTaken, namePic, targetDate, closedDate, status, remarks, programId, pics, bagian } = request.body || {}
 
     const existing = await prisma.highlight.findUnique({ where: { id } })
     if (!existing) {
       return reply.code(404).send({ success: false, error: 'Highlight tidak ditemukan' })
     }
     assertOwnsRecord(request.authUser!, existing)
+    const input = parseHighlight(request.body || {}, existing)
+    const { programId } = input
 
     if (programId) {
       const progItem = await prisma.ref_Item_ProgramKerja.findUnique({ where: { id: programId } })
@@ -485,29 +470,10 @@ const esihRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       }
     }
 
-    const picList = Array.isArray(pics) ? pics.filter((p: any) => p && (p.name || p.email || p.nama)) : null
-    const namePicResult = picList && picList.length > 0
-      ? picList.map((p: any) => p.name || p.nama).filter(Boolean).join(' / ')
-      : (namePic !== undefined ? namePic : undefined)
-
     const updated = await prisma.highlight.update({
       where: { id },
-      data: {
-        bulan: bulan !== undefined && bulan !== null ? Number(bulan) : undefined,
-        tahun: tahun !== undefined && tahun !== null ? Number(tahun) : undefined,
-        no: no !== undefined && no !== null ? Number(no) : undefined,
-        item,
-        description,
-        actionToBeTaken,
-        namePic: namePicResult,
-        targetDate,
-        closedDate: (status ?? existing.status) !== 'Closed' ? null : closedDate ?? undefined,
-        status,
-        remarks,
-        bagian: bagian !== undefined ? (bagian || null) : undefined,
-        programId: programId !== undefined ? (programId || null) : undefined,
-        pics: picList && picList.length > 0 ? picList : undefined,
-      },
+      data: input,
+      include: { program: { include: { programKerja: true } } },
     })
     return { success: true, data: updated }
   })

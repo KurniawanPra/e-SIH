@@ -25,15 +25,13 @@ import {
   ChevronRight,
   Calendar
 } from 'lucide-react'
-import ModalPortal from '@/components/ModalPortal'
-import ActivityDetailsModal from '@/components/ActivityDetailsModal'
+import HighlightDetailsModal from '@/components/HighlightDetailsModal'
+import HighlightFormModal from '@/components/HighlightFormModal'
+import { Highlight, HighlightProgram, highlightForm, highlightPayload, HIGHLIGHT_MONTHS, formatHighlightDate } from '@/lib/highlights'
 import { useYear } from '@/context/YearContext'
 import { exportSubItemToExcel } from '@/lib/excelExport'
 
-const MONTH_NAMES = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-]
+const MONTH_NAMES = HIGHLIGHT_MONTHS
 const STATUS_COLORS: Record<string, string> = {
   Open: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   'On Progress': 'bg-amber-100 text-amber-800 border-amber-300',
@@ -41,27 +39,13 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled: 'bg-red-100 text-red-800 border-red-300',
 }
 
-const emptyForm = {
-  bulan: new Date().getMonth() + 1,
-  tahun: new Date().getFullYear(),
-  bagian: 'SISTEM',
-  item: '',
-  description: '',
-  actionToBeTaken: '',
-  namePic: '',
-  programId: '',
-  targetDate: '',
-  closedDate: '',
-  status: 'On Progress',
-  remarks: '',
-}
-
 export default function MonthlyActivitiesPage() {
-  const [detailActivity, setDetailActivity] = useState<any>(null)
+  const [detailActivity, setDetailActivity] = useState<Highlight | null>(null)
   const [userRole, setUserRole] = useState<string>('USER')
   const [highlights, setHighlights] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [yearError, setYearError] = useState('')
   const requestVersion = useRef(0)
   const today = new Date()
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
@@ -73,34 +57,26 @@ export default function MonthlyActivitiesPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ ...emptyForm })
+  const [form, setForm] = useState(() => highlightForm())
+  const [originalActivity, setOriginalActivity] = useState<Highlight | null>(null)
+  const [submitError, setSubmitError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [masterError, setMasterError] = useState('')
+  const [refreshVersion, setRefreshVersion] = useState(0)
+  const saving = useRef(false)
   const [submitting, setSubmitting] = useState(false)
 
-  const [programs, setPrograms] = useState<any[]>([])
-  const [userList, setUserList] = useState<any[]>([])
+  const [programs, setPrograms] = useState<HighlightProgram[]>([])
   const [masterBagian, setMasterBagian] = useState<any[]>([])
 
   useEffect(() => {
-    api.get('/api/esih/programs').then(r => setPrograms(r.data.data || [])).catch(() => setPrograms([]))
-    api.get('/api/esih/users').then(r => setUserList(r.data.data || [])).catch(() => setUserList([]))
+    api.get('/api/esih/programs').then(r => setPrograms(r.data.data || [])).catch(() => {
+      setMasterError(message => `${message} Pilihan subprogram gagal dimuat. Nilai tersimpan tetap dipertahankan.`.trim())
+    })
     api.get('/api/esih/master/bagian').then(r => setMasterBagian(r.data.data || [])).catch(() => {
-      setMasterBagian([
-        { id: 'bag-sistem', kode: 'SISTEM', nama: 'Sub Bagian Sistem', isActive: true },
-        { id: 'bag-it', kode: 'IT', nama: 'Sub Bagian IT', isActive: true },
-        { id: 'bag-hsse', kode: 'HSSE', nama: 'Sub Bagian HSSE', isActive: true },
-      ])
+      setMasterError(message => `${message} Pilihan bagian gagal dimuat. Muat ulang halaman untuk mencoba lagi.`.trim())
     })
   }, [])
-
-  const groupedPrograms = useMemo(() => {
-    const map = new Map<string, any[]>()
-    programs.forEach(p => {
-      const key = p.programKerja?.namaProgram || 'Program Lainnya'
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(p)
-    })
-    return Array.from(map.entries())
-  }, [programs])
 
   useEffect(() => {
     getCurrentUser()
@@ -128,15 +104,17 @@ export default function MonthlyActivitiesPage() {
 
   useEffect(() => {
     fetchHighlights(selectedMonth, selectedYear)
-  }, [selectedMonth, selectedYear])
+  }, [selectedMonth, selectedYear, refreshVersion])
 
   const [yearHighlights, setYearHighlights] = useState<any[]>([])
   useEffect(() => {
-    api
-      .get('/api/esih/highlights', { params: { year: selectedYear } })
-      .then(r => setYearHighlights(r.data.data || []))
-      .catch(() => setYearHighlights([]))
-  }, [selectedYear])
+    let active = true
+    setYearError('')
+    api.get('/api/esih/highlights', { params: { year: selectedYear } })
+      .then(r => { if (active) setYearHighlights(r.data.data || []) })
+      .catch(() => { if (active) { setYearHighlights([]); setYearError('Ringkasan tahunan gagal dimuat. Coba lagi.') } })
+    return () => { active = false }
+  }, [selectedYear, refreshVersion])
 
   const [selectedBagian, setSelectedBagian] = useState<string>('ALL')
 
@@ -239,55 +217,57 @@ export default function MonthlyActivitiesPage() {
 
   const openAddModal = (bulan = selectedMonth, tahun = selectedYear) => {
     setEditingId(null)
-    setForm({ ...emptyForm, bulan, tahun })
+    setOriginalActivity(null)
+    setSubmitError('')
+    const bagian = masterBagian.find(b => b.isActive && b.kode === selectedBagian)?.kode || masterBagian.find(b => b.isActive)?.kode || ''
+    setForm(highlightForm(undefined, bulan, tahun, bagian))
     setShowModal(true)
   }
 
-  const openEditModal = (h: any) => {
+  const openEditModal = (h: Highlight) => {
     setEditingId(h.id)
-    setForm({
-      bulan: h.bulan,
-      tahun: h.tahun,
-      bagian: h.bagian || '',
-      item: h.item || '',
-      description: h.description || '',
-      actionToBeTaken: h.actionToBeTaken || '',
-      namePic: h.namePic || '',
-      programId: h.program?.id || h.programId || '',
-      targetDate: h.targetDate || '',
-      closedDate: h.closedDate || '',
-      status: h.status || 'On Progress',
-      remarks: h.remarks || ''
-    })
+    setOriginalActivity(h)
+    setSubmitError('')
+    setForm(highlightForm(h))
     setShowModal(true)
   }
 
   const handleSubmit = async () => {
-    if (!form.item.trim()) return
+    if (saving.current) return
+    if (!form.item.trim() || !form.bagian.trim()) {
+      setSubmitError('Judul Aktivitas dan Bagian wajib diisi.')
+      return
+    }
+    saving.current = true
     setSubmitting(true)
+    setSubmitError('')
     try {
-      const payload: any = { ...form }
-      if (editingId) {
-        await api.put(`/api/esih/highlights/${editingId}`, payload)
-      } else {
-        await api.post('/api/esih/highlights', payload)
-      }
+      const payload = highlightPayload(form)
+      if (editingId) await api.put(`/api/esih/highlights/${editingId}`, payload)
+      else await api.post('/api/esih/highlights', payload)
       setShowModal(false)
-      await fetchHighlights(selectedMonth, selectedYear)
+      setNotice(`Update aktivitas berhasil ${editingId ? 'diperbarui' : 'ditambahkan'} pada ${MONTH_NAMES[form.bulan - 1]} ${form.tahun}.`)
+      setSelectedMonth(form.bulan)
+      setSelectedYear(form.tahun)
+      setCurrentPage(1)
+      setRefreshVersion(version => version + 1)
     } catch (err) {
-      console.error(err)
+      setSubmitError(getApiError(err, 'Update aktivitas gagal disimpan. Silakan coba lagi.'))
     } finally {
+      saving.current = false
       setSubmitting(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus item highlight ini?')) return
+    if (!confirm('Yakin ingin menghapus update aktivitas ini?')) return
     try {
       await api.delete(`/api/esih/highlights/${id}`)
-      await fetchHighlights(selectedMonth, selectedYear)
+      setNotice('Update aktivitas berhasil dihapus.')
+      setCurrentPage(1)
+      setRefreshVersion(version => version + 1)
     } catch (err) {
-      console.error(err)
+      setLoadError(getApiError(err, 'Update aktivitas gagal dihapus.'))
     }
   }
 
@@ -322,18 +302,6 @@ export default function MonthlyActivitiesPage() {
     })
   }
 
-  const formInput = (label: string, field: keyof typeof form, type = 'text') => (
-    <label className="block">
-      <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
-      <input
-        type={type}
-        value={form[field] as string}
-        onChange={e => setForm({ ...form, [field]: e.target.value })}
-        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-      />
-    </label>
-  )
-
   const periodLabel = `PERIODE : 01 - ${new Date(selectedYear, selectedMonth, 0).getDate()} ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
 
   if (loading) {
@@ -346,7 +314,8 @@ export default function MonthlyActivitiesPage() {
 
   return (
     <div className="space-y-5 pb-16 sm:pb-24">
-      {loadError && <div role="alert" className="p-4 text-red-800 bg-red-50 rounded-xl">{loadError} <button className="underline" onClick={() => fetchHighlights(selectedMonth, selectedYear)}>Coba lagi</button></div>}
+      {notice && <p role="status" className="p-4 text-emerald-800 bg-emerald-50 rounded-xl">{notice}</p>}
+      {(loadError || yearError) && <div role="alert" className="p-4 text-red-800 bg-red-50 rounded-xl">{loadError || yearError} <button className="underline" onClick={() => setRefreshVersion(version => version + 1)}>Coba lagi</button></div>}
       {/* ===== HEADER ===== */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
@@ -571,7 +540,7 @@ export default function MonthlyActivitiesPage() {
                     onClick={() => openAddModal()}
                     className="w-full lg:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2.5 sm:py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-sm cursor-pointer transition-colors"
                   >
-                    <Plus size={15} /> Tambah Highlight
+                    <Plus size={15} /> Tambah Update Aktivitas
                   </button>
                 </div>
               </div>
@@ -603,7 +572,7 @@ export default function MonthlyActivitiesPage() {
                     className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-700 shadow-xs cursor-pointer"
                   >
                     <Plus size={14} />
-                    <span>Tambah Highlight</span>
+                    <span>Tambah Update Aktivitas</span>
                   </button>
                 </div>
               ) : (
@@ -648,14 +617,14 @@ export default function MonthlyActivitiesPage() {
                         <span className="font-semibold text-slate-800">{h.namePic || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 font-bold block">Target / Closed:</span>
+                        <span className="text-[10px] text-slate-500 font-bold block">Jadwal / Target:</span>
                         <span className="font-medium text-slate-700">
-                          {h.targetDate || '-'} {h.closedDate ? `(${h.closedDate})` : ''}
+                          {h.startDate ? `${formatHighlightDate(h.startDate)} s/d ` : ''}{formatHighlightDate(h.targetDate)} {h.closedDate ? `(${formatHighlightDate(h.closedDate)})` : ''}
                         </span>
                       </div>
                       {h.remarks && (
                         <div className="col-span-2">
-                          <span className="text-[10px] text-slate-500 font-bold block">Remarks:</span>
+                          <span className="text-[10px] text-slate-500 font-bold block">Catatan:</span>
                           <span className="text-slate-600 italic">{h.remarks}</span>
                         </div>
                       )}
@@ -667,7 +636,7 @@ export default function MonthlyActivitiesPage() {
                         onClick={() => openEditModal(h)}
                         className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs py-2 transition-colors shadow-2xs cursor-pointer"
                       >
-                        <RefreshCw size={13} /> Update Status
+                        <RefreshCw size={13} /> Edit Aktivitas
                       </button>
                       <button
                         onClick={() => handleDelete(h.id)}
@@ -688,20 +657,21 @@ export default function MonthlyActivitiesPage() {
                 <thead>
                   <tr className="border-b-2 border-slate-300 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
                     <th className="px-2.5 py-3 text-center w-10">No</th>
-                    <th className="px-2.5 py-3 min-w-44">Item</th>
-                    <th className="px-2.5 py-3 min-w-72">Description</th>
-                    <th className="px-2.5 py-3 min-w-36">Name PIC</th>
-                    <th className="px-2.5 py-3 w-28">Target Date</th>
-                    <th className="px-2.5 py-3 w-28">Closed Date</th>
+                    <th className="px-2.5 py-3 min-w-44">Judul Aktivitas</th>
+                    <th className="px-2.5 py-3 min-w-72">Deskripsi</th>
+                    <th className="px-2.5 py-3 min-w-36">PIC</th>
+                    <th className="px-2.5 py-3 w-28">Tanggal mulai</th>
+                    <th className="px-2.5 py-3 w-28">Target selesai</th>
+                    <th className="px-2.5 py-3 w-28">Tanggal selesai</th>
                     <th className="px-2.5 py-3 w-28 text-left">Status</th>
-                    <th className="px-2.5 py-3 min-w-48">Remarks</th>
+                    <th className="px-2.5 py-3 min-w-48">Catatan</th>
                     <th className="px-2.5 py-3 w-24 text-left print:hidden">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredHighlights.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center">
+                      <td colSpan={10} className="py-12 text-center">
                         <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
                           <FileSpreadsheet size={24} />
                         </div>
@@ -713,7 +683,7 @@ export default function MonthlyActivitiesPage() {
                           className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors shadow-2xs cursor-pointer"
                         >
                           <Plus size={14} />
-                          <span>Tambah Highlight Pertama</span>
+                          <span>Tambah Update Aktivitas Pertama</span>
                         </button>
                       </td>
                     </tr>
@@ -737,8 +707,9 @@ export default function MonthlyActivitiesPage() {
                         </td>
                         <td className="px-2.5 py-3 text-slate-600 whitespace-pre-wrap">{h.description || '-'}</td>
                         <td className="px-2.5 py-3 text-slate-700 font-semibold">{h.namePic || '-'}</td>
-                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.targetDate || '-'}</td>
-                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{h.closedDate || '-'}</td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{formatHighlightDate(h.startDate)}</td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{formatHighlightDate(h.targetDate)}</td>
+                        <td className="px-2.5 py-3 text-slate-600 whitespace-nowrap font-medium">{formatHighlightDate(h.closedDate)}</td>
                         <td className="px-2.5 py-3 text-left">
                           <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS_COLORS[h.status] || STATUS_COLORS.Open}`}>
                             {h.status}
@@ -749,10 +720,10 @@ export default function MonthlyActivitiesPage() {
                           <div className="flex items-center justify-start gap-1 whitespace-nowrap">
                             <button
                               onClick={() => openEditModal(h)}
-                              title="Update Status"
+                              title="Edit Aktivitas"
                               className="rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs px-2.5 py-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer transition-colors shadow-xs"
                             >
-                              <RefreshCw size={13} /> Update Status
+                              <RefreshCw size={13} /> Edit Aktivitas
                             </button>
                             <button onClick={() => handleDelete(h.id)} title="Hapus" className="rounded-xl p-1.5 text-red-600 hover:bg-red-50 cursor-pointer">
                               <Trash2 size={15} />
@@ -878,147 +849,13 @@ export default function MonthlyActivitiesPage() {
         </div>
       )}
 
-      {/* ===== ADD / EDIT MODAL ===== */}
-      {detailActivity && <ActivityDetailsModal activity={detailActivity} onClose={() => setDetailActivity(null)} />}
-      {showModal && (
-        <ModalPortal>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4 animate-overlay-fade overflow-y-auto">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden animate-zoom-in">
-              {/* Sticky Modal Top Bar / Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0 bg-white z-10">
-                <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <FileText size={20} className="text-brand-600 shrink-0" />
-                  {editingId ? 'Edit Management Highlight Item' : 'Tambah Management Highlight Item'}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="rounded-lg p-1.5 neu-btn text-slate-600 hover:text-slate-600 cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Scrollable Middle Input Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="md:col-span-1">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Bulan</span>
-                      <select
-                        value={form.bulan}
-                        onChange={e => setForm({ ...form, bulan: Number(e.target.value) })}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                      >
-                        {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Tahun</span>
-                      <select
-                        value={form.tahun}
-                        onChange={e => setForm({ ...form, tahun: Number(e.target.value) })}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                      >
-                        {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Bagian *</span>
-                      <select
-                        value={form.bagian || (masterBagian[0]?.kode || 'SISTEM')}
-                        onChange={e => setForm({ ...form, bagian: e.target.value })}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 font-bold focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none cursor-pointer bg-white"
-                      >
-                        {masterBagian.filter(b => b.isActive).map(b => (
-                          <option key={b.id} value={b.kode}>
-                            {b.nama} ({b.kode})
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="md:col-span-4">{formInput('Item / Subject *', 'item')}</div>
-                  <div className="md:col-span-4">
-                    <label className="block">
-                      <span className="mb-1.5 block text-xs font-semibold text-slate-600">
-                        Penanggung Jawab (PIC) - teks bebas, pisahkan dengan &quot;/&quot; jika lebih dari satu
-                      </span>
-                      <input
-                        type="text"
-                        value={form.namePic}
-                        onChange={e => setForm({ ...form, namePic: e.target.value })}
-                        placeholder="Contoh: Oka / HSSE / SDM"
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                      />
-                    </label>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Status</span>
-                      <select
-                        value={form.status}
-                        onChange={e => setForm({ ...form, status: e.target.value })}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none cursor-pointer bg-white"
-                      >
-                        {['Open', 'On Progress', 'Closed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="md:col-span-2">{formInput('Target Date', 'targetDate', 'date')}</div>
-                  {form.status === 'Closed' && (
-                    <div className="md:col-span-4">{formInput('Closed Date', 'closedDate', 'date')}</div>
-                  )}
-                  <div className="md:col-span-4">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Description</span>
-                      <textarea
-                        value={form.description}
-                        onChange={e => setForm({ ...form, description: e.target.value })}
-                        rows={3}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                      />
-                    </label>
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-600">Remarks</span>
-                      <textarea
-                        value={form.remarks}
-                        onChange={e => setForm({ ...form, remarks: e.target.value })}
-                        rows={3}
-                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 outline-none"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sticky Modal Bottom Bar / Footer */}
-              <div className="px-6 py-4 border-t border-slate-200 bg-white shrink-0 flex items-center justify-end gap-2.5 z-10">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting || !form.item.trim()}
-                  className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50 cursor-pointer transition-colors shadow-xs"
-                >
-                  {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalPortal>
-      )}
+      {detailActivity && <HighlightDetailsModal activity={detailActivity} onClose={() => setDetailActivity(null)} />}
+      {showModal && <HighlightFormModal
+        form={form} onChange={setForm} editing={!!editingId} programs={programs} bagian={masterBagian}
+        submitting={submitting} error={submitError} masterError={masterError}
+        allowLegacyClosed={originalActivity?.status === 'Closed' && !originalActivity.closedDate}
+        onClose={() => { if (!saving.current) setShowModal(false) }} onSubmit={handleSubmit}
+      />}
     </div>
   )
 }

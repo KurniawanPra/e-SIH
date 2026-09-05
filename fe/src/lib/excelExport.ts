@@ -42,30 +42,30 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
   const cancelledCount = activities.filter(a => a.status === 'Cancelled').length
   const closurePct = totalItems > 0 ? Math.round((closedCount / totalItems) * 100) : 0
 
-  // 1. TOP RIGHT DOCUMENT HEADER BOX (Rows 1-4, Cols H to K)
+  // 1. TOP RIGHT DOCUMENT HEADER BOX (Rows 1-4, Cols I to L)
   // Row 1 & 2: Header Titles
-  worksheet.mergeCells('G1:K1')
-  const titleCell = worksheet.getCell('G1')
+  worksheet.mergeCells('H1:L1')
+  const titleCell = worksheet.getCell('H1')
   titleCell.value = 'SDM & SISTEM PROGRAM HIGHLIGHT REPORT'
   titleCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFC00000' } } // Red bold
   titleCell.alignment = { horizontal: 'right', vertical: 'middle' }
 
-  worksheet.mergeCells('G2:K2')
-  const periodeCell = worksheet.getCell('G2')
+  worksheet.mergeCells('H2:L2')
+  const periodeCell = worksheet.getCell('H2')
   periodeCell.value = `PERIODE : ${data.year}`
   periodeCell.font = { name: 'Calibri', size: 10, bold: true }
   periodeCell.alignment = { horizontal: 'right', vertical: 'middle' }
 
-  // Document Info Table Grid (Rows 3-4, Cols H to K)
+  // Document Info Table Grid (Rows 3-4, Cols I to L)
   const docTableCells = [
-    { cell: 'H3', val: 'No. Dokumen', bold: true, bg: 'F2F2F2' },
-    { cell: 'I3', val: 'INLHO/REP-F/-021', bold: false, bg: 'FFFFFF' },
-    { cell: 'J3', val: 'Tgl. Berlaku', bold: true, bg: 'F2F2F2' },
-    { cell: 'K3', val: '12 -Nov- 18', bold: false, bg: 'FFFFFF' },
-    { cell: 'H4', val: 'No. Revisi', bold: true, bg: 'F2F2F2' },
-    { cell: 'I4', val: '0', bold: false, bg: 'FFFFFF' },
-    { cell: 'J4', val: 'Halaman', bold: true, bg: 'F2F2F2' },
-    { cell: 'K4', val: '1 dari 1', bold: false, bg: 'FFFFFF' },
+    { cell: 'I3', val: 'No. Dokumen', bold: true, bg: 'F2F2F2' },
+    { cell: 'J3', val: 'INLHO/REP-F/-021', bold: false, bg: 'FFFFFF' },
+    { cell: 'K3', val: 'Tgl. Berlaku', bold: true, bg: 'F2F2F2' },
+    { cell: 'L3', val: '12 -Nov- 18', bold: false, bg: 'FFFFFF' },
+    { cell: 'I4', val: 'No. Revisi', bold: true, bg: 'F2F2F2' },
+    { cell: 'J4', val: '0', bold: false, bg: 'FFFFFF' },
+    { cell: 'K4', val: 'Halaman', bold: true, bg: 'F2F2F2' },
+    { cell: 'L4', val: '1 dari 1', bold: false, bg: 'FFFFFF' },
   ]
 
   docTableCells.forEach(({ cell, val, bold, bg }) => {
@@ -82,9 +82,9 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
     }
   })
 
-  // 2. COMPANY NAME SUBHEADER (Row 6, Cols G to K)
-  worksheet.mergeCells('G6:K6')
-  const companyCell = worksheet.getCell('G6')
+  // 2. COMPANY NAME SUBHEADER (Row 6, Cols H to L)
+  worksheet.mergeCells('H6:L6')
+  const companyCell = worksheet.getCell('H6')
   companyCell.value = 'PT. INDUSTRI NABATI LESTARI OPERATION'
   companyCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000080' } } // Navy Blue
   companyCell.alignment = { horizontal: 'right', vertical: 'middle' }
@@ -126,13 +126,13 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
   })
 
   // 4. SUBJECT & SUB SUBJECT HEADERS (Rows 8-9)
-  worksheet.mergeCells('A8:K8')
+  worksheet.mergeCells('A8:L8')
   const subjectCell = worksheet.getCell('A8')
   subjectCell.value = `SUBJECT : ${data.parentNama || data.parentKode}`
   subjectCell.font = { name: 'Calibri', size: 10, bold: true }
   subjectCell.alignment = { horizontal: 'left', vertical: 'middle' }
 
-  worksheet.mergeCells('A9:K9')
+  worksheet.mergeCells('A9:L9')
   const subSubjectCell = worksheet.getCell('A9')
   subSubjectCell.value = `SUB SUBJECT : ${data.subKode} ${data.subNamaItem}`
   subSubjectCell.font = { name: 'Calibri', size: 10, bold: true }
@@ -145,6 +145,7 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
     { header: 'DESCRIPTION', key: 'description', width: 42 },
     { header: 'ACTION TO BE TAKEN', key: 'action', width: 45 },
     { header: 'NAME PIC', key: 'pic', width: 24 },
+    { header: 'START DATE', key: 'startDate', width: 14 },
     { header: 'TARGET DATE', key: 'targetDate', width: 14 },
     { header: 'CLOSED DATE', key: 'closedDate', width: 14 },
     { header: 'STATUS', key: 'status', width: 15 },
@@ -185,15 +186,16 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
     row.getCell(3).value = act.kegiatan || '-' // DESCRIPTION
     row.getCell(4).value = act.descriptionAction || '-' // ACTION TO BE TAKEN
     row.getCell(5).value = act.picNama || '-' // NAME PIC
-    row.getCell(6).value = act.dueDate || act.startDate || '-' // TARGET DATE
-    row.getCell(7).value = act.closedDate || '-' // CLOSED DATE
+    row.getCell(6).value = act.startDate || '-' // START DATE
+    row.getCell(7).value = act.dueDate || act.startDate || '-' // TARGET DATE
+    row.getCell(8).value = act.closedDate || '-' // CLOSED DATE
 
-    const statusCell = row.getCell(8) // STATUS
+    const statusCell = row.getCell(9) // STATUS
     statusCell.value = act.status
 
-    row.getCell(9).value = act.remarks || '-' // REMARKS
-    row.getCell(10).value = isOpen ? 1 : '' // O (Open flag)
-    row.getCell(11).value = isClosed ? 1 : '' // C (Close flag)
+    row.getCell(10).value = act.remarks || '-' // REMARKS
+    row.getCell(11).value = isOpen ? 1 : '' // O (Open flag)
+    row.getCell(12).value = isClosed ? 1 : '' // C (Close flag)
 
     // Cell Alignments & Formatting
     row.getCell(1).alignment = { horizontal: 'center', vertical: 'top' }
@@ -203,10 +205,11 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
     row.getCell(5).alignment = { horizontal: 'left', vertical: 'top', wrapText: true }
     row.getCell(6).alignment = { horizontal: 'center', vertical: 'top' }
     row.getCell(7).alignment = { horizontal: 'center', vertical: 'top' }
+    row.getCell(8).alignment = { horizontal: 'center', vertical: 'top' }
     statusCell.alignment = { horizontal: 'center', vertical: 'top' }
-    row.getCell(9).alignment = { horizontal: 'left', vertical: 'top', wrapText: true }
-    row.getCell(10).alignment = { horizontal: 'center', vertical: 'top' }
+    row.getCell(10).alignment = { horizontal: 'left', vertical: 'top', wrapText: true }
     row.getCell(11).alignment = { horizontal: 'center', vertical: 'top' }
+    row.getCell(12).alignment = { horizontal: 'center', vertical: 'top' }
 
     // Status font color
     if (isClosed) {
@@ -218,7 +221,7 @@ export async function exportSubItemToExcel(data: SubItemExportData) {
     }
 
     // Apply borders to data cells
-    for (let c = 1; c <= 11; c++) {
+    for (let c = 1; c <= 12; c++) {
       const cell = row.getCell(c)
       if (!cell.font?.color) {
         cell.font = { name: 'Calibri', size: 9 }

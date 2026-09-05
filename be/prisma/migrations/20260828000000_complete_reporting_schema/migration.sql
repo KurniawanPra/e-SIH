@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS "ActivityAuditLog" (
 CREATE INDEX IF NOT EXISTS "ActivityAuditLog_activityId_changedAt_idx" ON "ActivityAuditLog"("activityId", "changedAt");
 
 ALTER TABLE "Highlight" ADD COLUMN IF NOT EXISTS "bagian" TEXT;
+ALTER TABLE "Highlight" ADD COLUMN IF NOT EXISTS "startDate" TEXT;
 -- authorId is a Portal subject, not an ID in the legacy User table.
 ALTER TABLE "Highlight" DROP CONSTRAINT IF EXISTS "Highlight_authorId_fkey";
 

@@ -158,6 +158,41 @@ async function session(role: 'ADMIN' | 'USER') {
   return { origin: frontendOrigin, cookie: String(login.headers['set-cookie']).split(';', 1)[0] }
 }
 
+test('Highlight create, edit, period move and PIC clearing persist consistently', async () => {
+  const user = await session('USER')
+  const created = await app.inject({ method: 'POST', url: '/api/esih/highlights', headers: user, payload: {
+    bulan: 9, tahun: 2026, bagian: 'IT', item: 'Uji sinkronisasi', description: 'Deskripsi lengkap',
+    actionToBeTaken: 'Tindak lanjut lengkap', pics: [{ name: 'Siti', email: 'siti@example.test' }],
+    startDate: '2026-09-01', targetDate: '2026-09-20', status: 'On Progress', remarks: 'Catatan lengkap',
+  } })
+  assert.equal(created.statusCode, 201, created.body)
+  const id = created.json().data.id
+  assert.equal(created.json().data.namePic, 'Siti')
+  assert.equal(created.json().data.startDate, '2026-09-01')
+  const invalid = await app.inject({ method: 'PUT', url: `/api/esih/highlights/${id}`, headers: user, payload: { status: 'Closed' } })
+  assert.equal(invalid.statusCode, 422, invalid.body)
+  const updated = await app.inject({ method: 'PUT', url: `/api/esih/highlights/${id}`, headers: user, payload: {
+    bulan: 10, status: 'Closed', startDate: '2026-09-02', closedDate: '2026-10-01', pics: [], remarks: '', programId: null,
+  } })
+  assert.equal(updated.statusCode, 200, updated.body)
+  const stored = await prisma.highlight.findUniqueOrThrow({ where: { id } })
+  assert.equal(stored.actionToBeTaken, 'Tindak lanjut lengkap')
+  assert.equal(stored.description, 'Deskripsi lengkap')
+  assert.equal(stored.startDate, '2026-09-02')
+  assert.equal(stored.targetDate, '2026-09-20')
+  assert.equal(stored.namePic, '')
+  assert.deepEqual(stored.pics, [])
+  assert.equal(stored.remarks, '')
+  const oldMonth = await app.inject({ url: '/api/esih/highlights?year=2026&month=9', headers: user })
+  const newMonth = await app.inject({ url: '/api/esih/highlights?year=2026&month=10', headers: user })
+  assert.equal(oldMonth.json().data.some((h: any) => h.id === id), false)
+  assert.equal(newMonth.json().data.find((h: any) => h.id === id).closedDate, '2026-10-01')
+  const reopened = await app.inject({ method: 'PUT', url: `/api/esih/highlights/${id}`, headers: user, payload: { status: 'Open' } })
+  assert.equal(reopened.statusCode, 200, reopened.body)
+  assert.equal(reopened.json().data.closedDate, null)
+  await app.inject({ method: 'DELETE', url: `/api/esih/highlights/${id}`, headers: user })
+})
+
 const activity = {
   kegiatan: 'Laporan kegiatan lengkap', descriptionAction: 'Deskripsi panjang yang tetap terbaca di modal.',
   startDate: '2026-08-08', dueDate: '2026-08-15', status: 'Open',

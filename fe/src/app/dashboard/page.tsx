@@ -950,8 +950,18 @@ export default function DashboardPage() {
   const monthlyData = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return months.map((month, index) => {
-      const closed = filtered.filter((a: any) => new Date(a.startDate).getMonth() === index && a.status === 'Closed').length
-      const open = filtered.filter((a: any) => new Date(a.startDate).getMonth() === index && (a.status === 'Open' || a.status === 'On Progress')).length
+      const closed = filtered.filter((a: any) => {
+        const dStr = activityDate(a)
+        if (!dStr) return false
+        const d = new Date(dStr)
+        return !isNaN(d.getTime()) && d.getMonth() === index && a.status === 'Closed'
+      }).length
+      const open = filtered.filter((a: any) => {
+        const dStr = activityDate(a)
+        if (!dStr) return false
+        const d = new Date(dStr)
+        return !isNaN(d.getTime()) && d.getMonth() === index && (a.status === 'Open' || a.status === 'On Progress')
+      }).length
       return { month, Selesai: closed, Berjalan: open }
     })
   }, [filtered])
@@ -1017,32 +1027,36 @@ export default function DashboardPage() {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return months.map((month, index) => {
       const closedAccumulated = filtered.filter((a: any) => {
-        const d = new Date(a.startDate)
-        return d.getMonth() <= index && a.status === 'Closed'
+        const dStr = activityDate(a)
+        if (!dStr) return false
+        const d = new Date(dStr)
+        return !isNaN(d.getTime()) && d.getMonth() <= index && a.status === 'Closed'
       }).length
       return { month, Akumulatif: closedAccumulated }
     })
   }, [filtered])
 
+  // Helper: resolve program code dari relasi data, bukan hardcoded nama
+  const getActivityProgramCode = (a: any): string => {
+    // 1. Prioritas: relasi program → programKerja.kode (paling akurat)
+    const relCode = a.program?.programKerja?.kode?.toUpperCase()
+    if (relCode) return relCode
+    // 2. Fallback: kategoriProgram (diset backend saat create/update)
+    const kat = (a.kategoriProgram || '').toUpperCase()
+    if (kat.startsWith('A') || kat.startsWith('B') || kat.startsWith('C')) return kat.charAt(0)
+    // 3. Tidak ada program → kosong
+    return ''
+  }
+
   const selectedProgramActivities = useMemo(() => {
     if (selectedPieProgram === 'ALL') return filtered
     return filtered.filter((a: any) => {
-      const kat = (a.kategoriProgram || '').toUpperCase()
-      const progId = (a.idProgram || '').toUpperCase()
-      const item = (a.itemName || '').toUpperCase()
-      const pic = (a.picNama || '').toUpperCase()
-      const keg = (a.kegiatan || '').toUpperCase()
-
-      if (selectedPieProgram === 'SISTEM' || selectedPieProgram === 'B') {
-        return progId.includes('B') || kat.startsWith('B') || kat.includes('SUSTAINABLE') || kat.includes('AUDIT') || kat.includes('SISTEM') || kat.includes('ISO') || pic.includes('HERBINA')
-      }
-      if (selectedPieProgram === 'HSSE' || selectedPieProgram === 'C') {
-        return progId.includes('C') || kat.startsWith('C') || kat.includes('HSE') || kat.includes('HSSE') || kat.includes('SAFETY') || kat.includes('ENVIRONMENT') || pic.includes('AGUNG') || pic.includes('FITRI') || keg.includes('HSE') || keg.includes('SAFETY')
-      }
-      if (selectedPieProgram === 'IT' || selectedPieProgram === 'A') {
-        return progId.includes('A') || kat.startsWith('A') || kat.includes('DIGITAL') || kat.includes('IT') || kat.includes('INFRA') || kat.includes('DEVELOPMENT') || pic.includes('KURNIAWAN') || pic.includes('SALMAN') || pic.includes('TOMMY') || pic.includes('AUNDRY') || keg.includes('IT')
-      }
-      return kat.startsWith(selectedPieProgram) || progId.includes(selectedPieProgram)
+      const code = getActivityProgramCode(a)
+      // Map selectors ke kode program
+      if (selectedPieProgram === 'IT' || selectedPieProgram === 'A') return code === 'A'
+      if (selectedPieProgram === 'SISTEM' || selectedPieProgram === 'B') return code === 'B'
+      if (selectedPieProgram === 'HSSE' || selectedPieProgram === 'C') return code === 'C'
+      return code === selectedPieProgram.toUpperCase()
     })
   }, [filtered, selectedPieProgram])
 
@@ -1070,7 +1084,7 @@ export default function DashboardPage() {
       { name: 'Prog C', fullName: 'HSE & Safety', key: 'C' }
     ]
     return groups.map(g => {
-      const gActs = filtered.filter((a: any) => a.kategoriProgram?.startsWith(g.key) || a.idProgram?.includes(g.key))
+      const gActs = filtered.filter((a: any) => getActivityProgramCode(a) === g.key)
       const closed = gActs.filter((a: any) => a.status === 'Closed').length
       const progress = gActs.filter((a: any) => a.status === 'On Progress' || a.status === 'Open').length
       return { program: g.name, fullName: g.fullName, Selesai: closed, Berjalan: progress, Total: gActs.length }
@@ -1096,15 +1110,11 @@ export default function DashboardPage() {
     }
 
     filtered.forEach((a: any) => {
-      const progId = a.idProgram || ''
-      let code = 'A'
-      if (progId.includes('B')) code = 'B'
-      if (progId.includes('C')) code = 'C'
-
-      if (catMap[code]) {
-        catMap[code].total += 1
-        if (a.status === 'Closed') catMap[code].closed += 1
-      }
+      const code = getActivityProgramCode(a)
+      // Activity tanpa program (Personal) → skip, jangan inflate Program A
+      if (!code || !catMap[code]) return
+      catMap[code].total += 1
+      if (a.status === 'Closed') catMap[code].closed += 1
     })
 
     return [
@@ -1560,7 +1570,7 @@ export default function DashboardPage() {
                 <FolderKanban size={18} className="text-brand-700" /> Program Kerja Ku ({selectedYear})
               </h3>
               <p className="text-xs text-slate-600 font-semibold mt-0.5">
-                Semua program kerja operasional. Gunakan filter untuk mempersempit berdasarkan PIC, status, atau rentang tanggal.
+                Semua program kerja operasional. Gunakan filter untuk mempersempit berdasarkan status atau rentang tanggal.
               </p>
             </div>
             <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200 self-start sm:self-auto">
@@ -1570,12 +1580,6 @@ export default function DashboardPage() {
 
           {/* Filter Controls */}
           <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs flex flex-wrap items-center gap-2.5">
-            <PicFilterDropdown
-              value={programPicFilter}
-              onChange={setProgramPicFilter}
-              options={programPicOptions}
-            />
-
             <select
               value={programStatusFilter}
               onChange={(e) => setProgramStatusFilter(e.target.value)}
@@ -1620,11 +1624,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {(programPicFilter !== 'ALL' || programStatusFilter !== 'ALL' || programStartDate || programEndDate) && (
+            {(programStatusFilter !== 'ALL' || programStartDate || programEndDate) && (
               <button
                 type="button"
                 onClick={() => {
-                  setProgramPicFilter('ALL')
                   setProgramStatusFilter('ALL')
                   setProgramStartDate('')
                   setProgramEndDate('')
